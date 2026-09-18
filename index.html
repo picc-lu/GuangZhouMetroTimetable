@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广州地铁 · 运营时间展示 · 灰色站点当全停运</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="banner">广州地铁运营时间展示</div>
+<div class="controls">
+    <div class="controls-row-1">
+        <div class="time-panel" id="custom-time-panel">
+            <label>⏱ 自定义</label>
+            <select id="hour-select"></select>
+            <span>:</span>
+            <select id="minute-select"></select>
+            <button id="apply-custom-time" class="action-button">应用</button>
+        </div>
+        <div class="system-time-area" id="system-time-panel">
+            <span id="real-time-clock">--:--</span>
+            <button id="use-system-time" class="action-button">应用系统时间</button>
+        </div>
+        <div class="filter-area">
+            <label>🚉 筛选</label>
+            <select id="line-filter" class="filter-select" multiple size="1"></select>
+            <button id="select-all" class="action-button">全选</button>
+            <button id="deselect-all" class="action-button">清空</button>
+        </div>
+        <div class="size-control">
+            <label>📏 尺寸</label>
+            <select id="size-select">
+                <option value="65">最大</option>
+                <option value="55">大</option>
+                <option value="45" selected>中</option>
+            </select>
+        </div>
+    </div>
+    <div class="controls-row-2">
+        <div class="file-group">
+            <button id="fetch-data-btn" class="action-button" style="background:#2e7d32;">🚇 获取最新首末时间数据</button>
+        </div>
+        <div class="header-version" id="version-display">线路版本: 加载中…</div>
+    </div>
+    <div class="controls-row-3" id="line-buttons-row"></div>
+</div>
+
+<div class="map-wrapper" id="map-wrapper"></div>
+<div class="notice-area">注意：①乘坐末班车时，建议预留至少5分钟进站时间<br>②节假日首末班车以官方公布为准</div>
+
+<!-- 数据文件 -->
+<script src="广州地铁线路各站.js"></script>
+<script src="广州地铁运营时间.js"></script>
+
+<!-- 模块化JS文件（按顺序加载） -->
+<script src="constants.js"></script>
+<script src="utils.js"></script>
+<script src="cache.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="render.js"></script>
+<script src="time.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

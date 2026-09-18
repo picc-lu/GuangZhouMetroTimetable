@@ -1,0 +1,5815 @@
+var timeData = [{
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:02",
+    "stationName": "林和西",
+    "endTime": "23:53"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:02",
+    "stationName": "林和西",
+    "endTime": "23:32"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:00",
+    "stationName": "林和西",
+    "endTime": "23:30"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:02",
+    "stationName": "体育中心南",
+    "endTime": "23:31"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:09",
+    "stationName": "体育中心南",
+    "endTime": "23:38"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:03",
+    "stationName": "天河南",
+    "endTime": "23:32"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:08",
+    "stationName": "天河南",
+    "endTime": "23:37"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:04",
+    "stationName": "黄埔大道",
+    "endTime": "23:33"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:06",
+    "stationName": "黄埔大道",
+    "endTime": "23:35"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:06",
+    "stationName": "妇儿中心",
+    "endTime": "23:34"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:05",
+    "stationName": "妇儿中心",
+    "endTime": "23:34"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:07",
+    "stationName": "花城大道",
+    "endTime": "23:36"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:04",
+    "stationName": "花城大道",
+    "endTime": "23:33"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:08",
+    "stationName": "大剧院",
+    "endTime": "23:37"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:03",
+    "stationName": "大剧院",
+    "endTime": "23:32"
+}, {
+    "toStationName": "广州塔",
+    "lineCn": "APM",
+    "startTime": "07:09",
+    "stationName": "海心沙",
+    "endTime": "23:38"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:01",
+    "stationName": "海心沙",
+    "endTime": "23:31"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:11",
+    "stationName": "广州塔",
+    "endTime": "23:20"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:16",
+    "stationName": "广州塔",
+    "endTime": "23:47"
+}, {
+    "toStationName": "林和西",
+    "lineCn": "APM",
+    "startTime": "07:00",
+    "stationName": "广州塔",
+    "endTime": "23:30"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:00",
+    "stationName": "西塱",
+    "endTime": "22:55"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:10",
+    "stationName": "西塱",
+    "endTime": "23:11"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:10",
+    "stationName": "西塱",
+    "endTime": "23:15"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:13",
+    "stationName": "西塱",
+    "endTime": "23:19"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:02",
+    "stationName": "西塱",
+    "endTime": "23:03"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:00",
+    "stationName": "西塱",
+    "endTime": "23:00"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:29",
+    "stationName": "坑口",
+    "endTime": "00:00"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:02",
+    "stationName": "坑口",
+    "endTime": "22:57"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:27",
+    "stationName": "花地湾",
+    "endTime": "23:58"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:04",
+    "stationName": "花地湾",
+    "endTime": "22:58"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:25",
+    "stationName": "芳村",
+    "endTime": "23:55"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:06",
+    "stationName": "芳村",
+    "endTime": "23:00"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:00",
+    "stationName": "芳村",
+    "endTime": "23:00"
+}, {
+    "toStationName": "芳村(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:01",
+    "stationName": "芳村",
+    "endTime": "22:32"
+}, {
+    "toStationName": "芳村(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:08",
+    "stationName": "芳村",
+    "endTime": "22:08"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:01",
+    "stationName": "芳村",
+    "endTime": "23:47"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:08",
+    "stationName": "芳村",
+    "endTime": "23:23"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:23",
+    "stationName": "黄沙",
+    "endTime": "23:53"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:08",
+    "stationName": "黄沙",
+    "endTime": "23:03"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:12",
+    "stationName": "黄沙",
+    "endTime": "23:45"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:12",
+    "stationName": "黄沙",
+    "endTime": "23:02"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:21",
+    "stationName": "长寿路",
+    "endTime": "23:51"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:10",
+    "stationName": "长寿路",
+    "endTime": "23:04"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:19",
+    "stationName": "陈家祠",
+    "endTime": "23:48"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:12",
+    "stationName": "陈家祠",
+    "endTime": "23:06"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:23",
+    "stationName": "陈家祠",
+    "endTime": "23:23"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:06",
+    "stationName": "陈家祠",
+    "endTime": "23:32"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:17",
+    "stationName": "西门口",
+    "endTime": "23:46"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:14",
+    "stationName": "西门口",
+    "endTime": "23:08"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:15",
+    "stationName": "公园前",
+    "endTime": "23:44"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:10",
+    "stationName": "公园前",
+    "endTime": "23:10"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:16",
+    "stationName": "公园前",
+    "endTime": "23:57"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:12",
+    "stationName": "公园前",
+    "endTime": "23:57"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:22",
+    "stationName": "农讲所",
+    "endTime": "23:42"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:12",
+    "stationName": "农讲所",
+    "endTime": "23:12"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:20",
+    "stationName": "烈士陵园",
+    "endTime": "23:40"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:14",
+    "stationName": "烈士陵园",
+    "endTime": "23:14"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:18",
+    "stationName": "东山口",
+    "endTime": "23:39"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:16",
+    "stationName": "东山口",
+    "endTime": "23:16"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:17",
+    "stationName": "东山口",
+    "endTime": "23:31"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:21",
+    "stationName": "东山口",
+    "endTime": "23:16"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:16",
+    "stationName": "杨箕",
+    "endTime": "23:36"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:18",
+    "stationName": "杨箕",
+    "endTime": "23:18"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "杨箕",
+    "endTime": "23:52"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:15",
+    "stationName": "杨箕",
+    "endTime": "23:25"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "杨箕",
+    "endTime": "23:23"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:14",
+    "stationName": "体育西路",
+    "endTime": "23:34"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:20",
+    "stationName": "体育西路",
+    "endTime": "23:20"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:00",
+    "stationName": "体育西路",
+    "endTime": "23:30"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:17",
+    "stationName": "体育西路",
+    "endTime": "23:25"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:12",
+    "stationName": "体育西路",
+    "endTime": "23:42"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:12",
+    "stationName": "体育中心",
+    "endTime": "23:32"
+}, {
+    "toStationName": "广州东站",
+    "lineCn": "1号线",
+    "startTime": "06:22",
+    "stationName": "体育中心",
+    "endTime": "23:22"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "1号线",
+    "startTime": "06:10",
+    "stationName": "广州东站",
+    "endTime": "23:30"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:00",
+    "stationName": "广州东站",
+    "endTime": "23:50"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:04",
+    "stationName": "广州东站",
+    "endTime": "23:34"
+}, {
+    "toStationName": "广州东站(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:17",
+    "stationName": "广州东站",
+    "endTime": "22:02"
+}, {
+    "toStationName": "广州东站(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:15",
+    "stationName": "广州东站",
+    "endTime": "22:38"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:17",
+    "stationName": "广州东站",
+    "endTime": "23:17"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:15",
+    "stationName": "广州东站",
+    "endTime": "23:53"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:00",
+    "stationName": "广州南站",
+    "endTime": "23:30"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:10",
+    "stationName": "广州南站",
+    "endTime": "23:43"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "广州南站",
+    "endTime": "23:30"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "广州南站",
+    "endTime": "23:05"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:11",
+    "stationName": "广州南站",
+    "endTime": "23:06"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:02",
+    "stationName": "广州南站",
+    "endTime": "23:17"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:00",
+    "stationName": "广州南站",
+    "endTime": "23:30"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:26",
+    "stationName": "石壁",
+    "endTime": "00:23"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:02",
+    "stationName": "石壁",
+    "endTime": "23:31"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:24",
+    "stationName": "石壁",
+    "endTime": "23:41"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:02",
+    "stationName": "石壁",
+    "endTime": "23:33"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:02",
+    "stationName": "石壁",
+    "endTime": "23:08"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:23",
+    "stationName": "会江",
+    "endTime": "00:20"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:05",
+    "stationName": "会江",
+    "endTime": "23:35"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:20",
+    "stationName": "南浦",
+    "endTime": "00:17"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:08",
+    "stationName": "南浦",
+    "endTime": "23:36"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:18",
+    "stationName": "洛溪",
+    "endTime": "00:15"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:10",
+    "stationName": "洛溪",
+    "endTime": "23:39"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:15",
+    "stationName": "南洲",
+    "endTime": "00:12"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:13",
+    "stationName": "南洲",
+    "endTime": "23:42"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:25",
+    "stationName": "南洲",
+    "endTime": "23:27"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:02",
+    "stationName": "南洲",
+    "endTime": "23:02"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:28",
+    "stationName": "东晓南",
+    "endTime": "00:10"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:15",
+    "stationName": "东晓南",
+    "endTime": "23:44"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:17",
+    "stationName": "东晓南",
+    "endTime": "23:49"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:12",
+    "stationName": "东晓南",
+    "endTime": "23:11"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:26",
+    "stationName": "江泰路",
+    "endTime": "00:07"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:10",
+    "stationName": "江泰路",
+    "endTime": "23:47"
+}, {
+    "toStationName": "江泰路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "江泰路",
+    "endTime": "22:45"
+}, {
+    "toStationName": "江泰路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "江泰路",
+    "endTime": "21:55"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "江泰路",
+    "endTime": "00:00"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "江泰路",
+    "endTime": "23:10"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:24",
+    "stationName": "昌岗",
+    "endTime": "00:06"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:12",
+    "stationName": "昌岗",
+    "endTime": "23:49"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:18",
+    "stationName": "昌岗",
+    "endTime": "23:36"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:13",
+    "stationName": "昌岗",
+    "endTime": "23:18"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:22",
+    "stationName": "江南西",
+    "endTime": "00:04"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:14",
+    "stationName": "江南西",
+    "endTime": "23:51"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:21",
+    "stationName": "市二宫",
+    "endTime": "00:02"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:16",
+    "stationName": "市二宫",
+    "endTime": "23:52"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:19",
+    "stationName": "海珠广场",
+    "endTime": "00:00"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:18",
+    "stationName": "海珠广场",
+    "endTime": "23:55"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:07",
+    "stationName": "海珠广场",
+    "endTime": "23:39"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:14",
+    "stationName": "海珠广场",
+    "endTime": "23:08"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:15",
+    "stationName": "纪念堂",
+    "endTime": "23:55"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:14",
+    "stationName": "纪念堂",
+    "endTime": "23:59"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:13",
+    "stationName": "越秀公园",
+    "endTime": "23:54"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:16",
+    "stationName": "越秀公园",
+    "endTime": "00:01"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:11",
+    "stationName": "广州火车站",
+    "endTime": "23:51"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:18",
+    "stationName": "广州火车站",
+    "endTime": "00:03"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "广州火车站",
+    "endTime": "23:41"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "广州火车站",
+    "endTime": "23:37"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "广州火车站",
+    "endTime": "23:11"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:10",
+    "stationName": "三元里",
+    "endTime": "23:49"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:10",
+    "stationName": "三元里",
+    "endTime": "00:05"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:13",
+    "stationName": "飞翔公园",
+    "endTime": "23:47"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:12",
+    "stationName": "飞翔公园",
+    "endTime": "00:07"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:11",
+    "stationName": "白云公园",
+    "endTime": "23:45"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:14",
+    "stationName": "白云公园",
+    "endTime": "00:09"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:09",
+    "stationName": "白云文化广场",
+    "endTime": "23:43"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:16",
+    "stationName": "白云文化广场",
+    "endTime": "00:11"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:02",
+    "stationName": "白云文化广场",
+    "endTime": "23:41"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:17",
+    "stationName": "白云文化广场",
+    "endTime": "23:17"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:07",
+    "stationName": "萧岗",
+    "endTime": "23:41"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:18",
+    "stationName": "萧岗",
+    "endTime": "00:13"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:05",
+    "stationName": "江夏",
+    "endTime": "23:38"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:21",
+    "stationName": "江夏",
+    "endTime": "00:14"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:03",
+    "stationName": "黄边",
+    "endTime": "23:36"
+}, {
+    "toStationName": "嘉禾望岗",
+    "lineCn": "2号线",
+    "startTime": "06:23",
+    "stationName": "黄边",
+    "endTime": "00:16"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "2号线",
+    "startTime": "06:00",
+    "stationName": "嘉禾望岗",
+    "endTime": "23:35"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:00",
+    "stationName": "嘉禾望岗",
+    "endTime": "23:32"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:00",
+    "stationName": "嘉禾望岗",
+    "endTime": "23:52"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:00",
+    "stationName": "嘉禾望岗",
+    "endTime": "23:04"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:00",
+    "stationName": "嘉禾望岗",
+    "endTime": "23:26"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:15",
+    "stationName": "海傍",
+    "endTime": "22:45"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:17",
+    "stationName": "海傍",
+    "endTime": "23:08"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:18",
+    "stationName": "海傍",
+    "endTime": "23:47"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:17",
+    "stationName": "海涌路",
+    "endTime": "22:47"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:25",
+    "stationName": "海涌路",
+    "endTime": "00:22"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:20",
+    "stationName": "石碁南",
+    "endTime": "22:49"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:22",
+    "stationName": "石碁南",
+    "endTime": "00:20"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:23",
+    "stationName": "傍江",
+    "endTime": "22:52"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:19",
+    "stationName": "傍江",
+    "endTime": "00:16"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:00",
+    "stationName": "番禺广场",
+    "endTime": "22:55"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:16",
+    "stationName": "番禺广场",
+    "endTime": "00:13"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:00",
+    "stationName": "番禺广场",
+    "endTime": "22:47"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:05",
+    "stationName": "番禺广场",
+    "endTime": "23:38"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:00",
+    "stationName": "番禺广场",
+    "endTime": "22:55"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:03",
+    "stationName": "市桥",
+    "endTime": "22:59"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:12",
+    "stationName": "市桥",
+    "endTime": "00:09"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:08",
+    "stationName": "汉溪长隆",
+    "endTime": "23:04"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:06",
+    "stationName": "汉溪长隆",
+    "endTime": "00:04"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:15",
+    "stationName": "汉溪长隆",
+    "endTime": "23:32"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "汉溪长隆",
+    "endTime": "23:42"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "汉溪长隆",
+    "endTime": "23:17"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:12",
+    "stationName": "大石",
+    "endTime": "23:07"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:03",
+    "stationName": "大石",
+    "endTime": "00:00"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:00",
+    "stationName": "厦滘",
+    "endTime": "23:10"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:27",
+    "stationName": "厦滘",
+    "endTime": "23:58"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:02",
+    "stationName": "沥滘",
+    "endTime": "23:12"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:25",
+    "stationName": "沥滘",
+    "endTime": "23:55"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:00",
+    "stationName": "沥滘",
+    "endTime": "23:00"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:06",
+    "stationName": "大塘",
+    "endTime": "23:15"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:21",
+    "stationName": "大塘",
+    "endTime": "23:52"
+}, {
+    "toStationName": "大塘(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "大塘",
+    "endTime": "22:53"
+}, {
+    "toStationName": "大塘(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:01",
+    "stationName": "大塘",
+    "endTime": "21:46"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "大塘",
+    "endTime": "00:08"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:01",
+    "stationName": "大塘",
+    "endTime": "23:01"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:09",
+    "stationName": "客村",
+    "endTime": "23:18"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:19",
+    "stationName": "客村",
+    "endTime": "23:49"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:14",
+    "stationName": "客村",
+    "endTime": "23:45"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:04",
+    "stationName": "客村",
+    "endTime": "23:09"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:14",
+    "stationName": "珠江新城",
+    "endTime": "23:23"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:14",
+    "stationName": "珠江新城",
+    "endTime": "23:44"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "珠江新城",
+    "endTime": "23:56"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "珠江新城",
+    "endTime": "23:21"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "珠江新城",
+    "endTime": "23:27"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:17",
+    "stationName": "燕塘",
+    "endTime": "23:48"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:07",
+    "stationName": "燕塘",
+    "endTime": "23:36"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:14",
+    "stationName": "燕塘",
+    "endTime": "23:20"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:20",
+    "stationName": "燕塘",
+    "endTime": "23:27"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:14",
+    "stationName": "梅花园",
+    "endTime": "23:45"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:09",
+    "stationName": "梅花园",
+    "endTime": "23:39"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:11",
+    "stationName": "京溪南方医院",
+    "endTime": "23:43"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:12",
+    "stationName": "京溪南方医院",
+    "endTime": "23:41"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:08",
+    "stationName": "同和",
+    "endTime": "23:40"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:14",
+    "stationName": "同和",
+    "endTime": "23:43"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:04",
+    "stationName": "永泰",
+    "endTime": "23:37"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:18",
+    "stationName": "永泰",
+    "endTime": "23:47"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:02",
+    "stationName": "白云大道北",
+    "endTime": "23:35"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:20",
+    "stationName": "白云大道北",
+    "endTime": "23:49"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:13",
+    "stationName": "龙归",
+    "endTime": "23:27"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:05",
+    "stationName": "龙归",
+    "endTime": "23:57"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:08",
+    "stationName": "人和",
+    "endTime": "23:22"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:10",
+    "stationName": "人和",
+    "endTime": "00:02"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:05",
+    "stationName": "高增",
+    "endTime": "23:19"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:13",
+    "stationName": "高增",
+    "endTime": "00:05"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:06",
+    "stationName": "高增",
+    "endTime": "23:15"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:02",
+    "stationName": "机场南（1号航站楼）",
+    "endTime": "23:16"
+}, {
+    "toStationName": "机场北（2号航站楼）",
+    "lineCn": "3号线北",
+    "startTime": "06:16",
+    "stationName": "机场南（1号航站楼）",
+    "endTime": "00:09"
+}, {
+    "toStationName": "体育西路",
+    "lineCn": "3号线北",
+    "startTime": "06:00",
+    "stationName": "机场北（2号航站楼）",
+    "endTime": "23:15"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:20",
+    "stationName": "石牌桥",
+    "endTime": "23:29"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:19",
+    "stationName": "石牌桥",
+    "endTime": "23:39"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:22",
+    "stationName": "岗顶",
+    "endTime": "23:31"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:17",
+    "stationName": "岗顶",
+    "endTime": "23:37"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:24",
+    "stationName": "华师",
+    "endTime": "23:33"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:15",
+    "stationName": "华师",
+    "endTime": "23:35"
+}, {
+    "toStationName": "华师(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:12",
+    "stationName": "华师",
+    "endTime": "21:57"
+}, {
+    "toStationName": "华师(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:01",
+    "stationName": "华师",
+    "endTime": "22:42"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:12",
+    "stationName": "华师",
+    "endTime": "23:12"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:01",
+    "stationName": "华师",
+    "endTime": "23:58"
+}, {
+    "toStationName": "天河客运站",
+    "lineCn": "3号线",
+    "startTime": "06:27",
+    "stationName": "五山",
+    "endTime": "23:35"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:13",
+    "stationName": "五山",
+    "endTime": "23:32"
+}, {
+    "toStationName": "海傍",
+    "lineCn": "3号线",
+    "startTime": "06:10",
+    "stationName": "天河客运站",
+    "endTime": "23:30"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:11",
+    "stationName": "天河客运站",
+    "endTime": "23:16"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:23",
+    "stationName": "天河客运站",
+    "endTime": "23:30"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:00",
+    "stationName": "南沙客运港",
+    "endTime": "22:30"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "——",
+    "stationName": "南沙客运港",
+    "endTime": "——"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:02",
+    "stationName": "南横",
+    "endTime": "22:32"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:19",
+    "stationName": "南横",
+    "endTime": "00:23"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:06",
+    "stationName": "塘坑",
+    "endTime": "22:35"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:16",
+    "stationName": "塘坑",
+    "endTime": "00:20"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:08",
+    "stationName": "大涌",
+    "endTime": "22:38"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:14",
+    "stationName": "大涌",
+    "endTime": "00:17"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:11",
+    "stationName": "广隆",
+    "endTime": "22:41"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:12",
+    "stationName": "广隆",
+    "endTime": "00:15"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:13",
+    "stationName": "飞沙角",
+    "endTime": "22:43"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:15",
+    "stationName": "飞沙角",
+    "endTime": "00:13"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:10",
+    "stationName": "金洲",
+    "endTime": "22:45"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:12",
+    "stationName": "金洲",
+    "endTime": "00:10"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:12",
+    "stationName": "蕉门",
+    "endTime": "22:48"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:09",
+    "stationName": "蕉门",
+    "endTime": "00:07"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:15",
+    "stationName": "黄阁",
+    "endTime": "22:52"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:05",
+    "stationName": "黄阁",
+    "endTime": "00:04"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:18",
+    "stationName": "黄阁汽车城",
+    "endTime": "22:54"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:03",
+    "stationName": "黄阁汽车城",
+    "endTime": "00:01"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:08",
+    "stationName": "庆盛（南沙北站）",
+    "endTime": "22:58"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:00",
+    "stationName": "庆盛（南沙北站）",
+    "endTime": "23:57"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:10",
+    "stationName": "东涌",
+    "endTime": "23:01"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:07",
+    "stationName": "东涌",
+    "endTime": "23:54"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:14",
+    "stationName": "低涌",
+    "endTime": "23:05"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:21",
+    "stationName": "低涌",
+    "endTime": "23:50"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:20",
+    "stationName": "石碁",
+    "endTime": "23:11"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:16",
+    "stationName": "石碁",
+    "endTime": "23:44"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:00",
+    "stationName": "新造",
+    "endTime": "23:20"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:15",
+    "stationName": "新造",
+    "endTime": "23:35"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:03",
+    "stationName": "大学城南",
+    "endTime": "23:24"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:18",
+    "stationName": "大学城南",
+    "endTime": "23:32"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "大学城南",
+    "endTime": "23:16"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:16",
+    "stationName": "大学城南",
+    "endTime": "23:58"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:16",
+    "stationName": "大学城南",
+    "endTime": "23:33"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:00",
+    "stationName": "大学城南",
+    "endTime": "23:00"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:06",
+    "stationName": "大学城北",
+    "endTime": "23:27"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:14",
+    "stationName": "大学城北",
+    "endTime": "23:28"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:18",
+    "stationName": "大学城北",
+    "endTime": "23:56"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:02",
+    "stationName": "大学城北",
+    "endTime": "23:02"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:09",
+    "stationName": "官洲",
+    "endTime": "23:29"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:12",
+    "stationName": "官洲",
+    "endTime": "23:26"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:16",
+    "stationName": "官洲",
+    "endTime": "23:54"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:05",
+    "stationName": "官洲",
+    "endTime": "23:05"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:13",
+    "stationName": "万胜围",
+    "endTime": "23:33"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:07",
+    "stationName": "万胜围",
+    "endTime": "23:22"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:10",
+    "stationName": "万胜围",
+    "endTime": "23:00"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:16",
+    "stationName": "车陂南",
+    "endTime": "23:36"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:04",
+    "stationName": "车陂南",
+    "endTime": "23:19"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "车陂南",
+    "endTime": "00:08"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:07",
+    "stationName": "车陂南",
+    "endTime": "23:09"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "车陂南",
+    "endTime": "23:39"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "06:18",
+    "stationName": "车陂",
+    "endTime": "23:39"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:02",
+    "stationName": "车陂",
+    "endTime": "23:17"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:07",
+    "stationName": "车陂",
+    "endTime": "23:10"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:24",
+    "stationName": "车陂",
+    "endTime": "23:07"
+}, {
+    "toStationName": "黄村",
+    "lineCn": "4号线",
+    "startTime": "——",
+    "stationName": "黄村",
+    "endTime": "——"
+}, {
+    "toStationName": "南沙客运港",
+    "lineCn": "4号线",
+    "startTime": "06:00",
+    "stationName": "黄村",
+    "endTime": "23:15"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:08",
+    "stationName": "黄村",
+    "endTime": "23:11"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:15",
+    "stationName": "黄村",
+    "endTime": "23:33"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:15",
+    "stationName": "滘口",
+    "endTime": "23:30"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:15",
+    "stationName": "滘口",
+    "endTime": "23:00"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:17",
+    "stationName": "坦尾",
+    "endTime": "23:32"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:19",
+    "stationName": "坦尾",
+    "endTime": "23:46"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:17",
+    "stationName": "坦尾",
+    "endTime": "23:02"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:17",
+    "stationName": "坦尾",
+    "endTime": "23:50"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:08",
+    "stationName": "坦尾",
+    "endTime": "22:58"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:19",
+    "stationName": "中山八",
+    "endTime": "23:34"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "中山八",
+    "endTime": "23:44"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:19",
+    "stationName": "中山八",
+    "endTime": "23:04"
+}, {
+    "toStationName": "中山八(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:15",
+    "stationName": "中山八",
+    "endTime": "22:24"
+}, {
+    "toStationName": "中山八(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:16",
+    "stationName": "中山八",
+    "endTime": "22:16"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:15",
+    "stationName": "中山八",
+    "endTime": "23:39"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:16",
+    "stationName": "中山八",
+    "endTime": "23:31"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "西场",
+    "endTime": "23:36"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:15",
+    "stationName": "西场",
+    "endTime": "23:41"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "西场",
+    "endTime": "23:06"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:12",
+    "stationName": "西村",
+    "endTime": "23:38"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:18",
+    "stationName": "西村",
+    "endTime": "23:39"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:12",
+    "stationName": "西村",
+    "endTime": "23:08"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:19",
+    "stationName": "西村",
+    "endTime": "23:19"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:09",
+    "stationName": "西村",
+    "endTime": "23:37"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:17",
+    "stationName": "小北",
+    "endTime": "23:44"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:13",
+    "stationName": "小北",
+    "endTime": "23:34"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:17",
+    "stationName": "小北",
+    "endTime": "23:14"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "淘金",
+    "endTime": "23:46"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "淘金",
+    "endTime": "23:32"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "淘金",
+    "endTime": "23:16"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:12",
+    "stationName": "区庄",
+    "endTime": "23:48"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "区庄",
+    "endTime": "23:29"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:12",
+    "stationName": "区庄",
+    "endTime": "23:18"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:15",
+    "stationName": "区庄",
+    "endTime": "23:29"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:11",
+    "stationName": "区庄",
+    "endTime": "23:18"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "动物园",
+    "endTime": "23:50"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:17",
+    "stationName": "动物园",
+    "endTime": "23:27"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "动物园",
+    "endTime": "23:20"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:18",
+    "stationName": "五羊邨",
+    "endTime": "23:54"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:13",
+    "stationName": "五羊邨",
+    "endTime": "23:23"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:18",
+    "stationName": "五羊邨",
+    "endTime": "23:25"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:16",
+    "stationName": "五羊邨",
+    "endTime": "23:36"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:25",
+    "stationName": "五羊邨",
+    "endTime": "23:25"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:08",
+    "stationName": "猎德",
+    "endTime": "23:59"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "猎德",
+    "endTime": "23:19"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:08",
+    "stationName": "猎德",
+    "endTime": "23:29"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:09",
+    "stationName": "潭村",
+    "endTime": "00:01"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "潭村",
+    "endTime": "23:16"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:09",
+    "stationName": "潭村",
+    "endTime": "23:32"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:12",
+    "stationName": "员村",
+    "endTime": "00:04"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "员村",
+    "endTime": "23:14"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:12",
+    "stationName": "员村",
+    "endTime": "23:34"
+}, {
+    "toStationName": "员村(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "员村",
+    "endTime": "21:49"
+}, {
+    "toStationName": "员村(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:08",
+    "stationName": "员村",
+    "endTime": "22:50"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "员村",
+    "endTime": "23:04"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:08",
+    "stationName": "员村",
+    "endTime": "00:05"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "科韵路",
+    "endTime": "00:06"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:09",
+    "stationName": "科韵路",
+    "endTime": "23:11"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:14",
+    "stationName": "科韵路",
+    "endTime": "23:37"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:18",
+    "stationName": "东圃",
+    "endTime": "00:10"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:04",
+    "stationName": "东圃",
+    "endTime": "23:06"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:18",
+    "stationName": "东圃",
+    "endTime": "23:42"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:20",
+    "stationName": "三溪",
+    "endTime": "00:13"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:03",
+    "stationName": "三溪",
+    "endTime": "23:04"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:20",
+    "stationName": "三溪",
+    "endTime": "23:44"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "鱼珠",
+    "endTime": "00:15"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:05",
+    "stationName": "鱼珠",
+    "endTime": "23:00"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "鱼珠",
+    "endTime": "23:47"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:15",
+    "stationName": "鱼珠",
+    "endTime": "23:18"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:17",
+    "stationName": "鱼珠",
+    "endTime": "23:00"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "大沙地",
+    "endTime": "00:18"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:03",
+    "stationName": "大沙地",
+    "endTime": "22:58"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "大沙地",
+    "endTime": "23:49"
+}, {
+    "toStationName": "文冲",
+    "lineCn": "5号线",
+    "startTime": "06:13",
+    "stationName": "大沙东",
+    "endTime": "00:20"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:01",
+    "stationName": "大沙东",
+    "endTime": "22:56"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:13",
+    "stationName": "大沙东",
+    "endTime": "23:51"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:17",
+    "stationName": "大沙东",
+    "endTime": "23:01"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:30",
+    "stationName": "大沙东",
+    "endTime": "00:13"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:30",
+    "stationName": "大沙东",
+    "endTime": "23:48"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:00",
+    "stationName": "文冲",
+    "endTime": "22:55"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:16",
+    "stationName": "文冲",
+    "endTime": "23:54"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:11",
+    "stationName": "双沙",
+    "endTime": "22:51"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:08",
+    "stationName": "双沙",
+    "endTime": "23:56"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:08",
+    "stationName": "庙头",
+    "endTime": "22:48"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:10",
+    "stationName": "庙头",
+    "endTime": "23:59"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:06",
+    "stationName": "夏园",
+    "endTime": "22:46"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:13",
+    "stationName": "夏园",
+    "endTime": "00:02"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:08",
+    "stationName": "夏园",
+    "endTime": "23:30"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:19",
+    "stationName": "夏园",
+    "endTime": "22:49"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:03",
+    "stationName": "保盈大道",
+    "endTime": "22:43"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:15",
+    "stationName": "保盈大道",
+    "endTime": "00:04"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:01",
+    "stationName": "夏港",
+    "endTime": "22:41"
+}, {
+    "toStationName": "黄埔新港",
+    "lineCn": "5号线",
+    "startTime": "06:17",
+    "stationName": "夏港",
+    "endTime": "00:07"
+}, {
+    "toStationName": "滘口",
+    "lineCn": "5号线",
+    "startTime": "06:00",
+    "stationName": "黄埔新港",
+    "endTime": "22:40"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:00",
+    "stationName": "浔峰岗",
+    "endTime": "22:50"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:00",
+    "stationName": "浔峰岗",
+    "endTime": "23:00"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:24",
+    "stationName": "横沙",
+    "endTime": "23:56"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:01",
+    "stationName": "横沙",
+    "endTime": "22:51"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:22",
+    "stationName": "沙贝",
+    "endTime": "23:55"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:02",
+    "stationName": "沙贝",
+    "endTime": "22:52"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:19",
+    "stationName": "河沙",
+    "endTime": "23:52"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:05",
+    "stationName": "河沙",
+    "endTime": "22:55"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:14",
+    "stationName": "如意坊",
+    "endTime": "23:47"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:10",
+    "stationName": "如意坊",
+    "endTime": "23:00"
+}, {
+    "toStationName": "如意坊(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:18",
+    "stationName": "如意坊",
+    "endTime": "22:26"
+}, {
+    "toStationName": "如意坊(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:13",
+    "stationName": "如意坊",
+    "endTime": "22:13"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:18",
+    "stationName": "如意坊",
+    "endTime": "23:41"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:13",
+    "stationName": "如意坊",
+    "endTime": "23:28"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:09",
+    "stationName": "文化公园",
+    "endTime": "23:27"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:03",
+    "stationName": "文化公园",
+    "endTime": "23:28"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:10",
+    "stationName": "文化公园",
+    "endTime": "23:43"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:14",
+    "stationName": "文化公园",
+    "endTime": "23:04"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:09",
+    "stationName": "一德路",
+    "endTime": "23:41"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:16",
+    "stationName": "一德路",
+    "endTime": "23:06"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:05",
+    "stationName": "北京路",
+    "endTime": "23:37"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:15",
+    "stationName": "北京路",
+    "endTime": "23:10"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:03",
+    "stationName": "团一大广场",
+    "endTime": "23:36"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:17",
+    "stationName": "团一大广场",
+    "endTime": "23:12"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:02",
+    "stationName": "东湖",
+    "endTime": "23:33"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:19",
+    "stationName": "东湖",
+    "endTime": "23:14"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:20",
+    "stationName": "东湖",
+    "endTime": "23:40"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:21",
+    "stationName": "东湖",
+    "endTime": "23:21"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:14",
+    "stationName": "黄花岗",
+    "endTime": "23:27"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:12",
+    "stationName": "黄花岗",
+    "endTime": "23:20"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:20",
+    "stationName": "沙河顶",
+    "endTime": "23:25"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:14",
+    "stationName": "沙河顶",
+    "endTime": "23:22"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:18",
+    "stationName": "沙河",
+    "endTime": "23:24"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:16",
+    "stationName": "沙河",
+    "endTime": "23:24"
+}, {
+    "toStationName": "沙河(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:19",
+    "stationName": "沙河",
+    "endTime": "22:04"
+}, {
+    "toStationName": "沙河(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:13",
+    "stationName": "沙河",
+    "endTime": "22:35"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:19",
+    "stationName": "沙河",
+    "endTime": "23:19"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:13",
+    "stationName": "沙河",
+    "endTime": "23:50"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:16",
+    "stationName": "天平架",
+    "endTime": "23:21"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:18",
+    "stationName": "天平架",
+    "endTime": "23:26"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:10",
+    "stationName": "长湴",
+    "endTime": "23:15"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:26",
+    "stationName": "长湴",
+    "endTime": "23:32"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:12",
+    "stationName": "植物园",
+    "endTime": "23:12"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:00",
+    "stationName": "植物园",
+    "endTime": "23:35"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:09",
+    "stationName": "龙洞",
+    "endTime": "23:09"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:02",
+    "stationName": "龙洞",
+    "endTime": "23:38"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:06",
+    "stationName": "柯木塱",
+    "endTime": "23:07"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:04",
+    "stationName": "柯木塱",
+    "endTime": "23:41"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:04",
+    "stationName": "高塘石",
+    "endTime": "23:04"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:07",
+    "stationName": "高塘石",
+    "endTime": "23:43"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:02",
+    "stationName": "黄陂",
+    "endTime": "23:01"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:10",
+    "stationName": "黄陂",
+    "endTime": "23:46"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:08",
+    "stationName": "金峰",
+    "endTime": "22:58"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:13",
+    "stationName": "金峰",
+    "endTime": "23:49"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:06",
+    "stationName": "暹岗",
+    "endTime": "22:56"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:16",
+    "stationName": "暹岗",
+    "endTime": "23:52"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:04",
+    "stationName": "苏元",
+    "endTime": "22:54"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:17",
+    "stationName": "苏元",
+    "endTime": "23:53"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:14",
+    "stationName": "苏元",
+    "endTime": "23:26"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:02",
+    "stationName": "苏元",
+    "endTime": "23:19"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:02",
+    "stationName": "萝岗",
+    "endTime": "22:52"
+}, {
+    "toStationName": "香雪",
+    "lineCn": "6号线",
+    "startTime": "06:20",
+    "stationName": "萝岗",
+    "endTime": "23:56"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:04",
+    "stationName": "萝岗",
+    "endTime": "22:48"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:18",
+    "stationName": "萝岗",
+    "endTime": "00:00"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "6号线",
+    "startTime": "06:00",
+    "stationName": "香雪",
+    "endTime": "22:50"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "美的大道",
+    "endTime": "23:10"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "美的大道",
+    "endTime": "22:45"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:28",
+    "stationName": "北滘公园",
+    "endTime": "00:02"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:03",
+    "stationName": "北滘公园",
+    "endTime": "23:12"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:03",
+    "stationName": "北滘公园",
+    "endTime": "22:47"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:03",
+    "stationName": "北滘公园",
+    "endTime": "23:56"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:09",
+    "stationName": "北滘公园",
+    "endTime": "23:12"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:24",
+    "stationName": "美的",
+    "endTime": "23:59"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:06",
+    "stationName": "美的",
+    "endTime": "23:15"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:06",
+    "stationName": "美的",
+    "endTime": "22:50"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:22",
+    "stationName": "南涌",
+    "endTime": "23:56"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:08",
+    "stationName": "南涌",
+    "endTime": "23:18"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:08",
+    "stationName": "南涌",
+    "endTime": "22:53"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:19",
+    "stationName": "锦龙",
+    "endTime": "23:53"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:11",
+    "stationName": "锦龙",
+    "endTime": "23:20"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:11",
+    "stationName": "锦龙",
+    "endTime": "22:55"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:17",
+    "stationName": "陈村",
+    "endTime": "23:51"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:14",
+    "stationName": "陈村",
+    "endTime": "23:23"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:14",
+    "stationName": "陈村",
+    "endTime": "22:58"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:14",
+    "stationName": "陈村北",
+    "endTime": "23:48"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:16",
+    "stationName": "陈村北",
+    "endTime": "23:26"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:16",
+    "stationName": "陈村北",
+    "endTime": "23:01"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:12",
+    "stationName": "大洲",
+    "endTime": "23:46"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:19",
+    "stationName": "大洲",
+    "endTime": "23:28"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:19",
+    "stationName": "大洲",
+    "endTime": "23:03"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:21",
+    "stationName": "谢村",
+    "endTime": "23:38"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:05",
+    "stationName": "谢村",
+    "endTime": "23:36"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:05",
+    "stationName": "谢村",
+    "endTime": "23:11"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:18",
+    "stationName": "钟村",
+    "endTime": "23:35"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:08",
+    "stationName": "钟村",
+    "endTime": "23:39"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:08",
+    "stationName": "钟村",
+    "endTime": "23:14"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:12",
+    "stationName": "南村万博",
+    "endTime": "23:29"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:03",
+    "stationName": "南村万博",
+    "endTime": "23:45"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:03",
+    "stationName": "南村万博",
+    "endTime": "23:20"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:05",
+    "stationName": "南村万博",
+    "endTime": "22:54"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:22",
+    "stationName": "南村万博",
+    "endTime": "23:32"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:08",
+    "stationName": "员岗",
+    "endTime": "23:25"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:06",
+    "stationName": "员岗",
+    "endTime": "23:49"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:06",
+    "stationName": "员岗",
+    "endTime": "23:24"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:05",
+    "stationName": "板桥",
+    "endTime": "23:22"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:10",
+    "stationName": "板桥",
+    "endTime": "23:53"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:10",
+    "stationName": "板桥",
+    "endTime": "23:28"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:28",
+    "stationName": "深井",
+    "endTime": "23:12"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:20",
+    "stationName": "深井",
+    "endTime": "00:02"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:20",
+    "stationName": "深井",
+    "endTime": "23:37"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:24",
+    "stationName": "长洲",
+    "endTime": "23:09"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:23",
+    "stationName": "长洲",
+    "endTime": "00:06"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:23",
+    "stationName": "长洲",
+    "endTime": "23:41"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:20",
+    "stationName": "裕丰围",
+    "endTime": "23:04"
+}, {
+    "toStationName": "姬堂",
+    "lineCn": "7号线",
+    "startTime": "06:28",
+    "stationName": "裕丰围",
+    "endTime": "00:10"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:28",
+    "stationName": "裕丰围",
+    "endTime": "23:45"
+}, {
+    "toStationName": "鱼珠",
+    "lineCn": "13号线",
+    "startTime": "06:14",
+    "stationName": "裕丰围",
+    "endTime": "22:57"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:18",
+    "stationName": "裕丰围",
+    "endTime": "23:21"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:14",
+    "stationName": "裕丰围",
+    "endTime": "22:57"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:13",
+    "stationName": "姬堂",
+    "endTime": "22:57"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:10",
+    "stationName": "姬堂",
+    "endTime": "23:52"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:10",
+    "stationName": "加庄",
+    "endTime": "22:55"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:12",
+    "stationName": "加庄",
+    "endTime": "23:54"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:08",
+    "stationName": "科丰路",
+    "endTime": "22:52"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:15",
+    "stationName": "科丰路",
+    "endTime": "23:57"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:02",
+    "stationName": "水西",
+    "endTime": "22:46"
+}, {
+    "toStationName": "燕山",
+    "lineCn": "7号线",
+    "startTime": "06:21",
+    "stationName": "水西",
+    "endTime": "00:03"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:05",
+    "stationName": "水西",
+    "endTime": "23:29"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:10",
+    "stationName": "水西",
+    "endTime": "23:16"
+}, {
+    "toStationName": "美的大道",
+    "lineCn": "7号线",
+    "startTime": "06:00",
+    "stationName": "燕山",
+    "endTime": "22:45"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:00",
+    "stationName": "滘心",
+    "endTime": "23:00"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:02",
+    "stationName": "亭岗",
+    "endTime": "23:02"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:27",
+    "stationName": "亭岗",
+    "endTime": "23:54"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:04",
+    "stationName": "石井",
+    "endTime": "23:04"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:24",
+    "stationName": "石井",
+    "endTime": "23:51"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:07",
+    "stationName": "小坪",
+    "endTime": "23:07"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:22",
+    "stationName": "小坪",
+    "endTime": "23:48"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:09",
+    "stationName": "石潭",
+    "endTime": "23:09"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:19",
+    "stationName": "石潭",
+    "endTime": "23:46"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:11",
+    "stationName": "聚龙",
+    "endTime": "23:11"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:18",
+    "stationName": "聚龙",
+    "endTime": "23:45"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:12",
+    "stationName": "聚龙",
+    "endTime": "23:51"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:07",
+    "stationName": "聚龙",
+    "endTime": "23:07"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:13",
+    "stationName": "上步",
+    "endTime": "23:13"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:16",
+    "stationName": "上步",
+    "endTime": "23:43"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:15",
+    "stationName": "同德",
+    "endTime": "23:15"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:14",
+    "stationName": "同德",
+    "endTime": "23:41"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:16",
+    "stationName": "鹅掌坦",
+    "endTime": "23:16"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:12",
+    "stationName": "鹅掌坦",
+    "endTime": "23:39"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:20",
+    "stationName": "彩虹桥",
+    "endTime": "23:20"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:08",
+    "stationName": "彩虹桥",
+    "endTime": "23:35"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:13",
+    "stationName": "彩虹桥",
+    "endTime": "23:36"
+}, {
+    "toStationName": "彩虹桥(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:13",
+    "stationName": "彩虹桥",
+    "endTime": "22:21"
+}, {
+    "toStationName": "彩虹桥(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:18",
+    "stationName": "彩虹桥",
+    "endTime": "22:18"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:18",
+    "stationName": "彩虹桥",
+    "endTime": "23:33"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:25",
+    "stationName": "华林寺",
+    "endTime": "23:25"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:04",
+    "stationName": "华林寺",
+    "endTime": "23:30"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:11",
+    "stationName": "同福西",
+    "endTime": "23:29"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:21",
+    "stationName": "同福西",
+    "endTime": "23:26"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:13",
+    "stationName": "凤凰新村",
+    "endTime": "23:31"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:19",
+    "stationName": "凤凰新村",
+    "endTime": "23:24"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:14",
+    "stationName": "沙园",
+    "endTime": "23:33"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:17",
+    "stationName": "沙园",
+    "endTime": "23:22"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:17",
+    "stationName": "沙园",
+    "endTime": "23:19"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:10",
+    "stationName": "沙园",
+    "endTime": "23:08"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:16",
+    "stationName": "宝岗大道",
+    "endTime": "23:35"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:15",
+    "stationName": "宝岗大道",
+    "endTime": "23:20"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:08",
+    "stationName": "晓港",
+    "endTime": "23:38"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:11",
+    "stationName": "晓港",
+    "endTime": "23:16"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:10",
+    "stationName": "中大",
+    "endTime": "23:40"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:09",
+    "stationName": "中大",
+    "endTime": "23:14"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:12",
+    "stationName": "鹭江",
+    "endTime": "23:43"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:06",
+    "stationName": "鹭江",
+    "endTime": "23:12"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:17",
+    "stationName": "赤岗",
+    "endTime": "23:48"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:02",
+    "stationName": "赤岗",
+    "endTime": "23:07"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:04",
+    "stationName": "赤岗",
+    "endTime": "23:42"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:16",
+    "stationName": "赤岗",
+    "endTime": "23:16"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:19",
+    "stationName": "磨碟沙",
+    "endTime": "23:49"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:16",
+    "stationName": "磨碟沙",
+    "endTime": "23:06"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:18",
+    "stationName": "磨碟沙",
+    "endTime": "23:07"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:19",
+    "stationName": "磨碟沙",
+    "endTime": "23:19"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:21",
+    "stationName": "新港东",
+    "endTime": "23:52"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:14",
+    "stationName": "新港东",
+    "endTime": "23:03"
+}, {
+    "toStationName": "万胜围",
+    "lineCn": "8号线",
+    "startTime": "06:23",
+    "stationName": "琶洲",
+    "endTime": "23:54"
+}, {
+    "toStationName": "滘心",
+    "lineCn": "8号线",
+    "startTime": "06:12",
+    "stationName": "琶洲",
+    "endTime": "23:02"
+}, {
+    "toStationName": "琶洲(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "琶洲",
+    "endTime": "21:47"
+}, {
+    "toStationName": "琶洲(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:11",
+    "stationName": "琶洲",
+    "endTime": "22:53"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "琶洲",
+    "endTime": "23:02"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:11",
+    "stationName": "琶洲",
+    "endTime": "00:08"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:00",
+    "stationName": "飞鹅岭",
+    "endTime": "22:30"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:02",
+    "stationName": "花都汽车城",
+    "endTime": "22:32"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:29",
+    "stationName": "花都汽车城",
+    "endTime": "23:38"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:05",
+    "stationName": "广州北站",
+    "endTime": "22:35"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:26",
+    "stationName": "广州北站",
+    "endTime": "23:35"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:07",
+    "stationName": "花城路",
+    "endTime": "22:37"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:24",
+    "stationName": "花城路",
+    "endTime": "23:33"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:09",
+    "stationName": "花果山公园",
+    "endTime": "22:39"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:22",
+    "stationName": "花果山公园",
+    "endTime": "23:31"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:12",
+    "stationName": "花都广场",
+    "endTime": "22:42"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:19",
+    "stationName": "花都广场",
+    "endTime": "23:28"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:15",
+    "stationName": "马鞍山公园",
+    "endTime": "22:45"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:16",
+    "stationName": "马鞍山公园",
+    "endTime": "23:25"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:17",
+    "stationName": "莲塘",
+    "endTime": "22:47"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:14",
+    "stationName": "莲塘",
+    "endTime": "23:23"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:19",
+    "stationName": "清㘵",
+    "endTime": "22:49"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:12",
+    "stationName": "清㘵",
+    "endTime": "23:21"
+}, {
+    "toStationName": "高增",
+    "lineCn": "9号线",
+    "startTime": "06:22",
+    "stationName": "清塘",
+    "endTime": "22:52"
+}, {
+    "toStationName": "飞鹅岭",
+    "lineCn": "9号线",
+    "startTime": "06:09",
+    "stationName": "清塘",
+    "endTime": "23:18"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:27",
+    "stationName": "花围",
+    "endTime": "23:59"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:02",
+    "stationName": "花围",
+    "endTime": "23:02"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:24",
+    "stationName": "东沙",
+    "endTime": "23:56"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:05",
+    "stationName": "东沙",
+    "endTime": "23:05"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:21",
+    "stationName": "大干围",
+    "endTime": "23:53"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:08",
+    "stationName": "大干围",
+    "endTime": "23:07"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:19",
+    "stationName": "工业大道南",
+    "endTime": "23:51"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:10",
+    "stationName": "工业大道南",
+    "endTime": "23:09"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "五凤",
+    "endTime": "00:02"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "五凤",
+    "endTime": "23:07"
+}, {
+    "toStationName": "五凤(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "五凤",
+    "endTime": "22:47"
+}, {
+    "toStationName": "五凤(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "五凤",
+    "endTime": "21:52"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:15",
+    "stationName": "五凤",
+    "endTime": "23:47"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:14",
+    "stationName": "五凤",
+    "endTime": "23:14"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:25",
+    "stationName": "中大南门",
+    "endTime": "23:45"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:16",
+    "stationName": "中大南门",
+    "endTime": "23:15"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:23",
+    "stationName": "滨江东路",
+    "endTime": "23:42"
+}, {
+    "toStationName": "杨箕东",
+    "lineCn": "10号线",
+    "startTime": "06:19",
+    "stationName": "滨江东路",
+    "endTime": "23:18"
+}, {
+    "toStationName": "西塱",
+    "lineCn": "10号线",
+    "startTime": "06:15",
+    "stationName": "杨箕东",
+    "endTime": "23:35"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "赤沙",
+    "endTime": "23:00"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "赤沙",
+    "endTime": "21:44"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:14",
+    "stationName": "赤沙",
+    "endTime": "22:56"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:10",
+    "stationName": "赤沙",
+    "endTime": "23:48"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:10",
+    "stationName": "赤沙",
+    "endTime": "23:10"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:03",
+    "stationName": "天河公园",
+    "endTime": "23:05"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:02",
+    "stationName": "天河公园",
+    "endTime": "23:05"
+}, {
+    "toStationName": "天河公园(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "天河公园",
+    "endTime": "21:52"
+}, {
+    "toStationName": "天河公园(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:06",
+    "stationName": "天河公园",
+    "endTime": "22:48"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "天河公园",
+    "endTime": "23:07"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:06",
+    "stationName": "天河公园",
+    "endTime": "00:03"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:09",
+    "stationName": "华景路",
+    "endTime": "23:09"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "华景路",
+    "endTime": "00:00"
+}, {
+    "toStationName": "华景路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:09",
+    "stationName": "华景路",
+    "endTime": "21:54"
+}, {
+    "toStationName": "华景路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "华景路",
+    "endTime": "22:45"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:14",
+    "stationName": "龙口西",
+    "endTime": "23:14"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "龙口西",
+    "endTime": "23:56"
+}, {
+    "toStationName": "龙口西(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:14",
+    "stationName": "龙口西",
+    "endTime": "21:59"
+}, {
+    "toStationName": "龙口西(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "龙口西",
+    "endTime": "22:41"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "云台花园",
+    "endTime": "23:22"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "云台花园",
+    "endTime": "23:47"
+}, {
+    "toStationName": "云台花园(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "云台花园",
+    "endTime": "22:07"
+}, {
+    "toStationName": "云台花园(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "云台花园",
+    "endTime": "22:32"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "大金钟路",
+    "endTime": "23:25"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "大金钟路",
+    "endTime": "23:44"
+}, {
+    "toStationName": "大金钟路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "大金钟路",
+    "endTime": "22:10"
+}, {
+    "toStationName": "大金钟路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "大金钟路",
+    "endTime": "22:29"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "中医药大学",
+    "endTime": "23:28"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "中医药大学",
+    "endTime": "23:42"
+}, {
+    "toStationName": "中医药大学(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "中医药大学",
+    "endTime": "22:13"
+}, {
+    "toStationName": "中医药大学(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "中医药大学",
+    "endTime": "22:27"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:06",
+    "stationName": "梓元岗",
+    "endTime": "23:29"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "梓元岗",
+    "endTime": "23:40"
+}, {
+    "toStationName": "梓元岗(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:06",
+    "stationName": "梓元岗",
+    "endTime": "22:14"
+}, {
+    "toStationName": "梓元岗(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "梓元岗",
+    "endTime": "22:25"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "流花",
+    "endTime": "23:33"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "流花",
+    "endTime": "23:36"
+}, {
+    "toStationName": "流花(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "流花",
+    "endTime": "22:18"
+}, {
+    "toStationName": "流花(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "流花",
+    "endTime": "22:21"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "石围塘",
+    "endTime": "23:45"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "石围塘",
+    "endTime": "23:25"
+}, {
+    "toStationName": "石围塘(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "石围塘",
+    "endTime": "22:30"
+}, {
+    "toStationName": "石围塘(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "石围塘",
+    "endTime": "22:10"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "大冲口",
+    "endTime": "23:49"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:06",
+    "stationName": "大冲口",
+    "endTime": "23:21"
+}, {
+    "toStationName": "大冲口(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "大冲口",
+    "endTime": "22:34"
+}, {
+    "toStationName": "大冲口(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:06",
+    "stationName": "大冲口",
+    "endTime": "22:06"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:14",
+    "stationName": "沙涌",
+    "endTime": "23:16"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:12",
+    "stationName": "沙涌",
+    "endTime": "23:10"
+}, {
+    "toStationName": "沙涌(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "沙涌",
+    "endTime": "22:36"
+}, {
+    "toStationName": "沙涌(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "沙涌",
+    "endTime": "22:04"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "沙涌",
+    "endTime": "23:51"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "沙涌",
+    "endTime": "23:19"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "鹤洞东",
+    "endTime": "23:53"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "鹤洞东",
+    "endTime": "23:17"
+}, {
+    "toStationName": "鹤洞东(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:07",
+    "stationName": "鹤洞东",
+    "endTime": "22:38"
+}, {
+    "toStationName": "鹤洞东(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:02",
+    "stationName": "鹤洞东",
+    "endTime": "22:02"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "棣园",
+    "endTime": "23:56"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "棣园",
+    "endTime": "23:14"
+}, {
+    "toStationName": "棣园(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "棣园",
+    "endTime": "22:41"
+}, {
+    "toStationName": "棣园(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "棣园",
+    "endTime": "21:59"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:20",
+    "stationName": "燕岗",
+    "endTime": "23:22"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:07",
+    "stationName": "燕岗",
+    "endTime": "23:06"
+}, {
+    "toStationName": "燕岗(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:12",
+    "stationName": "燕岗",
+    "endTime": "22:43"
+}, {
+    "toStationName": "燕岗(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:12",
+    "stationName": "燕岗",
+    "endTime": "21:57"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:12",
+    "stationName": "燕岗",
+    "endTime": "23:58"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:12",
+    "stationName": "燕岗",
+    "endTime": "23:12"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "逸景路",
+    "endTime": "00:04"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "逸景路",
+    "endTime": "23:05"
+}, {
+    "toStationName": "逸景路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:03",
+    "stationName": "逸景路",
+    "endTime": "22:49"
+}, {
+    "toStationName": "逸景路(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "逸景路",
+    "endTime": "21:50"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "上涌",
+    "endTime": "00:06"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "上涌",
+    "endTime": "23:04"
+}, {
+    "toStationName": "上涌(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:05",
+    "stationName": "上涌",
+    "endTime": "22:51"
+}, {
+    "toStationName": "上涌(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:04",
+    "stationName": "上涌",
+    "endTime": "21:49"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:14",
+    "stationName": "龙潭",
+    "endTime": "23:03"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:22",
+    "stationName": "龙潭",
+    "endTime": "23:22"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:10",
+    "stationName": "龙潭",
+    "endTime": "22:56"
+}, {
+    "toStationName": "龙潭(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "龙潭",
+    "endTime": "21:44"
+}, {
+    "toStationName": "赤沙(null-全程)",
+    "lineCn": "11号线",
+    "startTime": "06:00",
+    "stationName": "龙潭",
+    "endTime": "23:00"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:18",
+    "stationName": "浔峰岗北",
+    "endTime": "23:57"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:01",
+    "stationName": "浔峰岗北",
+    "endTime": "23:01"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:14",
+    "stationName": "西洲",
+    "endTime": "23:53"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:04",
+    "stationName": "西洲",
+    "endTime": "23:04"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:09",
+    "stationName": "广州白云站",
+    "endTime": "23:48"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:10",
+    "stationName": "广州白云站",
+    "endTime": "23:10"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:06",
+    "stationName": "棠涌",
+    "endTime": "23:45"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:12",
+    "stationName": "棠涌",
+    "endTime": "23:12"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:03",
+    "stationName": "新市墟",
+    "endTime": "22:53"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:09",
+    "stationName": "新市墟",
+    "endTime": "23:38"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:04",
+    "stationName": "新市墟",
+    "endTime": "23:43"
+}, {
+    "toStationName": "广州体育馆",
+    "lineCn": "12号线西",
+    "startTime": "06:14",
+    "stationName": "新市墟",
+    "endTime": "23:14"
+}, {
+    "toStationName": "浔峰岗",
+    "lineCn": "12号线西",
+    "startTime": "06:00",
+    "stationName": "广州体育馆",
+    "endTime": "23:39"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:00",
+    "stationName": "二沙岛",
+    "endTime": "23:38"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:02",
+    "stationName": "赤岗塔",
+    "endTime": "23:40"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:18",
+    "stationName": "赤岗塔",
+    "endTime": "23:18"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:07",
+    "stationName": "赤沙北",
+    "endTime": "23:45"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:14",
+    "stationName": "赤沙北",
+    "endTime": "23:14"
+}, {
+    "toStationName": "大学城南",
+    "lineCn": "12号线东",
+    "startTime": "06:13",
+    "stationName": "北山",
+    "endTime": "23:51"
+}, {
+    "toStationName": "二沙岛",
+    "lineCn": "12号线东",
+    "startTime": "06:08",
+    "stationName": "北山",
+    "endTime": "23:08"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:05",
+    "stationName": "棠下",
+    "endTime": "23:07"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:27",
+    "stationName": "棠下",
+    "endTime": "23:10"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:11",
+    "stationName": "天河珠村",
+    "endTime": "23:14"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:21",
+    "stationName": "天河珠村",
+    "endTime": "23:04"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:20",
+    "stationName": "双岗",
+    "endTime": "23:24"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:11",
+    "stationName": "双岗",
+    "endTime": "22:54"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:24",
+    "stationName": "南海神庙",
+    "endTime": "23:27"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:08",
+    "stationName": "南海神庙",
+    "endTime": "22:51"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:10",
+    "stationName": "南岗",
+    "endTime": "23:34"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:16",
+    "stationName": "南岗",
+    "endTime": "22:45"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:14",
+    "stationName": "沙村",
+    "endTime": "23:38"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:11",
+    "stationName": "沙村",
+    "endTime": "22:41"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:18",
+    "stationName": "白江",
+    "endTime": "23:42"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:08",
+    "stationName": "白江",
+    "endTime": "22:37"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:21",
+    "stationName": "新塘",
+    "endTime": "23:44"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:05",
+    "stationName": "新塘",
+    "endTime": "22:35"
+}, {
+    "toStationName": "新沙",
+    "lineCn": "13号线",
+    "startTime": "06:10",
+    "stationName": "官湖",
+    "endTime": "23:48"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:01",
+    "stationName": "官湖",
+    "endTime": "22:31"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "13号线",
+    "startTime": "06:00",
+    "stationName": "新沙",
+    "endTime": "22:30"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:00",
+    "stationName": "乐嘉路",
+    "endTime": "22:50"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:01",
+    "stationName": "云霄路",
+    "endTime": "22:51"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:11",
+    "stationName": "云霄路",
+    "endTime": "23:40"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:05",
+    "stationName": "马务",
+    "endTime": "22:55"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:07",
+    "stationName": "马务",
+    "endTime": "23:36"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:07",
+    "stationName": "鹤边",
+    "endTime": "22:58"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:05",
+    "stationName": "鹤边",
+    "endTime": "23:33"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:09",
+    "stationName": "鹤龙",
+    "endTime": "23:00"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:03",
+    "stationName": "鹤龙",
+    "endTime": "23:31"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:11",
+    "stationName": "彭边",
+    "endTime": "23:02"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:01",
+    "stationName": "彭边",
+    "endTime": "23:29"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:03",
+    "stationName": "白云东平",
+    "endTime": "23:09"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:16",
+    "stationName": "白云东平",
+    "endTime": "23:22"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:07",
+    "stationName": "夏良",
+    "endTime": "23:13"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:13",
+    "stationName": "夏良",
+    "endTime": "23:18"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:10",
+    "stationName": "太和",
+    "endTime": "23:16"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:10",
+    "stationName": "太和",
+    "endTime": "23:15"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:15",
+    "stationName": "竹料",
+    "endTime": "23:21"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:13",
+    "stationName": "竹料",
+    "endTime": "23:09"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:07",
+    "stationName": "钟落潭",
+    "endTime": "23:26"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:09",
+    "stationName": "钟落潭",
+    "endTime": "23:05"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:02",
+    "stationName": "马沥",
+    "endTime": "23:31"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:04",
+    "stationName": "马沥",
+    "endTime": "23:00"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:10",
+    "stationName": "新和",
+    "endTime": "23:05"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:04",
+    "stationName": "新和",
+    "endTime": "23:34"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:02",
+    "stationName": "新和",
+    "endTime": "22:57"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:09",
+    "stationName": "太平",
+    "endTime": "23:39"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:07",
+    "stationName": "太平",
+    "endTime": "22:52"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:13",
+    "stationName": "神岗",
+    "endTime": "23:43"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:04",
+    "stationName": "神岗",
+    "endTime": "22:48"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:18",
+    "stationName": "赤草",
+    "endTime": "23:48"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:07",
+    "stationName": "赤草",
+    "endTime": "22:43"
+}, {
+    "toStationName": "东风",
+    "lineCn": "14号线",
+    "startTime": "06:22",
+    "stationName": "从化客运站",
+    "endTime": "23:52"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:03",
+    "stationName": "从化客运站",
+    "endTime": "22:38"
+}, {
+    "toStationName": "乐嘉路",
+    "lineCn": "14号线",
+    "startTime": "06:00",
+    "stationName": "东风",
+    "endTime": "22:35"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:21",
+    "stationName": "红卫",
+    "endTime": "23:11"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:12",
+    "stationName": "红卫",
+    "endTime": "23:07"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:18",
+    "stationName": "新南",
+    "endTime": "23:08"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:16",
+    "stationName": "新南",
+    "endTime": "23:11"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:15",
+    "stationName": "枫下",
+    "endTime": "23:05"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:18",
+    "stationName": "枫下",
+    "endTime": "23:13"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:12",
+    "stationName": "知识城",
+    "endTime": "23:02"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:21",
+    "stationName": "知识城",
+    "endTime": "23:16"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:09",
+    "stationName": "何棠下",
+    "endTime": "22:59"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:24",
+    "stationName": "何棠下",
+    "endTime": "23:19"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:07",
+    "stationName": "旺村",
+    "endTime": "22:57"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:26",
+    "stationName": "旺村",
+    "endTime": "23:21"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:04",
+    "stationName": "汤村",
+    "endTime": "22:54"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:29",
+    "stationName": "汤村",
+    "endTime": "23:24"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:01",
+    "stationName": "镇龙北",
+    "endTime": "22:51"
+}, {
+    "toStationName": "镇龙",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:20",
+    "stationName": "镇龙北",
+    "endTime": "23:27"
+}, {
+    "toStationName": "新和",
+    "lineCn": "14号线(知识城)",
+    "startTime": "06:00",
+    "stationName": "镇龙",
+    "endTime": "22:50"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:12",
+    "stationName": "镇龙",
+    "endTime": "23:46"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:09",
+    "stationName": "镇龙",
+    "endTime": "22:59"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:00",
+    "stationName": "万顷沙",
+    "endTime": "22:30"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:04",
+    "stationName": "横沥",
+    "endTime": "22:34"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:17",
+    "stationName": "横沥",
+    "endTime": "23:51"
+}, {
+    "toStationName": "冼村",
+    "lineCn": "18号线",
+    "startTime": "06:10",
+    "stationName": "沙溪",
+    "endTime": "22:58"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:18",
+    "stationName": "沙溪",
+    "endTime": "23:27"
+}, {
+    "toStationName": "万顷沙",
+    "lineCn": "18号线",
+    "startTime": "06:15",
+    "stationName": "冼村",
+    "endTime": "23:15"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:05",
+    "stationName": "棠东",
+    "endTime": "23:08"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:18",
+    "stationName": "棠东",
+    "endTime": "23:36"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:10",
+    "stationName": "大观南路",
+    "endTime": "23:13"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:13",
+    "stationName": "大观南路",
+    "endTime": "23:31"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:13",
+    "stationName": "天河智慧城",
+    "endTime": "23:16"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:10",
+    "stationName": "天河智慧城",
+    "endTime": "23:28"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:17",
+    "stationName": "神舟路",
+    "endTime": "23:20"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:06",
+    "stationName": "神舟路",
+    "endTime": "23:24"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:12",
+    "stationName": "科学城",
+    "endTime": "23:23"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:04",
+    "stationName": "科学城",
+    "endTime": "23:22"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:07",
+    "stationName": "长平",
+    "endTime": "23:32"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:08",
+    "stationName": "长平",
+    "endTime": "23:12"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:13",
+    "stationName": "金坑",
+    "endTime": "23:38"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:18",
+    "stationName": "金坑",
+    "endTime": "23:07"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:10",
+    "stationName": "镇龙西",
+    "endTime": "23:43"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:12",
+    "stationName": "镇龙西",
+    "endTime": "23:02"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:15",
+    "stationName": "中新",
+    "endTime": "23:49"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:07",
+    "stationName": "中新",
+    "endTime": "22:56"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:08",
+    "stationName": "坑贝",
+    "endTime": "23:52"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:04",
+    "stationName": "坑贝",
+    "endTime": "22:52"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:10",
+    "stationName": "凤岗",
+    "endTime": "23:55"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:14",
+    "stationName": "凤岗",
+    "endTime": "22:49"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:14",
+    "stationName": "朱村",
+    "endTime": "23:59"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:11",
+    "stationName": "朱村",
+    "endTime": "22:46"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:18",
+    "stationName": "山田",
+    "endTime": "00:03"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:07",
+    "stationName": "山田",
+    "endTime": "22:42"
+}, {
+    "toStationName": "增城广场",
+    "lineCn": "21号线",
+    "startTime": "06:23",
+    "stationName": "钟岗",
+    "endTime": "00:08"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:02",
+    "stationName": "钟岗",
+    "endTime": "22:37"
+}, {
+    "toStationName": "天河公园",
+    "lineCn": "21号线",
+    "startTime": "06:00",
+    "stationName": "增城广场",
+    "endTime": "22:35"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:04",
+    "stationName": "市广路",
+    "endTime": "22:59"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:09",
+    "stationName": "市广路",
+    "endTime": "23:24"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:05",
+    "stationName": "陈头岗",
+    "endTime": "23:10"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:00",
+    "stationName": "陈头岗",
+    "endTime": "23:14"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:07",
+    "stationName": "南浦西",
+    "endTime": "23:13"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:08",
+    "stationName": "南浦西",
+    "endTime": "23:10"
+}, {
+    "toStationName": "芳村",
+    "lineCn": "22号线",
+    "startTime": "06:10",
+    "stationName": "南漖",
+    "endTime": "23:16"
+}, {
+    "toStationName": "番禺广场",
+    "lineCn": "22号线",
+    "startTime": "06:06",
+    "stationName": "南漖",
+    "endTime": "23:07"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:00",
+    "stationName": "新城东",
+    "endTime": "22:30"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:02",
+    "stationName": "东平",
+    "endTime": "22:32"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:27",
+    "stationName": "东平",
+    "endTime": "23:56"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:10",
+    "stationName": "东平",
+    "endTime": "23:40"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:08",
+    "stationName": "东平",
+    "endTime": "23:29"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:04",
+    "stationName": "世纪莲",
+    "endTime": "22:34"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:25",
+    "stationName": "世纪莲",
+    "endTime": "23:53"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:08",
+    "stationName": "澜石",
+    "endTime": "22:38"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:21",
+    "stationName": "澜石",
+    "endTime": "23:49"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:00",
+    "stationName": "魁奇路",
+    "endTime": "22:40"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:19",
+    "stationName": "魁奇路",
+    "endTime": "23:47"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:05",
+    "stationName": "魁奇路",
+    "endTime": "23:18"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:10",
+    "stationName": "魁奇路",
+    "endTime": "23:54"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:01",
+    "stationName": "季华园",
+    "endTime": "22:41"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:16",
+    "stationName": "季华园",
+    "endTime": "23:45"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:03",
+    "stationName": "同济路",
+    "endTime": "22:43"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:14",
+    "stationName": "同济路",
+    "endTime": "23:42"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:05",
+    "stationName": "祖庙",
+    "endTime": "22:46"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:11",
+    "stationName": "祖庙",
+    "endTime": "23:40"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:08",
+    "stationName": "普君北路",
+    "endTime": "22:48"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:10",
+    "stationName": "普君北路",
+    "endTime": "23:38"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:10",
+    "stationName": "朝安",
+    "endTime": "22:50"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:07",
+    "stationName": "朝安",
+    "endTime": "23:36"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:12",
+    "stationName": "桂城",
+    "endTime": "22:52"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:05",
+    "stationName": "桂城",
+    "endTime": "23:33"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:16",
+    "stationName": "桂城",
+    "endTime": "23:27"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:12",
+    "stationName": "桂城",
+    "endTime": "23:43"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:14",
+    "stationName": "南桂路",
+    "endTime": "22:54"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:03",
+    "stationName": "南桂路",
+    "endTime": "23:31"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:16",
+    "stationName": "礌岗",
+    "endTime": "22:56"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:23",
+    "stationName": "礌岗",
+    "endTime": "23:29"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:18",
+    "stationName": "千灯湖",
+    "endTime": "22:59"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:21",
+    "stationName": "千灯湖",
+    "endTime": "23:26"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:00",
+    "stationName": "金融高新区",
+    "endTime": "23:01"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:19",
+    "stationName": "金融高新区",
+    "endTime": "23:24"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:04",
+    "stationName": "龙溪",
+    "endTime": "23:05"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:14",
+    "stationName": "龙溪",
+    "endTime": "23:20"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:07",
+    "stationName": "菊树",
+    "endTime": "23:08"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:12",
+    "stationName": "菊树",
+    "endTime": "23:17"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:12",
+    "stationName": "鹤洞",
+    "endTime": "23:13"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:15",
+    "stationName": "鹤洞",
+    "endTime": "23:13"
+}, {
+    "toStationName": "沥滘",
+    "lineCn": "广佛线",
+    "startTime": "06:22",
+    "stationName": "石溪",
+    "endTime": "23:25"
+}, {
+    "toStationName": "新城东",
+    "lineCn": "广佛线",
+    "startTime": "06:05",
+    "stationName": "石溪",
+    "endTime": "23:05"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:00",
+    "stationName": "南庄",
+    "endTime": "23:00"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:03",
+    "stationName": "湖涌",
+    "endTime": "23:03"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:24",
+    "stationName": "湖涌",
+    "endTime": "00:09"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:06",
+    "stationName": "绿岛湖",
+    "endTime": "23:06"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:22",
+    "stationName": "绿岛湖",
+    "endTime": "00:06"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:09",
+    "stationName": "智慧新城",
+    "endTime": "23:09"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:19",
+    "stationName": "智慧新城",
+    "endTime": "00:03"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:11",
+    "stationName": "张槎",
+    "endTime": "23:11"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:17",
+    "stationName": "张槎",
+    "endTime": "00:01"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:13",
+    "stationName": "石湾",
+    "endTime": "23:13"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:14",
+    "stationName": "石湾",
+    "endTime": "23:58"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:16",
+    "stationName": "沙岗",
+    "endTime": "23:16"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:12",
+    "stationName": "沙岗",
+    "endTime": "23:56"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:06",
+    "stationName": "石梁",
+    "endTime": "23:20"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:21",
+    "stationName": "石梁",
+    "endTime": "23:51"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:09",
+    "stationName": "湾华",
+    "endTime": "23:22"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:19",
+    "stationName": "湾华",
+    "endTime": "23:49"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:07",
+    "stationName": "湾华",
+    "endTime": "23:37"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:11",
+    "stationName": "湾华",
+    "endTime": "23:33"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:12",
+    "stationName": "登洲",
+    "endTime": "23:25"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:16",
+    "stationName": "登洲",
+    "endTime": "23:46"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:14",
+    "stationName": "花卉世界",
+    "endTime": "23:28"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:14",
+    "stationName": "花卉世界",
+    "endTime": "23:44"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:18",
+    "stationName": "仙涌",
+    "endTime": "23:32"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:10",
+    "stationName": "仙涌",
+    "endTime": "23:40"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:21",
+    "stationName": "石洲",
+    "endTime": "23:34"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:07",
+    "stationName": "石洲",
+    "endTime": "23:37"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:24",
+    "stationName": "林岳西",
+    "endTime": "23:37"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:04",
+    "stationName": "林岳西",
+    "endTime": "23:34"
+}, {
+    "toStationName": "礌岗（有轨）",
+    "lineCn": "南海有轨1号线",
+    "startTime": "06:02",
+    "stationName": "林岳西",
+    "endTime": "22:47"
+}, {
+    "toStationName": "林岳东（有轨）",
+    "lineCn": "南海有轨1号线",
+    "startTime": "06:16",
+    "stationName": "林岳西",
+    "endTime": "23:18"
+}, {
+    "toStationName": "广州南站",
+    "lineCn": "佛山2号线",
+    "startTime": "06:26",
+    "stationName": "林岳东",
+    "endTime": "23:39"
+}, {
+    "toStationName": "南庄",
+    "lineCn": "佛山2号线",
+    "startTime": "06:02",
+    "stationName": "林岳东",
+    "endTime": "23:32"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:05",
+    "stationName": "顺德学院站",
+    "endTime": "22:45"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:07",
+    "stationName": "顺德欢乐海岸",
+    "endTime": "00:23"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:06",
+    "stationName": "顺德欢乐海岸",
+    "endTime": "22:46"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:04",
+    "stationName": "顺德一中",
+    "endTime": "00:20"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:09",
+    "stationName": "顺德一中",
+    "endTime": "22:49"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:02",
+    "stationName": "驹荣北路",
+    "endTime": "00:18"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:11",
+    "stationName": "驹荣北路",
+    "endTime": "22:51"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:00",
+    "stationName": "东乐路",
+    "endTime": "00:15"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:13",
+    "stationName": "东乐路",
+    "endTime": "22:53"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:20",
+    "stationName": "大良钟楼",
+    "endTime": "00:13"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:16",
+    "stationName": "大良钟楼",
+    "endTime": "22:56"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:17",
+    "stationName": "环市北",
+    "endTime": "00:11"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:18",
+    "stationName": "环市北",
+    "endTime": "22:58"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:15",
+    "stationName": "顺德人民医院",
+    "endTime": "00:08"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:20",
+    "stationName": "顺德人民医院",
+    "endTime": "23:00"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:13",
+    "stationName": "荔村",
+    "endTime": "00:06"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:00",
+    "stationName": "荔村",
+    "endTime": "23:02"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:10",
+    "stationName": "伦教",
+    "endTime": "00:03"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:02",
+    "stationName": "伦教",
+    "endTime": "23:05"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:06",
+    "stationName": "广教",
+    "endTime": "00:00"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:06",
+    "stationName": "广教",
+    "endTime": "23:08"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:00",
+    "stationName": "高村",
+    "endTime": "23:53"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:13",
+    "stationName": "高村",
+    "endTime": "23:16"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:20",
+    "stationName": "北滘西站",
+    "endTime": "23:50"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:16",
+    "stationName": "北滘西站",
+    "endTime": "23:19"
+}, {
+    "toStationName": "白云机场北",
+    "lineCn": "广肇城际",
+    "startTime": "06:21",
+    "stationName": "北滘西站",
+    "endTime": "20:56"
+}, {
+    "toStationName": "佛山西",
+    "lineCn": "广肇城际",
+    "startTime": "06:40",
+    "stationName": "北滘西站",
+    "endTime": "23:07"
+}, {
+    "toStationName": "肇庆",
+    "lineCn": "广肇城际",
+    "startTime": "06:40",
+    "stationName": "北滘西站",
+    "endTime": "21:51"
+}, {
+    "toStationName": "惠州北",
+    "lineCn": "广肇城际",
+    "startTime": "06:51",
+    "stationName": "北滘西站",
+    "endTime": "21:13"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:17",
+    "stationName": "潭洲会展",
+    "endTime": "23:47"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:00",
+    "stationName": "潭洲会展",
+    "endTime": "23:21"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:15",
+    "stationName": "岳步",
+    "endTime": "23:45"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:02",
+    "stationName": "岳步",
+    "endTime": "23:24"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:12",
+    "stationName": "大墩",
+    "endTime": "23:42"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:05",
+    "stationName": "大墩",
+    "endTime": "23:27"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:04",
+    "stationName": "亚艺公园",
+    "endTime": "23:34"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:13",
+    "stationName": "亚艺公园",
+    "endTime": "23:35"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:02",
+    "stationName": "季华六路",
+    "endTime": "23:32"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:16",
+    "stationName": "季华六路",
+    "endTime": "23:38"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:00",
+    "stationName": "镇安",
+    "endTime": "23:30"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:10",
+    "stationName": "镇安",
+    "endTime": "23:41"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:14",
+    "stationName": "西约",
+    "endTime": "23:25"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:14",
+    "stationName": "西约",
+    "endTime": "23:45"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:11",
+    "stationName": "叠滘",
+    "endTime": "23:22"
+}, {
+    "toStationName": "中山公园",
+    "lineCn": "佛山3号线",
+    "startTime": "06:17",
+    "stationName": "叠滘",
+    "endTime": "23:48"
+}, {
+    "toStationName": "顺德学院站",
+    "lineCn": "佛山3号线",
+    "startTime": "06:10",
+    "stationName": "中山公园",
+    "endTime": "23:20"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:35",
+    "stationName": "联和",
+    "endTime": "22:30"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:48",
+    "stationName": "孝德东",
+    "endTime": "22:38"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:37",
+    "stationName": "孝德东",
+    "endTime": "22:32"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:46",
+    "stationName": "罗村",
+    "endTime": "22:36"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:39",
+    "stationName": "罗村",
+    "endTime": "22:34"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:43",
+    "stationName": "佛山西站",
+    "endTime": "22:33"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:43",
+    "stationName": "佛山西站",
+    "endTime": "22:38"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:40",
+    "stationName": "兴业东路",
+    "endTime": "22:30"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:45",
+    "stationName": "兴业东路",
+    "endTime": "22:40"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:38",
+    "stationName": "科盛路",
+    "endTime": "22:28"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:48",
+    "stationName": "科盛路",
+    "endTime": "22:43"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:36",
+    "stationName": "博爱中路",
+    "endTime": "22:26"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:50",
+    "stationName": "博爱中路",
+    "endTime": "22:45"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:32",
+    "stationName": "南海大学城",
+    "endTime": "22:22"
+}, {
+    "toStationName": "佛山大学",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:54",
+    "stationName": "南海大学城",
+    "endTime": "22:49"
+}, {
+    "toStationName": "联和",
+    "lineCn": "佛山3号线北",
+    "startTime": "06:30",
+    "stationName": "佛山大学",
+    "endTime": "22:20"
+}]
