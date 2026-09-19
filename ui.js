@@ -42,7 +42,16 @@ function populateLineButtons() {
     lines.forEach(line => {
         const btn = document.createElement('button');
         btn.className = 'line-button';
-        btn.textContent = line;
+
+        // 核心修改：处理按钮显示文字
+        let displayText = line;
+        displayText = displayText.replace(/号线/g, ''); // 1. 删除所有"号线"
+        if (displayText.includes('佛山')) {
+            displayText = displayText.replace(/佛山/g, '佛'); // 2. 佛山替换为佛，比如"佛山2号线"变成"佛2"
+        }
+        btn.textContent = displayText;
+
+        btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
         btn.addEventListener('click', () => {

@@ -113,7 +113,7 @@ function initTimeSelectors() {
         const isHidden = hourDropdown.style.display === 'none';
         minuteDropdown.style.display = 'none';
         minuteTrigger.setAttribute('aria-expanded', 'false');
-        hourDropdown.style.display = isHidden ? 'block' : 'none';
+        hourDropdown.style.display = isHidden ? 'grid' : 'none';
         this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
 
@@ -122,7 +122,7 @@ function initTimeSelectors() {
         const isHidden = minuteDropdown.style.display === 'none';
         hourDropdown.style.display = 'none';
         hourTrigger.setAttribute('aria-expanded', 'false');
-        minuteDropdown.style.display = isHidden ? 'block' : 'none';
+        minuteDropdown.style.display = isHidden ? 'grid' : 'none';
         this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
 

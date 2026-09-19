@@ -77,9 +77,25 @@ function renderAllLines() {
         }
 
         const extraFontSize = getExtraFontSize(extraPart);
-        let nameHtml = `<div class="line-main">${mainPart}</div>`;
+        let nameHtml = '';
+        const numMatch = mainPart.match(/^(\d+)(.*)/);
+        if (numMatch) {
+            // 如果有数字（如10号线），将数字拆出，横向显示；汉字部分（如号线）竖向显示
+            nameHtml = `<div class="line-num" style="writing-mode: horizontal-tb; font-size: 18px; letter-spacing: 1px;">${numMatch[1]}</div>
+                <div class="line-str" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px; margin-top: 2px;">${numMatch[2]}</div>`;
+        } else {
+            // 纯汉字线路
+            nameHtml = `<div class="line-main" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px;">${mainPart}</div>`;
+        }
         if (extraPart) {
-            nameHtml += `<div class="line-extra" style="font-size: ${extraFontSize}px; line-height: 1.4;">${extraPart}</div>`;
+            let extraHtml = extraPart;
+            let extraCls = "line-extra";
+            // 如果是括号或多字附加词，去掉括号或者使用专门样式
+            if (extraPart.includes('（') || extraPart.includes('(')) {
+                extraHtml = extraPart.replace(/[（(]|[)）]/g, ''); // 去掉括号，只保留“知识城”
+                extraCls += " extra-long"; // 添加额外类名
+            }
+            nameHtml += `<div class="${extraCls}" style="font-size: ${extraFontSize}px; line-height: 1.4; writing-mode: vertical-lr; text-orientation: upright;">${extraHtml}</div>`;
         }
         meta.innerHTML = `<div class="line-name">${nameHtml}</div>`;
         // 新增：点击线路名牌弹出详情
@@ -454,7 +470,27 @@ function renderAllLines() {
         if (line === "3号线") {
             const note = document.createElement('div');
             note.className = 'line-note';
-            note.innerHTML = '在一日较晚时候，<em>海傍~珠江新城</em>无直达<u>机场北</u>的列车时，可乘坐<u>天河客运站</u>方向的列车，并在<u>体育西路</u>换乘<u>机场北</u>方向的列车';
+            note.style.cursor = 'pointer';
+            // 将长文本替换为“乘坐提示”
+            note.innerHTML = '乘坐<br>提示';
+
+            // 点击事件弹出长文本（复用之前的弹窗逻辑）
+            note.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (typeof ensureModal === 'function') {
+                    ensureModal();
+                    const modalContent = document.querySelector('.modal-content');
+                    const modalTitle = document.querySelector('.modal-header h3');
+                    if (modalContent && modalTitle) {
+                        modalTitle.textContent = '3号线乘坐提示';
+                        modalContent.innerHTML = `<div style="padding: 20px; font-size: 16px; line-height: 1.8; color: #333;">
+                    在一日较晚时候，<b>海傍~珠江新城</b>无直达<b>机场北</b>的列车时，可乘坐<b>天河客运站</b>方向的列车，并在<b>体育西路</b>换乘<b>机场北</b>方向的列车。
+                </div>`;
+                        document.querySelector('.modal-overlay').style.display = 'flex';
+                    }
+                }
+            });
+
             lineDiv.appendChild(note);
         }
 
