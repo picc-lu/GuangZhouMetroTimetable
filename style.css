@@ -17,14 +17,23 @@ body {
 }
 
 .banner {
-    background: #1f2b3c;
+    background: #c5192d; /* 广州地铁标志红 */
     color: white;
-    text-align: center;
-    padding: 14px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px; /* 图标和文字的间距 */
+    padding: 16px 0;
     font-size: 24px;
     font-weight: 600;
     letter-spacing: 2px;
-    border-bottom: 4px solid #3f5a7a;
+    border-bottom: 4px solid #9a1221; /* 底部深红色边框，增加层次感 */
+    box-shadow: 0 4px 10px rgba(197, 25, 45, 0.2);
+}
+
+.metro-icon {
+    color: white; /* 让 SVG 图标跟随文字变成纯白色 */
+    flex-shrink: 0; /* 防止手机端被压缩变形 */
 }
 
 /* ==========================================
@@ -958,16 +967,24 @@ select option:checked {
         text-overflow: ellipsis;
     }
 
-    /* --- 3. 线路按钮横向滚动 --- */
+    /* 恢复单行横向滑动 */
     .controls-row-3 {
-        overflow-x: auto;
-        flex-wrap: nowrap;
+        display: flex;
+        flex-wrap: nowrap !important;  /* 强制不换行 */
+        gap: 6px !important;
+        overflow-x: auto !important;    /* 允许横向滚动 */
         padding-bottom: 8px;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* 隐藏滚动条 */
+    }
+    .controls-row-3::-webkit-scrollbar {
+        display: none; /* 隐藏 Safari 的滚动条 */
     }
 
     .line-button {
-        flex: 0 0 auto;
+        flex: 0 0 auto; /* 按钮不被挤压 */
+        padding: 4px 10px !important; /* 稍微缩小内边距 */
+        font-size: 12px !important;
     }
 
     /* --- 4. 时间下拉菜单居中与网格对齐 --- */
@@ -999,12 +1016,12 @@ select option:checked {
 
     /* --- 5. 线路名卡片：缩短长度、竖向文字 --- */
     .line-meta {
-        flex: 0 0 70px !important;
-        width: 70px !important;
-        min-width: 70px !important;
-        padding: 12px 0 !important;
-        margin-right: 8px !important;
-        border-radius: 0 16px 16px 0 !important;
+        flex: 0 0 50px !important;   /* 之前是 70px，现在缩小到 50px */
+        width: 50px !important;
+        min-width: 50px !important;
+        padding: 8px 0 !important;   /* 减少上下内边距 */
+        margin-right: 6px !important; /* 减小右侧间距 */
+        border-radius: 0 12px 12px 0 !important; /* 圆角也随之变小 */
     }
 
     .line-name {
@@ -1018,11 +1035,11 @@ select option:checked {
     .line-main,
     .line-num,
     .line-str {
-        font-size: 18px !important;
+        font-size: 16px !important;   /* 从 18px 缩小到 16px */
         writing-mode: vertical-lr;
         text-orientation: upright;
-        letter-spacing: 2px;
-        line-height: 1.2;
+        letter-spacing: 1px;          /* 收紧字间距 */
+        line-height: 1.1;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1031,33 +1048,90 @@ select option:checked {
 
     /* 辅助文字（如“北”、“西”、“知识城”）：不旋转，直立，减小字号 */
     .line-extra {
-        font-size: 12px !important;
+        font-size: 11px !important;   /* 从 12px 缩小到 11px */
         writing-mode: vertical-lr;
         text-orientation: upright;
-        letter-spacing: 1px;
-        margin-top: 4px;
+        letter-spacing: 0px;          /* 消除字间距 */
+        margin-top: 2px;
         display: inline-block;
         word-break: keep-all;
-        line-height: 1.2;
+        line-height: 1.1;
     }
 
     /* --- 6. 乘坐提示卡片：两行显示 --- */
     .line-note {
-        width: 70px !important;
-        padding: 12px 4px !important;
-        margin: 10px 8px 10px 0 !important;
+        width: 50px !important;
+        padding: 8px 2px !important;
+        margin: 10px 6px 10px 0 !important;
         display: flex;
         flex-direction: column; /* 垂直居中排列 */
         justify-content: center;
         align-items: center;
-        font-size: 15px !important;
+        font-size: 13px !important;
         font-weight: bold;
         color: #1f2b3c;
         background: #fff3e0;
         border-left: 4px solid #eca154;
-        border-radius: 0 16px 16px 0 !important;
+        border-radius: 0 12px 12px 0 !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         text-align: center;
         line-height: 1.4;
+    }
+}
+
+/* ==========================================
+   个人信息页脚（B站 AB君小子）
+   ========================================== */
+.author-footer {
+    text-align: center;
+    padding: 20px 0 40px;
+    background: #f2f6fc; /* 保持与页面背景一致 */
+}
+
+.bilibili-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #fb7299, #ff9db5);
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 28px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(251, 114, 153, 0.4);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bilibili-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(251, 114, 153, 0.6);
+    background: linear-gradient(135deg, #ff85a7, #ffb1c6);
+}
+
+.bilibili-link:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(251, 114, 153, 0.4);
+}
+
+.bilibili-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    padding: 4px;
+    margin-left: -6px;
+}
+
+/* 确保在手机端也有不错的展示效果 */
+@media (max-width: 768px) {
+    .author-footer {
+        padding: 15px 0 30px;
+    }
+    .bilibili-link {
+        padding: 8px 22px;
+        font-size: 14px;
     }
 }

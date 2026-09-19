@@ -7,7 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="banner">广州地铁运营时间展示</div>
+<div class="banner">
+    <!-- 广州地铁羊角标志（纯手工绘制SVG） -->
+    <svg viewBox="0 0 200 200" width="32" height="32" class="metro-icon">
+        <!-- 左侧羊角 -->
+        <path d="M 75 180 C 75 110, 80 60, 45 30 L 65 30 C 90 60, 95 110, 95 180 Z" fill="currentColor"/>
+        <!-- 右侧羊角 -->
+        <path d="M 125 180 C 125 110, 120 60, 155 30 L 135 30 C 110 60, 105 110, 105 180 Z" fill="currentColor"/>
+    </svg>
+    <span>地铁运营时间展示</span>
+</div>
 <div class="controls">
     <div class="controls-row-1">
         <div class="time-panel" id="custom-time-panel">
@@ -47,6 +56,18 @@
 
 <div class="map-wrapper" id="map-wrapper"></div>
 <div class="notice-area">注意：①乘坐末班车时建议预留5分钟进站时间<br>②节假日首末班车以官方公布为准</div>
+
+<!-- 新增：个人信息展示区 -->
+<div class="author-footer">
+    <a href="https://space.bilibili.com/586431" target="_blank" class="bilibili-link">
+        <span class="bilibili-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M17.5 5.5l-1.5-1.5h-1l1.5 1.5h-9l1.5-1.5h-1l-1.5 1.5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-10c0-1.1-.9-2-2-2h-1.5zM18 17H6v-8h12v8zM9 12h2v2H9v-2zm4 0h2v2h-2v-2z"/>
+            </svg>
+        </span>
+        <span>B站 AB君小子</span>
+    </a>
+</div>
 
 <!-- 数据文件 -->
 <script src="广州地铁线路各站.js"></script>

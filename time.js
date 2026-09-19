@@ -3,6 +3,7 @@ function initTimeSelectors() {
     const minSel = document.getElementById('minute-select');
 
     for (let i = 0; i < 24; i++) {
+        if (i >= 2 && i <= 5) continue; // ← 新增这行，跳过 02~05
         const opt = document.createElement('option');
         opt.value = i.toString().padStart(2, '0');
         opt.textContent = i.toString().padStart(2, '0');
@@ -45,6 +46,7 @@ function initTimeSelectors() {
     hourDropdown.setAttribute('role', 'grid');
 
     for (let i = 0; i < 24; i++) {
+        if (i >= 2 && i <= 5) continue; // ← 新增这行，跳过 02~05
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'hour-btn';

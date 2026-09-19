@@ -40,6 +40,15 @@ function populateLineButtons() {
     console.log('[按钮] 生成的线路按钮：', lines);
 
     lines.forEach(line => {
+        // 新增：当遇到 10号线时，插入一个强制换行块
+        // if (line === '10') {
+        //     const breakLine = document.createElement('div');
+        //     breakLine.style.width = '100%';
+        //     breakLine.style.height = '0';
+        //     breakLine.style.flexBasis = '100%'; // 强制换行
+        //     container.appendChild(breakLine);
+        // }
+
         const btn = document.createElement('button');
         btn.className = 'line-button';
 
@@ -55,16 +64,13 @@ function populateLineButtons() {
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
         btn.addEventListener('click', () => {
-            const lineContainers = document.querySelectorAll('.line-container');
-            for (let container of lineContainers) {
-                const meta = container.querySelector('.line-meta .line-name');
-                if (meta && meta.textContent.includes(line)) {
-                    const controls = document.querySelector('.controls');
-                    const controlsHeight = controls ? controls.offsetHeight : 0;
-                    const targetPosition = container.offsetTop - controlsHeight;
-                    window.scrollTo({ top: targetPosition, behavior: 'smooth' });
-                    break;
-                }
+            // 精确查找对应的线路容器
+            const lineContainer = document.querySelector(`.line-container[data-line="${line}"]`);
+            if (lineContainer) {
+                const controls = document.querySelector('.controls');
+                const controlsHeight = controls ? controls.offsetHeight : 0;
+                const targetPosition = lineContainer.offsetTop - controlsHeight;
+                window.scrollTo({ top: targetPosition, behavior: 'smooth' });
             }
         });
         container.appendChild(btn);

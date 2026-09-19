@@ -62,6 +62,7 @@ function renderAllLines() {
 
         const lineDiv = document.createElement('div');
         lineDiv.className = 'line-container';
+        lineDiv.dataset.line = line;
 
         const meta = document.createElement('div');
         meta.className = 'line-meta';
@@ -472,7 +473,7 @@ function renderAllLines() {
             note.className = 'line-note';
             note.style.cursor = 'pointer';
             // 将长文本替换为“乘坐提示”
-            note.innerHTML = '乘坐<br>提示';
+            note.innerHTML = '乘<br>坐<br>提<br>示';
 
             // 点击事件弹出长文本（复用之前的弹窗逻辑）
             note.addEventListener('click', (e) => {
