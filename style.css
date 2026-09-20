@@ -1016,12 +1016,12 @@ select option:checked {
 
     /* --- 5. 线路名卡片：缩短长度、竖向文字 --- */
     .line-meta {
-        flex: 0 0 50px !important;   /* 之前是 70px，现在缩小到 50px */
-        width: 50px !important;
-        min-width: 50px !important;
-        padding: 8px 0 !important;   /* 减少上下内边距 */
-        margin-right: 6px !important; /* 减小右侧间距 */
-        border-radius: 0 12px 12px 0 !important; /* 圆角也随之变小 */
+        flex: 0 0 35px !important;
+        width: 35px !important;
+        min-width: 35px !important;
+        padding: 8px 0 !important;
+        margin-right: 5px !important;
+        border-radius: 0 10px 10px 0 !important; /* 圆角也相应缩小 */
     }
 
     .line-name {
@@ -1031,14 +1031,14 @@ select option:checked {
         gap: 2px;
     }
 
-    /* 主干汉字/数字竖排 */
+    /* 主干汉字/数字竖排，字号稍微收紧 */
     .line-main,
     .line-num,
     .line-str {
-        font-size: 16px !important;   /* 从 18px 缩小到 16px */
+        font-size: 15px !important;   /* 从 16px 缩小到 15px */
         writing-mode: vertical-lr;
         text-orientation: upright;
-        letter-spacing: 1px;          /* 收紧字间距 */
+        letter-spacing: 0.5px;         /* 从 1px 收紧到 0.5px */
         line-height: 1.1;
         display: flex;
         flex-direction: column;
@@ -1046,12 +1046,12 @@ select option:checked {
         justify-content: center;
     }
 
-    /* 辅助文字（如“北”、“西”、“知识城”）：不旋转，直立，减小字号 */
+    /* 辅助文字（如“北”、“西”、“知识城”）：字号进一步减小 */
     .line-extra {
-        font-size: 11px !important;   /* 从 12px 缩小到 11px */
+        font-size: 10px !important;   /* 从 11px 缩小到 10px */
         writing-mode: vertical-lr;
         text-orientation: upright;
-        letter-spacing: 0px;          /* 消除字间距 */
+        letter-spacing: 0px;
         margin-top: 2px;
         display: inline-block;
         word-break: keep-all;
@@ -1076,6 +1076,17 @@ select option:checked {
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         text-align: center;
         line-height: 1.4;
+    }
+
+    /* --- 7. 站点列、箭头列与箭头的紧凑尺寸 --- */
+    .station-column {
+        min-width: 40px !important;
+    }
+    .arrow-column {
+        min-width: 20px !important;
+    }
+    .arrow-up, .arrow-down {
+        font-size: 20px !important;
     }
 }
 

@@ -162,13 +162,13 @@ function renderAllLines() {
                     const firstStr = minutesToDisplayStr(upFull.first);
                     const lastStr = minutesToDisplayStr(upFull.last);
                     let text, className = 'time-meta';
-                    if (fullActive) text = `全程 末 ${lastStr}`;
+                    if (fullActive) text = `全程 ${lastStr}`;
                     else if (fullEnded) {
-                        if (upTerminal && terminalActive) { text = `全程 末 ${lastStr}`; className += ' ended'; }
+                        if (upTerminal && terminalActive) { text = `全程 ${lastStr}`; className += ' ended'; }
                         else text = `全程 首 ${firstStr}`;
                     } else if (fullNotStarted) text = `全程 首 ${firstStr}`;
                     if (text) {
-                        text = text.replace(/\b(首|末)\b/g, '<b>$1</b>');
+                        text = text.replace(/\b(首)\b/g, '<b>$1</b>');
                         fragments.push(`<span class="${className}" style="font-size: ${timeMetaFontSize};">${text}</span>`);
                     }
                 }
@@ -176,13 +176,13 @@ function renderAllLines() {
                     const firstStr = minutesToDisplayStr(upTerminal.first);
                     const lastStr = minutesToDisplayStr(upTerminal.last);
                     let text, className = 'time-meta';
-                    if (terminalActive) text = `龙潭 末 ${lastStr}`;
+                    if (terminalActive) text = `龙潭 ${lastStr}`;
                     else if (terminalEnded) {
-                        if (upFull && fullActive) { text = `龙潭 末 ${lastStr}`; className += ' ended'; }
+                        if (upFull && fullActive) { text = `龙潭 ${lastStr}`; className += ' ended'; }
                         else text = `龙潭 首 ${firstStr}`;
                     } else if (terminalNotStarted) text = `龙潭 首 ${firstStr}`;
                     if (text) {
-                        text = text.replace(/\b(首|末)\b/g, '<b>$1</b>');
+                        text = text.replace(/\b(首)\b/g, '<b>$1</b>');
                         fragments.push(`<span class="${className}" style="font-size: ${timeMetaFontSize};">${text}</span>`);
                     }
                 }
@@ -227,15 +227,26 @@ function renderAllLines() {
                         const active = (currentMin >= time.first && currentMin <= time.last);
                         const firstStr = minutesToDisplayStr(time.first);
                         const lastStr = minutesToDisplayStr(time.last);
-                        const displayText = active ? `末 ${lastStr}` : `首 ${firstStr}`;
-                        const boldText = displayText.replace(/^(首|末)/, '<b>$1</b>');
-                        upDiv.innerHTML = `<span class="time-meta" style="font-size: ${timeMetaFontSize};">${boldText}</span>`;
+                        let displayText, metaClass = 'time-meta';
+                        if (active) {
+                            // 正在运营：显示末班车时间
+                            displayText = `${lastStr}`;
+                        } else if (hasActiveStation) {
+                            // 已结束但线路整体仍有站点运营：显示带删除线的末班车
+                            displayText = `${lastStr}`;
+                            metaClass += ' ended';
+                        } else {
+                            // 全线均结束：显示首班车
+                            displayText = `首 ${firstStr}`;
+                        }
+                        const boldText = displayText.replace(/^(首)/, '<b>$1</b>');
+                        upDiv.innerHTML = `<span class="${metaClass}" style="font-size: ${timeMetaFontSize};">${boldText}</span>`;
                         if (active) {
                             const remaining = time.last - currentMin;
                             if (remaining >= 0 && remaining <= 15) {
                                 const lightness = 70 + (remaining / 15) * 25;
                                 const timeMeta = upDiv.querySelector('.time-meta');
-                                if (timeMeta) {
+                                if (timeMeta && !timeMeta.classList.contains('ended')) {
                                     timeMeta.style.backgroundColor = `hsl(30, 80%, ${lightness}%)`;
                                     timeMeta.style.borderColor = `hsl(30, 80%, ${lightness - 10}%)`;
                                     timeMeta.style.color = lightness < 65 ? 'white' : '#1f3a60';
@@ -248,13 +259,21 @@ function renderAllLines() {
                             const active = (currentMin >= time.first && currentMin <= time.last);
                             const firstStr = minutesToDisplayStr(time.first);
                             const lastStr = minutesToDisplayStr(time.last);
-                            const displayText = active ? `末 ${lastStr}` : `首 ${firstStr}`;
-                            const boldText = displayText.replace(/^(首|末)/, '<b>$1</b>');
+                            let displayText, metaClass = 'time-meta';
+                            if (active) {
+                                displayText = `${lastStr}`;
+                            } else if (hasActiveStation) {
+                                displayText = `${lastStr}`;
+                                metaClass += ' ended';
+                            } else {
+                                displayText = `首 ${firstStr}`;
+                            }
+                            const boldText = displayText.replace(/^(首)/, '<b>$1</b>');
                             let toName = time.to;
                             if (toName.includes('（') && toName.includes('）')) {
                                 toName = toName.split('（')[0];
                             }
-                            const fragment = `<span class="time-meta" style="font-size: ${timeMetaFontSize}; display: inline-block;">${toName} ${boldText}</span>`;
+                            const fragment = `<span class="${metaClass}" style="font-size: ${timeMetaFontSize}; display: inline-block;">${toName} ${boldText}</span>`;
                             fragments.push(fragment);
                         });
                         upDiv.innerHTML = fragments.join('');
@@ -266,7 +285,7 @@ function renderAllLines() {
                                     if (remaining >= 0 && remaining <= 15) {
                                         const lightness = 70 + (remaining / 15) * 25;
                                         const timeMeta = upDiv.querySelectorAll('.time-meta')[idx];
-                                        if (timeMeta) {
+                                        if (timeMeta && !timeMeta.classList.contains('ended')) {
                                             timeMeta.style.backgroundColor = `hsl(30, 80%, ${lightness}%)`;
                                             timeMeta.style.borderColor = `hsl(30, 80%, ${lightness - 10}%)`;
                                             timeMeta.style.color = lightness < 65 ? 'white' : '#1f3a60';
@@ -314,13 +333,13 @@ function renderAllLines() {
                     const firstStr = minutesToDisplayStr(downFull.first);
                     const lastStr = minutesToDisplayStr(downFull.last);
                     let text, className = 'time-meta';
-                    if (fullActive) text = `全程 末 ${lastStr}`;
+                    if (fullActive) text = `全程 ${lastStr}`;
                     else if (fullEnded) {
-                        if (downTerminal && terminalActive) { text = `全程 末 ${lastStr}`; className += ' ended'; }
+                        if (downTerminal && terminalActive) { text = `全程 ${lastStr}`; className += ' ended'; }
                         else text = `全程 首 ${firstStr}`;
                     } else if (fullNotStarted) text = `全程 首 ${firstStr}`;
                     if (text) {
-                        text = text.replace(/\b(首|末)\b/g, '<b>$1</b>');
+                        text = text.replace(/\b(首)\b/g, '<b>$1</b>');
                         fragments.push(`<span class="${className}" style="font-size: ${timeMetaFontSize};">${text}</span>`);
                     }
                 }
@@ -328,17 +347,17 @@ function renderAllLines() {
                     const firstStr = minutesToDisplayStr(downTerminal.first);
                     const lastStr = minutesToDisplayStr(downTerminal.last);
                     let text, className = 'time-meta';
-                    if (terminalActive) text = `赤沙 末 ${lastStr}`;
+                    if (terminalActive) text = `赤沙 ${lastStr}`;
                     else if (terminalEnded) {
-                        if (fullActive) { text = `赤沙 末 ${lastStr}`; className += ' ended'; }
+                        if (fullActive) { text = `赤沙 ${lastStr}`; className += ' ended'; }
                         else if (fullEnded) text = `赤沙 首 ${firstStr}`;
-                        else if (fullNotStarted) { text = `赤沙 末 ${lastStr}`; className += ' ended'; }
+                        else if (fullNotStarted) { text = `赤沙 ${lastStr}`; className += ' ended'; }
                     } else if (terminalNotStarted) {
                         if (fullActive || fullNotStarted) text = `赤沙 首 ${firstStr}`;
                         else if (fullEnded) text = `赤沙 首 ${firstStr}`;
                     }
                     if (text) {
-                        text = text.replace(/\b(首|末)\b/g, '<b>$1</b>');
+                        text = text.replace(/\b(首)\b/g, '<b>$1</b>');
                         fragments.push(`<span class="${className}" style="font-size: ${timeMetaFontSize};">${text}</span>`);
                     }
                 }
@@ -383,15 +402,23 @@ function renderAllLines() {
                         const active = (currentMin >= time.first && currentMin <= time.last);
                         const firstStr = minutesToDisplayStr(time.first);
                         const lastStr = minutesToDisplayStr(time.last);
-                        const displayText = active ? `末 ${lastStr}` : `首 ${firstStr}`;
-                        const boldText = displayText.replace(/^(首|末)/, '<b>$1</b>');
-                        downDiv.innerHTML = `<span class="time-meta" style="font-size: ${timeMetaFontSize};">${boldText}</span>`;
+                        let displayText, metaClass = 'time-meta';
+                        if (active) {
+                            displayText = `${lastStr}`;
+                        } else if (hasActiveStation) {
+                            displayText = `${lastStr}`;
+                            metaClass += ' ended';
+                        } else {
+                            displayText = `首 ${firstStr}`;
+                        }
+                        const boldText = displayText.replace(/^(首)/, '<b>$1</b>');
+                        downDiv.innerHTML = `<span class="${metaClass}" style="font-size: ${timeMetaFontSize};">${boldText}</span>`;
                         if (active) {
                             const remaining = time.last - currentMin;
                             if (remaining >= 0 && remaining <= 15) {
                                 const lightness = 70 + (remaining / 15) * 25;
                                 const timeMeta = downDiv.querySelector('.time-meta');
-                                if (timeMeta) {
+                                if (timeMeta && !timeMeta.classList.contains('ended')) {
                                     timeMeta.style.backgroundColor = `hsl(30, 80%, ${lightness}%)`;
                                     timeMeta.style.borderColor = `hsl(30, 80%, ${lightness - 10}%)`;
                                     timeMeta.style.color = lightness < 65 ? 'white' : '#1f3a60';
@@ -404,13 +431,21 @@ function renderAllLines() {
                             const active = (currentMin >= time.first && currentMin <= time.last);
                             const firstStr = minutesToDisplayStr(time.first);
                             const lastStr = minutesToDisplayStr(time.last);
-                            const displayText = active ? `末 ${lastStr}` : `首 ${firstStr}`;
-                            const boldText = displayText.replace(/^(首|末)/, '<b>$1</b>');
+                            let displayText, metaClass = 'time-meta';
+                            if (active) {
+                                displayText = `${lastStr}`;
+                            } else if (hasActiveStation) {
+                                displayText = `${lastStr}`;
+                                metaClass += ' ended';
+                            } else {
+                                displayText = `首 ${firstStr}`;
+                            }
+                            const boldText = displayText.replace(/^(首)/, '<b>$1</b>');
                             let toName = time.to;
                             if (toName.includes('（') && toName.includes('）')) {
                                 toName = toName.split('（')[0];
                             }
-                            const fragment = `<span class="time-meta" style="font-size: ${timeMetaFontSize}; display: inline-block;">${toName} ${boldText}</span>`;
+                            const fragment = `<span class="${metaClass}" style="font-size: ${timeMetaFontSize}; display: inline-block;">${toName} ${boldText}</span>`;
                             fragments.push(fragment);
                         });
                         downDiv.innerHTML = fragments.join('');
@@ -422,7 +457,7 @@ function renderAllLines() {
                                     if (remaining >= 0 && remaining <= 15) {
                                         const lightness = 70 + (remaining / 15) * 25;
                                         const timeMeta = downDiv.querySelectorAll('.time-meta')[idx];
-                                        if (timeMeta) {
+                                        if (timeMeta && !timeMeta.classList.contains('ended')) {
                                             timeMeta.style.backgroundColor = `hsl(30, 80%, ${lightness}%)`;
                                             timeMeta.style.borderColor = `hsl(30, 80%, ${lightness - 10}%)`;
                                             timeMeta.style.color = lightness < 65 ? 'white' : '#1f3a60';
