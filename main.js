@@ -137,3 +137,46 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
 
 // 全局标志，用于防止在获取数据期间因系统时间自动刷新而重复渲染
 let isFetchingData = false;
+
+// ========== 回到顶部按钮逻辑 ==========
+const backToTopBtn = document.getElementById('back-to-top');
+if (backToTopBtn) {
+    // 1. 去重后的线路颜色池
+    const allColors = [...new Set(Object.values(HARDCODED_COLORS))];
+
+    // 2. 随机抽取两条不同的颜色
+    const idx1 = Math.floor(Math.random() * allColors.length);
+    let idx2;
+    do {
+        idx2 = Math.floor(Math.random() * allColors.length);
+    } while (idx2 === idx1 && allColors.length > 1);
+
+    const c1 = allColors[idx1];
+    const c2 = allColors[idx2];
+
+    // 3. 随机渐变角度（0° ~ 360°）
+    const angle = Math.floor(Math.random() * 360);
+
+    // 4. 应用渐变背景
+    backToTopBtn.style.background = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+
+    // 5. 根据第一个颜色亮度自动选白/黑箭头（利用已有的 getContrastColor）
+    backToTopBtn.style.color = getContrastColor(c1);
+
+    // 6. 阴影色跟随第一个颜色
+    backToTopBtn.style.boxShadow = `0 4px 14px ${c1}88`;
+
+    // 7. 滚动超过 300px 显示
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    }, { passive: true });
+
+    // 8. 点击平滑回到顶部
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}

@@ -21,12 +21,12 @@ function renderAllLines() {
     const wrapper = document.getElementById('map-wrapper');
     wrapper.innerHTML = '';
 
-    let stationFontSize = 17;
-    if (rowHeight === 65) stationFontSize = 19;
-    else if (rowHeight === 55) stationFontSize = 18;
-    else if (rowHeight === 45) stationFontSize = 17;
-    else if (rowHeight === 35) stationFontSize = 16;
-    else if (rowHeight === 25) stationFontSize = 15;
+    let stationFontSize = 16;
+    if (rowHeight === 65) stationFontSize = 18;
+    else if (rowHeight === 55) stationFontSize = 17;
+    else if (rowHeight === 45) stationFontSize = 16;
+    else if (rowHeight === 35) stationFontSize = 15;
+    else if (rowHeight === 25) stationFontSize = 14;
 
     lines.forEach(([line, stations]) => {
         if (!selectedLines.has(line)) return;
