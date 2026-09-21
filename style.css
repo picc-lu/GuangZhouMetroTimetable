@@ -498,6 +498,7 @@ select option:checked {
     align-items: stretch;
     min-width: max-content;
     pointer-events: none;
+    padding-right: 20px; /* 拖到尽头时与屏幕边缘留出的空隙 */
 }
 
 .station-column {
@@ -575,8 +576,10 @@ select option:checked {
 }
 
 .dot-symbol {
-    font-size: 22px;
+    font-size: 14px;
+    font-weight: 700;
     line-height: 1;
+    letter-spacing: 0;
 }
 
 .active-segment {
@@ -863,6 +866,224 @@ select option:checked {
 }
 
 /* ==========================================
+   竖向线路详情图
+   ========================================== */
+.vertical-diagram {
+    --line-color: #888;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 4px 12px;
+}
+
+.v-station-row {
+    display: grid;
+    grid-template-columns: 1fr 22px 1fr;
+    column-gap: 10px;
+    align-items: stretch;
+    position: relative;
+    padding-top: 26px; /* 给站名浮动留出空间 */
+}
+
+/* 站名：浮在行顶，白色胶囊，不会和左右卡片重叠 */
+.v-name {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #ffffff;
+    padding: 2px 10px;
+    border-radius: 8px;
+    z-index: 3;
+    letter-spacing: 0.4px;
+    box-shadow: 0 0 0 4px #ffffff; /* 白色光晕，避免视觉上被线穿过 */
+}
+
+.v-up-col,
+.v-down-col {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    min-width: 0;
+}
+.v-up-col {
+    justify-content: flex-end;
+}
+.v-down-col {
+    justify-content: flex-start;
+}
+
+.v-line-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: stretch;
+    /* 向上延伸覆盖站名区域，保证竖线在整行内连续 */
+    margin-top: -26px;
+    padding-top: 26px;
+}
+
+.v-line {
+    width: 4px;
+    background: var(--line-color);
+    opacity: 0.45;
+    flex: 1;
+    min-height: 10px;
+}
+
+.v-station-row:first-child .v-line.top {
+    background: transparent;
+}
+.v-station-row:last-child .v-line.bottom {
+    background: transparent;
+}
+
+.v-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid var(--line-color);
+    box-shadow: 0 0 0 3px #ffffff;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+/* 双向停运站名：变灰 */
+.v-name-inactive {
+    color: #94a3b8 !important;
+}
+
+/* 双向停运圆点：边框变灰 */
+.v-dot-inactive {
+    border-color: #cbd5e1 !important;
+}
+
+/* 双向停运段线：灰色、降低不透明度 */
+.v-line-inactive {
+    background: #cbd5e1 !important;
+    opacity: 0.8 !important;
+}
+
+/* 时间卡片 */
+.v-card {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;               /* 从 13px → 15px */
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.v-card.v-up {
+    border-right: 3px solid var(--up-color, var(--line-color));
+}
+.v-card.v-down {
+    border-left: 3px solid var(--down-color, var(--line-color));
+}
+
+.v-time-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+}
+
+.v-time-block + .v-time-block {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.v-dir {
+    font-size: 14px;               /* 从 12px → 14px */
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 3px;
+}
+
+/* 方向标签：使用方向主题色 */
+.v-card.v-up .v-dir {
+    color: var(--up-color, #0369a1);
+    justify-content: flex-end;
+}
+
+.v-card.v-down .v-dir {
+    color: var(--down-color, #7c3aed);
+    justify-content: flex-start;
+}
+
+/* 时间行：跟随方向色 */
+.v-time-line {
+    display: flex;
+    align-items: baseline;
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    font-size: 15px;
+    color: var(--up-color, #1f3a60); /* 默认值会被下面覆盖 */
+    letter-spacing: 0.3px;
+    width: 100%;
+}
+
+/* 上行时间文字使用 up-color */
+.v-card.v-up .v-time-line {
+    color: var(--up-color, #1f3a60);
+    justify-content: flex-end;
+}
+
+/* 下行时间文字使用 down-color */
+.v-card.v-down .v-time-line {
+    color: var(--down-color, #1f3a60);
+    justify-content: flex-start;
+}
+
+.v-time-line b {
+    color: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    margin-right: 3px;
+}
+
+/* 已结束的方向：灰显 + 删除线 */
+.v-time-block.ended {
+    opacity: 0.55;
+}
+.v-time-line.ended span {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: currentColor;
+}
+
+/* 手机端适配 */
+@media (max-width: 600px) {
+    /* 如果之前有单独设置的 v-dir / v-time-line 字号，改为： */
+    .v-dir {
+        font-size: 13px;
+    }
+    .v-time-line {
+        font-size: 14px;
+    }
+    .v-time-line b {
+        font-size: 12px;
+    }
+    /* v-card 字号也相应调整 */
+    .v-card {
+        padding: 10px 10px;
+        font-size: 14px;
+    }
+}
+
+/* ==========================================
    回到顶部按钮
    ========================================== */
 .back-to-top {
@@ -916,13 +1137,11 @@ select option:checked {
         width: 20px;
         height: 20px;
     }
-}
 
-/* ==========================================
-   手机端媒体查询（宽度小于 768px）
-   已清理冲突规则，合并去重
-   ========================================== */
-@media (max-width: 768px) {
+    .dot-symbol {
+        font-size: 12px !important;
+    }
+
     /* --- 1. 顶部控制栏整体调整 --- */
     .controls {
         position: relative; /* 取消吸顶，随页面滚动 */

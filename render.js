@@ -220,7 +220,7 @@ function renderAllLines() {
                 upDiv.classList.add(upActive ? 'active-dot' : 'inactive-dot');
 
                 if (i === n - 1) {
-                    upDiv.innerHTML = `<span class="dot-symbol">●</span>`;
+                    upDiv.innerHTML = `<span class="dot-symbol">终</span>`;
                 } else {
                     if (upTimes.length === 1) {
                         const time = upTimes[0];
@@ -395,7 +395,7 @@ function renderAllLines() {
                 downDiv.classList.add(downActive ? 'active-dot' : 'inactive-dot');
 
                 if (i === 0) {
-                    downDiv.innerHTML = `<span class="dot-symbol">●</span>`;
+                    downDiv.innerHTML = `<span class="dot-symbol">终</span>`;
                 } else {
                     if (downTimes.length === 1) {
                         const time = downTimes[0];
