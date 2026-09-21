@@ -112,7 +112,7 @@ function ensureModal() {
         `;
         document.body.appendChild(modalOverlay);
 
-        // 统一的关闭函数：隐藏弹窗 + 恢复 body 滚动
+        // 统一的关闭函数
         window.closeMetroModal = function() {
             modalOverlay.style.display = 'none';
             document.body.style.overflow = '';
@@ -127,6 +127,14 @@ function ensureModal() {
                 closeMetroModal();
             }
         });
+
+        // 关键：阻止遮罩区域的滚动穿透
+        modalOverlay.addEventListener('touchmove', (e) => {
+            const scrollable = e.target.closest('.modal-content') || e.target.closest('.v-fixed-notice');
+            if (!scrollable) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 }
 
@@ -199,6 +207,33 @@ function showLineDetails(line) {
 
     const lineActive = stationStatus.some(s => s.anyActive);
 
+    // ====== 判断整条线路方向是否统一（用于简化卡片显示） ======
+    let simpleMode = false;
+    let upTargetName = '';
+    let downTargetName = '';
+    if (line !== '11号线') {
+        const upSet = new Set();
+        const downSet = new Set();
+        for (const st of stations) {
+            const data = lineDirectionTime[line]?.[st] || {};
+            (data.up || []).forEach(t => {
+                let n = t.to;
+                if (n.includes('（') && n.includes('）')) n = n.split('（')[0];
+                upSet.add(n);
+            });
+            (data.down || []).forEach(t => {
+                let n = t.to;
+                if (n.includes('（') && n.includes('）')) n = n.split('（')[0];
+                downSet.add(n);
+            });
+        }
+        if (upSet.size === 1 && downSet.size === 1) {
+            simpleMode = true;
+            upTargetName = [...upSet][0];
+            downTargetName = [...downSet][0];
+        }
+    }
+
     // ====== 弹窗抬头背景色：跟随线路色；整条线路全部结束 → 灰色 ======
     const modalHeader = modalOverlay.querySelector('.modal-header');
     const headerColor = lineActive ? lineColor : getGrayscaleColor(lineColor);
@@ -225,27 +260,41 @@ function showLineDetails(line) {
             inner = `<div class="v-time-line"><span><b>首</b> ${minutesToDisplayStr(first)}</span></div>`;
         }
 
-        // 徽章颜色：剩余 60 分钟 → HSL 色相 45°（深黄）；剩余 0 分钟 → 0°（深红）
         let badge = '';
         if (showRemaining) {
             const hue = (remaining / 60) * 45;
-            // 0~3 分钟：文案改为"即将结束运营"，并附加紧急样式
             const isUrgent = remaining >= 0 && remaining <= 3;
             const badgeText = isUrgent ? '即将结束运营' : `剩${remaining}分钟`;
             const urgentCls = isUrgent ? ' v-remaining-urgent' : '';
             badge = `<span class="v-remaining${urgentCls}" style="--badge-hue: ${hue};">${badgeText}</span>`;
         }
 
-        // 上行徽章在前，下行交换为徽章在前
-        const content = `${badge}${dirLabel}`;
-
+        // 徽章独占一行，方向独占一行，时间独立一行
         return `<div class="${cls}">
-            <div class="v-dir">${content}</div>
+            ${badge ? `<div class="v-badge-row">${badge}</div>` : ''}
+            ${simpleMode ? '' : `<div class="v-dir">${dirLabel}</div>`}
             ${inner}
         </div>`;
     }
 
-    let html = `<div class="vertical-diagram" style="--line-color: ${lineColor}; --up-color: ${upColor}; --down-color: ${downColor};">`;
+    let html = '';
+
+    // 方向统一时，图例条放在 vertical-diagram 外面，才能紧贴 header
+    if (simpleMode) {
+        html += `<div class="v-legend" style="--up-color: ${upColor}; --down-color: ${downColor};">
+            <div class="v-legend-up">
+                <span class="v-legend-arrow">↓</span>
+                <span>往 ${upTargetName}</span>
+            </div>
+            <div class="v-legend-divider">|</div>
+            <div class="v-legend-down">
+                <span class="v-legend-arrow">↑</span>
+                <span>往 ${downTargetName}</span>
+            </div>
+        </div>`;
+    }
+
+    html += `<div class="vertical-diagram" style="--line-color: ${lineColor}; --up-color: ${upColor}; --down-color: ${downColor};">`;
 
     for (let idx = 0; idx < stations.length; idx++) {
         const station = stations[idx];
@@ -317,8 +366,24 @@ function showLineDetails(line) {
 
     html += '</div>';
 
+    // if (line === "3号线") {
+    //     html += `<div class="line-note-modal">⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。</div>`;
+    // }
+
+    // 3号线警告框：悬浮固定在弹窗底部
+    let fixedNotice = modalOverlay.querySelector('.v-fixed-notice');
     if (line === "3号线") {
-        html += `<div class="line-note-modal">⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。</div>`;
+        if (!fixedNotice) {
+            fixedNotice = document.createElement('div');
+            fixedNotice.className = 'v-fixed-notice';
+            modalOverlay.querySelector('.modal-container').appendChild(fixedNotice);
+        }
+        fixedNotice.innerHTML = '⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。';
+        fixedNotice.style.display = 'block';
+        contentDiv.style.paddingBottom = '230px';
+    } else {
+        if (fixedNotice) fixedNotice.style.display = 'none';
+        contentDiv.style.paddingBottom = '90px';
     }
 
     contentDiv.innerHTML = html;
