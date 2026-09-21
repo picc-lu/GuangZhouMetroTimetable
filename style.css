@@ -1004,16 +1004,16 @@ select option:checked {
 }
 
 .v-dir {
-    font-size: 14px;               /* 从 12px → 14px */
+    font-size: 14px;
     font-weight: 600;
     color: #475569;
     display: flex;
     align-items: center;
     gap: 4px;
     margin-bottom: 3px;
+    flex-wrap: wrap; /* 允许在极窄空间下换行 */
 }
 
-/* 方向标签：使用方向主题色 */
 .v-card.v-up .v-dir {
     color: var(--up-color, #0369a1);
     justify-content: flex-end;
@@ -1062,6 +1062,59 @@ select option:checked {
     text-decoration: line-through;
     text-decoration-thickness: 2px;
     text-decoration-color: currentColor;
+}
+
+/* ==========================================
+   "剩 X 分钟"气泡徽章
+   色相由 JS 通过 --badge-hue 注入
+   60 分钟 → 45°（深黄）；0 分钟 → 0°（深红）
+   ========================================== */
+.v-remaining {
+    display: inline-block;
+    /* 文字与边框使用深色（亮度 38%），保证在浅色卡片上清晰可读 */
+    color: hsl(var(--badge-hue, 0), 85%, 38%);
+    /* 背景是同一色相的极浅版本 */
+    background: hsl(var(--badge-hue, 0), 100%, 96%);
+    border: 1.5px solid hsl(var(--badge-hue, 0), 85%, 55%);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+    white-space: nowrap;
+    transform: rotate(-6deg);
+    transform-origin: center;
+    box-shadow: 0 1px 3px hsl(var(--badge-hue, 0), 85%, 55%, 0.25);
+    margin: 0 4px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* 紧急徽章：0~3 分钟，文案较长，缩小字号并减弱倾斜 */
+.v-remaining.v-remaining-urgent {
+    font-size: 10px;
+    padding: 1px 5px;
+    transform: rotate(-3deg);
+    letter-spacing: 0;
+    border-width: 1.2px;
+}
+
+@media (max-width: 600px) {
+    .v-remaining.v-remaining-urgent {
+        font-size: 9px;
+        padding: 1px 4px;
+        transform: rotate(-2deg);
+    }
+
+    .v-remaining {
+        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 5px;
+        transform: rotate(-5deg);
+        margin: 0 3px;
+    }
 }
 
 /* 手机端适配 */

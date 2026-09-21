@@ -193,8 +193,11 @@ function showLineDetails(line) {
 
     const lineActive = stationStatus.some(s => s.anyActive);
 
-    function makeBlock(dirLabel, first, last) {
+    function makeBlock(dirLabel, first, last, isUp) {
         const active = currentMin >= first && currentMin <= last;
+        const remaining = last - currentMin;
+        const showRemaining = active && remaining >= 0 && remaining <= 60;
+
         let inner, cls = 'v-time-block';
         if (active) {
             inner = `<div class="v-time-line"><span><b>末</b> ${minutesToDisplayStr(last)}</span></div>`;
@@ -204,8 +207,23 @@ function showLineDetails(line) {
         } else {
             inner = `<div class="v-time-line"><span><b>首</b> ${minutesToDisplayStr(first)}</span></div>`;
         }
+
+        // 徽章颜色：剩余 60 分钟 → HSL 色相 45°（深黄）；剩余 0 分钟 → 0°（深红）
+        let badge = '';
+        if (showRemaining) {
+            const hue = (remaining / 60) * 45;
+            // 0~3 分钟：文案改为"即将结束运营"，并附加紧急样式
+            const isUrgent = remaining >= 0 && remaining <= 3;
+            const badgeText = isUrgent ? '即将结束运营' : `剩${remaining}分钟`;
+            const urgentCls = isUrgent ? ' v-remaining-urgent' : '';
+            badge = `<span class="v-remaining${urgentCls}" style="--badge-hue: ${hue};">${badgeText}</span>`;
+        }
+
+        // 上行徽章在前，下行交换为徽章在前
+        const content = `${badge}${dirLabel}`;
+
         return `<div class="${cls}">
-            <div class="v-dir">${dirLabel}</div>
+            <div class="v-dir">${content}</div>
             ${inner}
         </div>`;
     }
@@ -223,20 +241,20 @@ function showLineDetails(line) {
 
         if (line === '11号线') {
             // up 视觉向下 → 用 ↓；down 视觉向上 → 用 ↑
-            if (times.upFull)     upCards   += makeBlock('↓ 外环 全程',   times.upFull.first,     times.upFull.last);
-            if (times.upTerminal) upCards   += makeBlock('↓ 外环 往龙潭', times.upTerminal.first, times.upTerminal.last);
-            if (times.downFull)   downCards += makeBlock('↑ 内环 全程',   times.downFull.first,   times.downFull.last);
-            if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last);
+            if (times.upFull)     upCards   += makeBlock('↓ 外环 全程',   times.upFull.first,     times.upFull.last,true);
+            if (times.upTerminal) upCards   += makeBlock('↓ 外环 往龙潭', times.upTerminal.first, times.upTerminal.last,true);
+            if (times.downFull)   downCards += makeBlock('↑ 内环 全程',   times.downFull.first,   times.downFull.last,false);
+            if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last,false);
         } else {
             upCards = (times.up || []).map(t => {
                 let n = t.to;
                 if (n.includes('（') && n.includes('）')) n = n.split('（')[0];
-                return makeBlock(`↓ 往 ${n}`, t.first, t.last);
+                return makeBlock(`↓ 往 ${n}`, t.first, t.last, true);
             }).join('');
             downCards = (times.down || []).map(t => {
                 let n = t.to;
                 if (n.includes('（') && n.includes('）')) n = n.split('（')[0];
-                return makeBlock(`↑ 往 ${n}`, t.first, t.last);
+                return makeBlock(`↑ 往 ${n}`, t.first, t.last, false);
             }).join('');
         }
 
