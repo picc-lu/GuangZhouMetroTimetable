@@ -107,19 +107,24 @@ function ensureModal() {
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-content"></div>
+                <button class="v-back-btn" type="button">← 返回</button>
             </div>
         `;
         document.body.appendChild(modalOverlay);
 
-        // 关闭事件
-        const closeBtn = modalOverlay.querySelector('.modal-close');
-        closeBtn.addEventListener('click', () => {
+        // 关闭按钮
+        modalOverlay.querySelector('.modal-close').addEventListener('click', () => {
             modalOverlay.style.display = 'none';
         });
+        // 点击遮罩关闭
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 modalOverlay.style.display = 'none';
             }
+        });
+        // 返回按钮
+        modalOverlay.querySelector('.v-back-btn').addEventListener('click', () => {
+            modalOverlay.style.display = 'none';
         });
     }
 }
@@ -193,6 +198,17 @@ function showLineDetails(line) {
 
     const lineActive = stationStatus.some(s => s.anyActive);
 
+    // ====== 弹窗抬头背景色：跟随线路色；整条线路全部结束 → 灰色 ======
+    const modalHeader = modalOverlay.querySelector('.modal-header');
+    const headerColor = lineActive ? lineColor : getGrayscaleColor(lineColor);
+    const headerTextColor = getContrastColor(headerColor);
+    modalHeader.style.background = headerColor;
+    modalHeader.style.borderBottomColor = headerColor;
+    const h3El = modalHeader.querySelector('h3');
+    const closeBtnEl = modalHeader.querySelector('.modal-close');
+    if (h3El) h3El.style.color = headerTextColor;
+    if (closeBtnEl) closeBtnEl.style.color = headerTextColor;
+
     function makeBlock(dirLabel, first, last, isUp) {
         const active = currentMin >= first && currentMin <= last;
         const remaining = last - currentMin;
@@ -258,8 +274,17 @@ function showLineDetails(line) {
             }).join('');
         }
 
-        const upCard = upCards ? `<div class="v-card v-up">${upCards}</div>` : '';
-        const downCard = downCards ? `<div class="v-card v-down">${downCards}</div>` : '';
+        // 统计该方向所有 block 是否都已结束
+        const upTotal = (upCards.match(/v-time-block/g) || []).length;
+        const upEnded = (upCards.match(/v-time-block ended/g) || []).length;
+        const upAllEnded = upTotal > 0 && upTotal === upEnded;
+
+        const downTotal = (downCards.match(/v-time-block/g) || []).length;
+        const downEnded = (downCards.match(/v-time-block ended/g) || []).length;
+        const downAllEnded = downTotal > 0 && downTotal === downEnded;
+
+        const upCard = upCards ? `<div class="v-card v-up${upAllEnded ? ' v-card-ended' : ''}">${upCards}</div>` : '';
+        const downCard = downCards ? `<div class="v-card v-down${downAllEnded ? ' v-card-ended' : ''}">${downCards}</div>` : '';
 
         const stationActive = stationStatus[idx].anyActive;
         const nameClass = stationActive ? 'v-name' : 'v-name v-name-inactive';
