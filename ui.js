@@ -112,19 +112,20 @@ function ensureModal() {
         `;
         document.body.appendChild(modalOverlay);
 
-        // 关闭按钮
-        modalOverlay.querySelector('.modal-close').addEventListener('click', () => {
+        // 统一的关闭函数：隐藏弹窗 + 恢复 body 滚动
+        window.closeMetroModal = function() {
             modalOverlay.style.display = 'none';
-        });
-        // 点击遮罩关闭
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        };
+
+        modalOverlay.querySelector('.modal-close').addEventListener('click', closeMetroModal);
+        modalOverlay.querySelector('.v-back-btn').addEventListener('click', closeMetroModal);
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
-                modalOverlay.style.display = 'none';
+                closeMetroModal();
             }
-        });
-        // 返回按钮
-        modalOverlay.querySelector('.v-back-btn').addEventListener('click', () => {
-            modalOverlay.style.display = 'none';
         });
     }
 }
@@ -323,4 +324,8 @@ function showLineDetails(line) {
     contentDiv.innerHTML = html;
     modalOverlay.style.display = 'flex';
     contentDiv.scrollTop = 0;
+    // 锁定背景滚动，防止滑动弹窗时带动外层页面
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
 }

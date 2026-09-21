@@ -753,6 +753,7 @@ select option:checked {
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(2px);
+    overscroll-behavior: contain;       /* 新增 */
 }
 
 .modal-container {
@@ -808,7 +809,9 @@ select option:checked {
 .modal-content {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 24px 80px 24px; /* ← 底 padding 加到 80px */
+    padding: 20px 24px 80px 24px;
+    overscroll-behavior: contain;       /* 核心：滚到尽头不再传给 body */
+    -webkit-overflow-scrolling: touch;  /* iOS 惯性滚动 */
 }
 
 .detail-table {
