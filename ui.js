@@ -94,7 +94,14 @@ function updateLoadingMessage(text) {
 
 // ========== 模态框相关 ==========
 
+// ========== 模态框相关 ==========
+
 let modalOverlay = null;
+let modalRefreshTimer = null;
+let modalClockTimer = null;
+let currentModalLine = null;
+const modalScrollPositions = {}; // 每条线路独立的滚动位置
+let bodyScrollY = 0;
 
 function ensureModal() {
     if (!modalOverlay) {
@@ -104,33 +111,66 @@ function ensureModal() {
             <div class="modal-container">
                 <div class="modal-header">
                     <h3>线路详情</h3>
-                    <button class="modal-close">&times;</button>
+                    <div class="modal-refresh-bar" id="modal-refresh-bar"></div>
                 </div>
                 <div class="modal-content"></div>
+                <button class="v-refresh-btn" type="button" title="刷新" aria-label="刷新">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
                 <button class="v-back-btn" type="button">← 返回</button>
             </div>
         `;
         document.body.appendChild(modalOverlay);
 
-        // 统一的关闭函数
         window.closeMetroModal = function() {
+            // 保存当前线路的滚动位置
+            if (currentModalLine) {
+                const contentDiv = modalOverlay.querySelector('.modal-content');
+                if (contentDiv) {
+                    modalScrollPositions[currentModalLine] = contentDiv.scrollTop;
+                }
+            }
+            stopModalTimers();
             modalOverlay.style.display = 'none';
+
+            // 恢复 body 滚动
             document.body.style.overflow = '';
             document.body.style.position = '';
             document.body.style.width = '';
+            document.body.style.top = '';
+            window.scrollTo(0, bodyScrollY);
         };
 
-        modalOverlay.querySelector('.modal-close').addEventListener('click', closeMetroModal);
         modalOverlay.querySelector('.v-back-btn').addEventListener('click', closeMetroModal);
+
+        // 手动刷新按钮：保持滚动位置
+        modalOverlay.querySelector('.v-refresh-btn').addEventListener('click', () => {
+            if (currentModalLine) {
+                const contentDiv = modalOverlay.querySelector('.modal-content');
+                const scrollTop = contentDiv.scrollTop;
+                showLineDetails(currentModalLine, true);
+                requestAnimationFrame(() => {
+                    contentDiv.scrollTop = scrollTop;
+                    if (currentCustomTime === null) {
+                        restartRefreshBar();
+                    }
+                });
+            }
+        });
+
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 closeMetroModal();
             }
         });
 
-        // 关键：阻止遮罩区域的滚动穿透
+        // 阻止遮罩区域的滚动穿透
         modalOverlay.addEventListener('touchmove', (e) => {
-            const scrollable = e.target.closest('.modal-content') || e.target.closest('.v-fixed-notice');
+            const scrollable = e.target.closest('.modal-content');
             if (!scrollable) {
                 e.preventDefault();
             }
@@ -138,7 +178,53 @@ function ensureModal() {
     }
 }
 
-function showLineDetails(line) {
+function updateModalClock() {
+    const el = document.getElementById('modal-live-clock');
+    if (!el) return;
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, '0');
+    const m = now.getMinutes().toString().padStart(2, '0');
+    const s = now.getSeconds().toString().padStart(2, '0');
+    el.textContent = `${h}:${m}:${s}`;
+}
+
+function startModalTimers(line) {
+    stopModalTimers();
+    currentModalLine = line;
+
+    updateModalClock();
+    modalClockTimer = setInterval(updateModalClock, 1000);
+
+    restartRefreshBar(); // 启动进度条动画
+
+    modalRefreshTimer = setInterval(() => {
+        if (currentModalLine && modalOverlay && modalOverlay.style.display === 'flex') {
+            const contentDiv = modalOverlay.querySelector('.modal-content');
+            const scrollTop = contentDiv.scrollTop;
+            showLineDetails(currentModalLine, true);
+            requestAnimationFrame(() => {
+                contentDiv.scrollTop = scrollTop;
+                restartRefreshBar(); // 刷新完成后重置进度条
+            });
+        }
+    }, 30000);
+}
+
+function stopModalTimers() {
+    if (modalClockTimer) { clearInterval(modalClockTimer); modalClockTimer = null; }
+    if (modalRefreshTimer) { clearInterval(modalRefreshTimer); modalRefreshTimer = null; }
+    currentModalLine = null;
+}
+
+function restartRefreshBar() {
+    const bar = document.getElementById('modal-refresh-bar');
+    if (!bar) return;
+    bar.classList.remove('animating');
+    void bar.offsetWidth; // 强制 reflow，重新触发动画
+    bar.classList.add('animating');
+}
+
+function showLineDetails(line, keepScroll = false) {
     ensureModal();
 
     const stations = LINE_STATIONS[line];
@@ -241,9 +327,7 @@ function showLineDetails(line) {
     modalHeader.style.background = headerColor;
     modalHeader.style.borderBottomColor = headerColor;
     const h3El = modalHeader.querySelector('h3');
-    const closeBtnEl = modalHeader.querySelector('.modal-close');
     if (h3El) h3El.style.color = headerTextColor;
-    if (closeBtnEl) closeBtnEl.style.color = headerTextColor;
 
     function makeBlock(dirLabel, first, last, isUp) {
         const active = currentMin >= first && currentMin <= last;
@@ -279,6 +363,20 @@ function showLineDetails(line) {
 
     let html = '';
 
+    // 自定义时间模式提示
+    if (currentCustomTime !== null) {
+        // ...
+        html += `<div class="v-custom-time-notice">
+            <span class="v-custom-icon">⏸</span>
+            当前为自定义时间模式，详情页不会自动刷新
+        </div>`;
+    }
+
+    // 3号线警告：放在内容最顶部（非悬浮）
+    if (line === "3号线") {
+        html += `<div class="v-notice-inline">⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。</div>`;
+    }
+
     // 方向统一时，图例条放在 vertical-diagram 外面，才能紧贴 header
     if (simpleMode) {
         html += `<div class="v-legend" style="--up-color: ${upColor}; --down-color: ${downColor};">
@@ -291,6 +389,16 @@ function showLineDetails(line) {
                 <span class="v-legend-arrow">↑</span>
                 <span>往 ${downTargetName}</span>
             </div>
+        </div>`;
+
+        // 新增：时间放到方向行的下面，且悬浮
+        html += `<div class="modal-clock-row with-legend">
+            <span class="modal-live-clock" id="modal-live-clock">--:--:--</span>
+        </div>`;
+    } else {
+        // 没有图例条时，时间仍然悬浮在顶部
+        html += `<div class="modal-clock-row no-legend">
+            <span class="modal-live-clock" id="modal-live-clock">--:--:--</span>
         </div>`;
     }
 
@@ -366,31 +474,51 @@ function showLineDetails(line) {
 
     html += '</div>';
 
+    // 3号线警告框：悬浮固定在弹窗底部
+    // let fixedNotice = modalOverlay.querySelector('.v-fixed-notice');
     // if (line === "3号线") {
-    //     html += `<div class="line-note-modal">⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。</div>`;
+    //     if (!fixedNotice) {
+    //         fixedNotice = document.createElement('div');
+    //         fixedNotice.className = 'v-fixed-notice';
+    //         modalOverlay.querySelector('.modal-container').appendChild(fixedNotice);
+    //     }
+    //     fixedNotice.innerHTML = '⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。';
+    //     fixedNotice.style.display = 'block';
+    //     contentDiv.style.paddingBottom = '230px';
+    // } else {
+    //     if (fixedNotice) fixedNotice.style.display = 'none';
+    //     contentDiv.style.paddingBottom = '90px';
     // }
 
-    // 3号线警告框：悬浮固定在弹窗底部
-    let fixedNotice = modalOverlay.querySelector('.v-fixed-notice');
-    if (line === "3号线") {
-        if (!fixedNotice) {
-            fixedNotice = document.createElement('div');
-            fixedNotice.className = 'v-fixed-notice';
-            modalOverlay.querySelector('.modal-container').appendChild(fixedNotice);
-        }
-        fixedNotice.innerHTML = '⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。';
-        fixedNotice.style.display = 'block';
-        contentDiv.style.paddingBottom = '230px';
-    } else {
-        if (fixedNotice) fixedNotice.style.display = 'none';
-        contentDiv.style.paddingBottom = '90px';
+    contentDiv.innerHTML = html;
+    updateModalClock();
+    modalOverlay.style.display = 'flex';
+
+    // 只在首次打开时记录页面位置，刷新时不覆盖
+    if (document.body.style.position !== 'fixed') {
+        bodyScrollY = window.scrollY;
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.top = `-${bodyScrollY}px`;
     }
 
-    contentDiv.innerHTML = html;
-    modalOverlay.style.display = 'flex';
-    contentDiv.scrollTop = 0;
-    // 锁定背景滚动，防止滑动弹窗时带动外层页面
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
+    // 恢复该线路上次的滚动位置（默认 0）
+    if (!keepScroll) {
+        const savedPos = modalScrollPositions[line] || 0;
+        contentDiv.scrollTop = savedPos;
+        if (currentCustomTime === null) {
+            startModalTimers(line);
+        } else {
+            // 自定义时间模式：只启动时钟，不启动 30 秒自动刷新
+            stopModalTimers();
+            currentModalLine = line;
+            updateModalClock();
+            if (modalClockTimer) clearInterval(modalClockTimer);
+            modalClockTimer = setInterval(updateModalClock, 1000);
+            // 进度条不启动，隐藏之
+            const bar = document.getElementById('modal-refresh-bar');
+            if (bar) bar.classList.remove('animating');
+        }
+    }
 }
