@@ -293,10 +293,11 @@ function showLineDetails(line, keepScroll = false) {
 
     const lineActive = stationStatus.some(s => s.anyActive);
 
-    // ====== 判断整条线路方向是否统一（用于简化卡片显示） ======
-    let simpleMode = false;
+    // ====== 判断是否将方向统一提取到顶部 ======
+    let useTopLegend = false;
     let upTargetName = '';
     let downTargetName = '';
+
     if (line !== '11号线') {
         const upSet = new Set();
         const downSet = new Set();
@@ -313,10 +314,11 @@ function showLineDetails(line, keepScroll = false) {
                 downSet.add(n);
             });
         }
-        if (upSet.size === 1 && downSet.size === 1) {
-            simpleMode = true;
-            upTargetName = [...upSet][0];
-            downTargetName = [...downSet][0];
+        // 只要该线路有终点站数据，就使用顶部图例
+        if (upSet.size > 0 || downSet.size > 0) {
+            useTopLegend = true;
+            upTargetName = [...upSet].join(' ｜ '); // 修改这里：使用全角竖线作为分割线
+            downTargetName = [...downSet].join(' ｜ '); // 修改这里：使用全角竖线作为分割线
         }
     }
 
@@ -353,10 +355,9 @@ function showLineDetails(line, keepScroll = false) {
             badge = `<span class="v-remaining${urgentCls}" style="--badge-hue: ${hue};">${badgeText}</span>`;
         }
 
-        // 徽章独占一行，方向独占一行，时间独立一行
         return `<div class="${cls}">
             ${badge ? `<div class="v-badge-row">${badge}</div>` : ''}
-            ${simpleMode ? '' : `<div class="v-dir">${dirLabel}</div>`}
+            ${dirLabel ? `<div class="v-dir">${dirLabel}</div>` : ''}
             ${inner}
         </div>`;
     }
@@ -365,10 +366,9 @@ function showLineDetails(line, keepScroll = false) {
 
     // 自定义时间模式提示
     if (currentCustomTime !== null) {
-        // ...
         html += `<div class="v-custom-time-notice">
             <span class="v-custom-icon">⏸</span>
-            当前为自定义时间模式，详情页不会自动刷新
+            当前为自定义时间模式，本页面不会自动刷新
         </div>`;
     }
 
@@ -377,31 +377,31 @@ function showLineDetails(line, keepScroll = false) {
         html += `<div class="v-notice-inline">⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。</div>`;
     }
 
-    // 方向统一时，图例条放在 vertical-diagram 外面，才能紧贴 header
-    if (simpleMode) {
+    // ====== 悬浮头部：包含方向图例和悬浮时钟 ======
+    html += `<div class="modal-sticky-header">`;
+
+    if (useTopLegend) {
         html += `<div class="v-legend" style="--up-color: ${upColor}; --down-color: ${downColor};">
             <div class="v-legend-up">
                 <span class="v-legend-arrow">↓</span>
-                <span>往 ${upTargetName}</span>
+                <span>往 ${upTargetName || '--'}</span>
             </div>
             <div class="v-legend-divider">|</div>
             <div class="v-legend-down">
                 <span class="v-legend-arrow">↑</span>
-                <span>往 ${downTargetName}</span>
+                <span>往 ${downTargetName || '--'}</span>
             </div>
-        </div>`;
-
-        // 新增：时间放到方向行的下面，且悬浮
-        html += `<div class="modal-clock-row with-legend">
-            <span class="modal-live-clock" id="modal-live-clock">--:--:--</span>
-        </div>`;
-    } else {
-        // 没有图例条时，时间仍然悬浮在顶部
-        html += `<div class="modal-clock-row no-legend">
-            <span class="modal-live-clock" id="modal-live-clock">--:--:--</span>
         </div>`;
     }
 
+    // 时钟
+    html += `<div class="modal-clock-row ${useTopLegend ? 'with-legend' : 'no-legend'}">
+        <span class="modal-live-clock" id="modal-live-clock">--:--:--</span>
+    </div>`;
+
+    html += `</div>`; // 结束 modal-sticky-header
+
+    // 站点详情
     html += `<div class="vertical-diagram" style="--line-color: ${lineColor}; --up-color: ${upColor}; --down-color: ${downColor};">`;
 
     for (let idx = 0; idx < stations.length; idx++) {
@@ -420,16 +420,23 @@ function showLineDetails(line, keepScroll = false) {
             if (times.downFull)   downCards += makeBlock('↑ 内环 全程',   times.downFull.first,   times.downFull.last,false);
             if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last,false);
         } else {
-            upCards = (times.up || []).map(t => {
-                let n = t.to;
-                if (n.includes('（') && n.includes('）')) n = n.split('（')[0];
-                return makeBlock(`↓ 往 ${n}`, t.first, t.last, true);
-            }).join('');
-            downCards = (times.down || []).map(t => {
-                let n = t.to;
-                if (n.includes('（') && n.includes('）')) n = n.split('（')[0];
-                return makeBlock(`↑ 往 ${n}`, t.first, t.last, false);
-            }).join('');
+            // 非11号线：方向已提取至顶部，卡片内不再显示具体方向
+            // 修改：判断是否有多个终点，如果有，则用容器包裹并左右分布
+            if (times.up && times.up.length > 1) {
+                upCards = `<div class="v-multi-terminals">` +
+                    times.up.map(t => makeBlock('', t.first, t.last, true)).join('') +
+                    `</div>`;
+            } else {
+                upCards = (times.up || []).map(t => makeBlock('', t.first, t.last, true)).join('');
+            }
+
+            if (times.down && times.down.length > 1) {
+                downCards = `<div class="v-multi-terminals">` +
+                    times.down.map(t => makeBlock('', t.first, t.last, false)).join('') +
+                    `</div>`;
+            } else {
+                downCards = (times.down || []).map(t => makeBlock('', t.first, t.last, false)).join('');
+            }
         }
 
         // 统计该方向所有 block 是否都已结束
