@@ -157,3 +157,22 @@ body {
     padding: 4px;
     margin-left: -6px;
 }
+
+/* ==========================================
+   凌晨时段（2:00~5:59）昨日数据提示条
+   ========================================== */
+.yesterday-data-notice {
+    background: #fff8e1;
+    border-bottom: 2px solid #f59e0b;
+    color: #78350f;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.5;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.1);
+}
+
+.yesterday-data-notice b {
+    color: #d97706;
+}

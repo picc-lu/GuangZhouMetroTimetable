@@ -526,12 +526,20 @@ function showLineDetails(line, keepScroll = false) {
 
                 // 单方向判断，并修改分割线样式
                 if (isTransferActive && tLine !== '11号线' && upActive !== downActive && activeToStation) {
-                    let toName = activeToStation;
-                    if (toName.includes('（') && toName.includes('）')) toName = toName.split('（')[0];
-                    if (toName.includes('(') && toName.includes(')')) toName = toName.split('(')[0];
+                    // 检查该站点是否为换乘线路的起点或终点站
+                    const transferStations = LINE_STATIONS[tLine] || [];
+                    const isTerminal = transferStations.length > 0 &&
+                        (realStation === transferStations[0] || realStation === transferStations[transferStations.length - 1]);
 
-                    // 将“仅往xx方向”包装为与“出”相同的格式（带左侧竖线，小字号）
-                    displayName = `${displayName} <span class="v-transfer-icon direction">仅往${toName}方向</span>`;
+                    // 只有非终点站才显示“仅xx方向”
+                    if (!isTerminal) {
+                        let toName = activeToStation;
+                        if (toName.includes('（') && toName.includes('）')) toName = toName.split('（')[0];
+                        if (toName.includes('(') && toName.includes(')')) toName = toName.split('(')[0];
+
+                        // 去掉“往”字，只保留“仅xx方向”
+                        displayName = `${displayName} <span class="v-transfer-icon direction">仅${toName}方向</span>`;
+                    }
                 }
 
                 const titleAttr = isManual ? 'title="需出闸换乘"' : '';
