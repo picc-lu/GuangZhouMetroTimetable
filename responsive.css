@@ -1,0 +1,331 @@
+/* ==========================================
+   媒体查询：平板/手机（≤ 768px）
+   ========================================== */
+@media (max-width: 768px) {
+    /* ---------- 顶部控制栏 ---------- */
+    .controls {
+        position: relative;
+        top: auto;
+        padding: 12px 16px;
+        border-radius: 0 0 16px 16px;
+        gap: 8px;
+    }
+
+    .controls-row-1 {
+        display: flex;
+        flex-wrap: wrap !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    .time-panel {
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        justify-content: space-between;
+        padding: 4px 12px;
+    }
+
+    .time-panel select {
+        min-width: unset;
+        flex: 1;
+    }
+
+    .system-time-area,
+    .size-control {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        width: auto !important;
+        padding: 4px 6px !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+    }
+
+    #real-time-clock {
+        min-width: auto !important;
+        padding: 2px 6px !important;
+        font-size: 12px !important;
+    }
+
+    .system-time-area .action-button {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+    }
+
+    .size-control label {
+        padding: 2px 6px !important;
+        font-size: 12px !important;
+    }
+
+    .size-control select {
+        padding: 4px 6px !important;
+        font-size: 12px !important;
+    }
+
+    /* 隐藏筛选 */
+    .filter-area {
+        display: none !important;
+    }
+
+    /* 隐藏"获取最新首末时间数据"按钮和线路版本行 */
+    .controls-row-2 {
+        display: none !important;
+    }
+
+    /* 线路按钮横向滚动 */
+    .controls-row-3 {
+        display: flex;
+        flex-direction: column;
+        gap: 6px !important;
+        padding-bottom: 8px;
+    }
+
+    /* 移动端每一行的横向滚动容器 */
+    .line-scroll-row {
+        display: flex;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+    }
+    .line-scroll-row::-webkit-scrollbar {
+        display: none;
+    }
+    .controls-row-3::-webkit-scrollbar {
+        display: none;
+    }
+
+    .line-button {
+        flex: 0 0 auto;
+        padding: 4px 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* ---------- 时间下拉菜单 ---------- */
+    .hour-dropdown, .minute-dropdown {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        z-index: 1000;
+    }
+
+    .hour-dropdown {
+        width: 250px !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        padding: 10px !important;
+    }
+
+    .minute-dropdown {
+        width: 200px !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        padding: 10px !important;
+    }
+
+    .hour-btn {
+        padding: 8px 0 !important;
+        font-size: 14px !important;
+        margin: 2px !important;
+    }
+
+    /* ---------- 线路名卡片 ---------- */
+    .line-meta {
+        flex: 0 0 35px !important;
+        width: 35px !important;
+        min-width: 35px !important;
+        padding: 8px 0 !important;
+        margin-right: 5px !important;
+        border-radius: 0 10px 10px 0 !important;
+    }
+
+    .line-name {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .line-main,
+    .line-num,
+    .line-str {
+        font-size: 15px !important;
+        writing-mode: vertical-lr;
+        text-orientation: upright;
+        letter-spacing: 0.5px;
+        line-height: 1.1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .line-extra {
+        font-size: 10px !important;
+        writing-mode: vertical-lr;
+        text-orientation: upright;
+        letter-spacing: 0px;
+        margin-top: 2px;
+        display: inline-block;
+        word-break: keep-all;
+        line-height: 1.1;
+    }
+
+    /* ---------- 3号线乘坐提示卡片 ---------- */
+    .line-note {
+        width: 50px !important;
+        padding: 8px 2px !important;
+        margin: 10px 6px 10px 0 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 13px !important;
+        font-weight: bold;
+        color: #1f2b3c;
+        background: #fff3e0;
+        border-left: 4px solid #eca154;
+        border-radius: 0 12px 12px 0 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        text-align: center;
+        line-height: 1.4;
+    }
+
+    /* ---------- 站点列、箭头列与箭头 ---------- */
+    .station-column { min-width: 40px !important; }
+    .arrow-column { min-width: 20px !important; }
+    .arrow-up, .arrow-down { font-size: 20px !important; }
+
+    .dot-symbol { font-size: 12px !important; }
+
+    /* ---------- 回到顶部 ---------- */
+    .back-to-top {
+        width: 42px;
+        height: 42px;
+        right: 20px;
+        bottom: 50px;
+    }
+    .back-to-top svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* ---------- 个人信息页脚 ---------- */
+    .author-footer { padding: 15px 0 30px; }
+    .bilibili-link {
+        padding: 8px 22px;
+        font-size: 14px;
+    }
+
+    .modal-header {
+        padding: 14px 16px;
+    }
+
+    .modal-header h3 {
+        font-size: 17px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .modal-live-clock {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 5px;
+    }
+
+    .modal-refresh-bar {
+        height: 2.5px;
+    }
+
+    .v-station-row {
+        grid-template-columns: 1fr 18px 1fr;
+        column-gap: 6px;
+        padding-top: 24px;
+    }
+
+    .v-up-col, .v-down-col { padding: 4px 0; }
+
+    .v-card {
+        padding: 10px 10px;
+        font-size: 14px;
+        gap: 4px;
+    }
+
+    .v-dir { font-size: 13px; }
+    .v-time-line { font-size: 14px; }
+    .v-time-line b { font-size: 12px; }
+
+    /* ---------- 剩余时间徽章 ---------- */
+    .v-remaining {
+        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 5px;
+        transform: rotate(-5deg);
+        margin: 0 3px;
+    }
+    .v-remaining.v-remaining-urgent {
+        font-size: 9px;
+        padding: 1px 4px;
+        transform: rotate(-2deg);
+    }
+
+    /* ---------- 悬浮按钮与警告框 ---------- */
+    .v-back-btn {
+        bottom: 12px;
+        right: 16px;
+        padding: 9px 24px;
+        font-size: 15px;
+        border-radius: 20px;
+    }
+
+    .v-notice-inline {
+        margin: 10px 12px 0;
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .v-refresh-btn {
+        bottom: 64px;
+        right: 16px;
+        width: 42px;
+        height: 42px;
+    }
+    .v-refresh-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* ---------- 图例条 ---------- */
+    .v-legend {
+        padding: 10px 12px;
+        gap: 6px;
+        font-size: 13px;
+    }
+    .v-legend-arrow {
+        font-size: 16px;
+    }
+
+    .v-custom-time-notice {
+        margin: 10px 12px 0;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    .v-custom-icon {
+        font-size: 14px;
+    }
+
+    .v-name {
+        font-size: 14px;
+        padding: 1px 8px;
+        box-shadow: 0 0 0 3px #ffffff;
+    }
+
+    .v-transfer-lines {
+        gap: 4px;
+    }
+    .v-transfer-badge {
+        font-size: 11px;
+        padding: 1px 6px;
+    }
+}

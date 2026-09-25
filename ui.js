@@ -70,13 +70,8 @@ function populateLineButtons() {
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
         btn.addEventListener('click', () => {
-            const lineContainer = document.querySelector(`.line-container[data-line="${line}"]`);
-            if (lineContainer) {
-                const controls = document.querySelector('.controls');
-                const controlsHeight = controls ? controls.offsetHeight : 0;
-                const targetPosition = lineContainer.offsetTop - controlsHeight;
-                window.scrollTo({top: targetPosition, behavior: 'smooth'});
-            }
+            // 改为弹出详情
+            showLineDetails(line);
         });
         return btn;
     };
@@ -457,7 +452,6 @@ function showLineDetails(line, keepScroll = false) {
         // 2. 处理有轨电车人工换乘映射（需出闸）
         for (const [tramLine, mapping] of Object.entries(MANUAL_TRANSFERS)) {
             if (tramLine === line) {
-                // 当前在有轨电车上，查找映射到的地铁站
                 const targetMetroStation = mapping[station];
                 if (targetMetroStation) {
                     for (const [metroLine, metroStations] of Object.entries(LINE_STATIONS)) {
@@ -467,7 +461,6 @@ function showLineDetails(line, keepScroll = false) {
                     }
                 }
             } else {
-                // 当前在地铁上，查找是否有有轨电车站映射到此站
                 for (const [tramStation, metroStation] of Object.entries(mapping)) {
                     if (metroStation === station) {
                         if (LINE_STATIONS[tramLine] && LINE_STATIONS[tramLine].includes(tramStation)) {
@@ -483,50 +476,68 @@ function showLineDetails(line, keepScroll = false) {
             transferHtml = `<div class="v-transfer-lines">`;
             transferLines.forEach((data, tLine) => {
                 const { realStation, isManual } = data;
-
-                // 使用 realStation 查询运营状态
                 const transferData = lineDirectionTime[tLine]?.[realStation];
                 let isTransferActive = false;
+                let upActive = false;
+                let downActive = false;
+                let activeToStation = '';
 
                 if (transferData) {
                     if (tLine === '11号线') {
-                        isTransferActive = (transferData.upFull && currentMin >= transferData.upFull.first && currentMin <= transferData.upFull.last) ||
-                            (transferData.upTerminal && currentMin >= transferData.upTerminal.first && currentMin <= transferData.upTerminal.last) ||
-                            (transferData.downFull && currentMin >= transferData.downFull.first && currentMin <= transferData.downFull.last) ||
+                        upActive = (transferData.upFull && currentMin >= transferData.upFull.first && currentMin <= transferData.upFull.last) ||
+                            (transferData.upTerminal && currentMin >= transferData.upTerminal.first && currentMin <= transferData.upTerminal.last);
+                        downActive = (transferData.downFull && currentMin >= transferData.downFull.first && currentMin <= transferData.downFull.last) ||
                             (transferData.downTerminal && currentMin >= transferData.downTerminal.first && currentMin <= transferData.downTerminal.last);
+                        isTransferActive = upActive || downActive;
                     } else {
-                        isTransferActive = (transferData.up || []).some(t => currentMin >= t.first && currentMin <= t.last) ||
-                            (transferData.down || []).some(t => currentMin >= t.first && currentMin <= t.last);
+                        upActive = (transferData.up || []).some(t => currentMin >= t.first && currentMin <= t.last);
+                        downActive = (transferData.down || []).some(t => currentMin >= t.first && currentMin <= t.last);
+                        isTransferActive = upActive || downActive;
+
+                        // 提取当前运营方向的终点站
+                        if (upActive) {
+                            const upTime = (transferData.up || []).find(t => currentMin >= t.first && currentMin <= t.last);
+                            if (upTime) activeToStation = upTime.to;
+                        } else if (downActive) {
+                            const downTime = (transferData.down || []).find(t => currentMin >= t.first && currentMin <= t.last);
+                            if (downTime) activeToStation = downTime.to;
+                        }
                     }
                 }
 
-                // 获取原始颜色
                 let color = LINE_COLORS[tLine] || '#888';
                 let textColor = getContrastColor(color);
                 let badgeClass = 'v-transfer-badge';
 
-                // 如果已停止运营，变灰
                 if (!isTransferActive) {
-                    color = '#e2e8f0'; // 浅灰色背景
-                    textColor = '#94a3b8'; // 灰白色文字
+                    color = '#e2e8f0';
+                    textColor = '#94a3b8';
                     badgeClass += ' inactive';
                 }
 
-                // 如果是手动添加的换乘（出闸换乘），添加特殊样式和图标
                 let iconHtml = '';
                 if (isManual) {
                     badgeClass += ' manual';
-                    iconHtml = '<span class="v-transfer-icon">出</span>'; // 将步行图标改为“出”字
+                    iconHtml = '<span class="v-transfer-icon">出</span>';
                 }
 
-                // 简化线路名称显示 (例如 "佛山2号线" -> "佛2")
                 let displayName = tLine.replace(/号线/g, '');
                 if (displayName.includes('佛山')) displayName = displayName.replace(/佛山/g, '佛');
 
-                // 增加 title 提示，鼠标悬浮可见
+                // 单方向判断，并修改分割线样式
+                if (isTransferActive && tLine !== '11号线' && upActive !== downActive && activeToStation) {
+                    let toName = activeToStation;
+                    if (toName.includes('（') && toName.includes('）')) toName = toName.split('（')[0];
+                    if (toName.includes('(') && toName.includes(')')) toName = toName.split('(')[0];
+
+                    // 将“仅往xx方向”包装为与“出”相同的格式（带左侧竖线，小字号）
+                    displayName = `${displayName} <span class="v-transfer-icon direction">仅往${toName}方向</span>`;
+                }
+
                 const titleAttr = isManual ? 'title="需出闸换乘"' : '';
 
-                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};">${iconHtml}${displayName}</span>`;
+                // 添加点击跳转事件
+                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};" onclick="event.stopPropagation(); showLineDetails('${tLine}');">${iconHtml}${displayName}</span>`;
             });
             transferHtml += `</div>`;
         }
@@ -586,9 +597,11 @@ function showLineDetails(line, keepScroll = false) {
         const bottomClass = (idx === stations.length - 1) ? 'v-line bottom'
             : (bottomActive ? 'v-line bottom' : 'v-line bottom v-line-inactive');
 
-        // 修改下方最终拼接的 HTML，在 nameClass 中添加换乘线路
+        // 判断是否有换乘标签，以此决定是否添加 has-transfer 类名
+        const hasTransferClass = transferHtml ? 'has-transfer' : '';
+
         html += `
-            <div class="v-station-row">
+            <div class="v-station-row ${hasTransferClass}">
                 <div class="${nameClass}">
                     <span>${station}</span>
                     ${transferHtml}
@@ -629,6 +642,29 @@ function showLineDetails(line, keepScroll = false) {
     }
 
     contentDiv.innerHTML = html;
+
+    // 动态调整站点行的上内边距，防止换乘标签遮挡下方时间卡片
+    requestAnimationFrame(() => {
+        const rows = contentDiv.querySelectorAll('.v-station-row');
+        rows.forEach(row => {
+            const nameDiv = row.querySelector('.v-name');
+            if (nameDiv) {
+                // 获取 .v-name 的实际渲染高度
+                const nameHeight = nameDiv.offsetHeight;
+
+                // 基础的上内边距（默认站名高度约 28px，原有的 26px 是为了留白）
+                // 如果站名高度大于 36px，说明包含了换乘标签并且可能发生了换行
+                if (nameHeight > 36) {
+                    // 动态撑开行高：站名高度 + 8px 的安全边距
+                    row.style.paddingTop = `${nameHeight + 8}px`;
+                } else {
+                    // 恢复默认（确保没有换乘标签的站点不受影响）
+                    row.style.paddingTop = '26px';
+                }
+            }
+        });
+    });
+
     updateModalClock();
     modalOverlay.style.display = 'flex';
 

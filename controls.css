@@ -1,0 +1,450 @@
+/* ==========================================
+   控制面板
+   ========================================== */
+.controls {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    border-radius: 0 0 24px 24px;
+    padding: 16px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border: 1px solid #dbe2ed;
+    border-top: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.controls-row-1 {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.controls-row-2 {
+    display: none !important;
+}
+
+.controls-row-3 {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #ccd9e9;
+}
+
+/* 新增：每一行的横向滚动容器 */
+.line-scroll-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.line-scroll-row::-webkit-scrollbar {
+    display: none;
+}
+
+/* ==========================================
+   下拉列表全局美化
+   ========================================== */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #ffffff;
+    border: 1px solid #c2cfde;
+    border-radius: 30px;
+    padding: 8px 28px 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2b3c;
+    cursor: pointer;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+select:hover {
+    border-color: #8fa8c9;
+    background-color: #f9fcff;
+}
+
+select:focus {
+    outline: none;
+    border-color: #1f2b3c;
+    box-shadow: 0 0 0 3px rgba(31,43,60,0.1);
+    background-color: #ffffff;
+}
+
+select[multiple] {
+    background-image: none;
+    padding: 6px 10px;
+    border-radius: 30px;
+    min-width: 180px;
+    height: auto;
+    background-color: white;
+    border: 1px solid #c2cfde;
+}
+
+select[multiple]:hover,
+select[multiple]:focus {
+    background-color: white;
+    border-color: #1f2b3c;
+    box-shadow: 0 0 0 3px rgba(31,43,60,0.1);
+}
+
+select option {
+    background-color: white;
+    color: #1f2b3c;
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+select option:hover,
+select option:checked {
+    background-color: #eef2f8;
+}
+
+.time-panel select {
+    min-width: 50px;
+    text-align: center;
+    padding: 6px 12px;
+    background-position: right 6px center;
+}
+
+.filter-area select.filter-select {
+    min-width: 150px;
+    padding: 8px 16px;
+    text-align: center;
+}
+
+.size-control select {
+    min-width: 65px;
+    text-align: center;
+    padding: 6px 12px;
+    background-position: right 6px center;
+    background-image: none;
+}
+
+/* ==========================================
+   各控件面板样式
+   ========================================== */
+.time-panel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    padding: 4px 16px 4px 12px;
+    border-radius: 40px;
+    transition: 0.2s;
+    border: 2px solid #d0ddee;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    flex-wrap: wrap;
+}
+
+.time-panel label {
+    font-weight: 600;
+    color: #1f2b3c;
+    font-size: 14px;
+    background: #eef2f8;
+    padding: 4px 12px;
+    border-radius: 30px;
+    margin-right: 4px;
+}
+
+.time-panel span {
+    font-weight: 600;
+    color: #1f2b3c;
+    font-size: 16px;
+    margin: 0 -2px;
+}
+
+.time-panel .action-button,
+.system-time-area .action-button {
+    background: #1f2b3c;
+    border: none;
+    color: white;
+    padding: 6px 18px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #1f2b3c;
+    transition: all 0.15s;
+    white-space: nowrap;
+    margin-left: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.time-panel .action-button:hover {
+    background: #2f405a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.time-panel.active-mode {
+    border-color: #2e7d32;
+    background: #e1f0e1;
+    box-shadow: 0 0 0 2px rgba(46,125,50,0.1);
+}
+
+.time-panel.active-mode label {
+    background: #c8e0c8;
+    color: #1e4a1e;
+}
+
+.time-panel.active-mode select {
+    background: #f5faf5;
+    border-color: #2e7d32;
+}
+
+.action-button {
+    background: #1f2b3c;
+    border: none;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #1f2b3c;
+    transition: 0.1s;
+    white-space: nowrap;
+}
+
+.action-button:hover {
+    background: #2f405a;
+}
+
+.system-time-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    padding: 4px 16px 4px 12px;
+    border-radius: 40px;
+    border: 2px solid #d0ddee;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: 0.2s;
+}
+
+.system-time-area.active-mode {
+    border-color: #2e7d32;
+    background: #e1f0e1;
+}
+
+#real-time-clock {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e3c5a;
+    background: white;
+    padding: 4px 16px;
+    border-radius: 40px;
+    border: 1px solid #c2cfde;
+    min-width: 85px;
+    text-align: center;
+}
+
+.filter-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    padding: 4px 16px 4px 12px;
+    border-radius: 40px;
+    border: 2px solid #d0ddee;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.filter-area label {
+    font-weight: 600;
+    color: #1f2b3c;
+    font-size: 14px;
+    background: #eef2f8;
+    padding: 4px 12px;
+    border-radius: 30px;
+    margin-right: 4px;
+}
+
+.filter-area .action-button {
+    background: #1f2b3c;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #1f2b3c;
+    transition: all 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-area .action-button:hover {
+    background: #2f405a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.size-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    padding: 4px 16px 4px 12px;
+    border-radius: 40px;
+    border: 2px solid #d0ddee;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.size-control label {
+    font-weight: 600;
+    color: #1f2b3c;
+    font-size: 14px;
+    background: #eef2f8;
+    padding: 4px 12px;
+    border-radius: 30px;
+    margin-right: 4px;
+}
+
+#select-all, #deselect-all {
+    padding: 4px 12px;
+}
+
+.file-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.header-version {
+    font-size: 14px;
+    color: #2f4a6e;
+    background: #e9eff7;
+    padding: 6px 16px;
+    border-radius: 30px;
+    white-space: nowrap;
+    border: 1px solid #ccd9e9;
+    font-weight: 500;
+    margin-left: auto;
+}
+
+/* 线路按钮 */
+.line-button {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.line-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.line-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 新增：强制换行占位元素 */
+.line-button-break {
+    width: 100%;
+    height: 0;
+    flex-basis: 100%;
+    margin-top: 4px;
+}
+
+/* ==========================================
+   自定义时间下拉菜单（网格布局）
+   ========================================== */
+.hour-trigger {
+    background-color: #ffffff;
+    border: 1px solid #c2cfde;
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2b3c;
+    cursor: pointer;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    min-width: 50px;
+    text-align: center;
+    user-select: none;
+    position: relative;
+    display: inline-block;
+}
+
+.hour-trigger:hover {
+    border-color: #8fa8c9;
+    background-color: #f9fcff;
+}
+
+.hour-trigger:focus {
+    outline: none;
+    border-color: #1f2b3c;
+    box-shadow: 0 0 0 3px rgba(31,43,60,0.1);
+}
+
+.hour-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #c2cfde;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    padding: 12px;
+    width: 220px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.hour-btn {
+    background: #f0f4fc;
+    border: 1px solid #c2cfde;
+    border-radius: 20px;
+    padding: 8px 13px;
+    font-size: 14px;
+    color: #1f2b3c;
+    cursor: pointer;
+    transition: all 0.1s;
+    text-align: center;
+    margin: 2px;
+}
+
+.hour-btn:hover {
+    background: #d9e2ef;
+    border-color: #8fa8c9;
+}
+
+.hour-btn:active {
+    background: #1f2b3c;
+    color: white;
+    border-color: #1f2b3c;
+}
+
+.time-panel .hour-select-wrapper { margin-right: 4px; }
+.minute-dropdown { width: 120px; }
+.minute-select-wrapper { margin-left: 4px; }

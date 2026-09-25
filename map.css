@@ -1,0 +1,205 @@
+/* ==========================================
+   线路图主体布局
+   ========================================== */
+.map-wrapper {
+    background: white;
+    padding: 0;
+    border: 1px solid #e3eaf3;
+    border-bottom: none;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    flex: 1;
+}
+
+.line-container {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 0;
+    padding: 0;
+    border-bottom: 7px dashed #e9eef5;
+    background: #ffffff;
+}
+
+.line-container:nth-child(odd) {
+    background: #f9f9fc;
+}
+
+.line-container:last-child {
+    border-bottom: none;
+}
+
+.line-meta {
+    flex: 0 0 180px;
+    padding: 20px;
+    margin-right: 16px;
+    background: transparent;
+    border-radius: 0 40px 40px 0;
+    border: 1px solid #ccd9ec;
+    border-left: none;
+    box-shadow: 0 2px 6px rgba(0,20,40,0.04);
+    display: flex !important;
+    align-items: center !important;
+    transition: background 0.1s;
+    position: relative;
+}
+
+.line-name {
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    white-space: normal;
+    gap: 4px;
+}
+
+.line-main {
+    font-size: 30px;
+    line-height: 1.2;
+}
+
+.scroll-area {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-top: 10px;
+    cursor: grab;
+    user-select: none;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s;
+}
+
+.scroll-area:hover {
+    scrollbar-color: #aaa #f0f0f0;
+}
+
+.scroll-area::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.scroll-area:hover::-webkit-scrollbar-thumb {
+    background: rgba(160, 180, 200, 0.5);
+}
+
+.scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.line-diagram {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    min-width: max-content;
+    pointer-events: none;
+    padding-right: 20px;
+}
+
+.station-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: stretch;
+    min-width: 60px;
+}
+
+.col-up, .col-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 45px;
+}
+
+.col-station {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 25px;
+    font-weight: 600;
+    color: #10273f;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.arrow-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: stretch;
+    min-width: 30px;
+}
+
+.arrow-up, .arrow-down {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 45px;
+    font-size: 28px;
+    line-height: 1;
+    transition: color 0.1s;
+}
+
+.arrow-blank {
+    height: 25px;
+    width: 100%;
+}
+
+.down-arrow {
+    transform: scaleX(-1);
+}
+
+.time-meta {
+    font-size: 12px;
+    background: #f0f4fc;
+    padding: 2px 6px;
+    border-radius: 20px;
+    white-space: nowrap;
+    color: #1f3a60;
+    border: 1px solid #cfddee;
+    display: inline-block;
+}
+
+.time-meta.ended {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    opacity: 0.7;
+}
+
+.dot-symbol {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+.active-segment { color: currentColor; }
+.inactive-segment { color: #b3c3d9 !important; }
+.active-dot .dot-symbol { color: currentColor; }
+.inactive-dot .dot-symbol { color: #b3c3d9 !important; }
+
+.line-note {
+    background: #f0f4fc;
+    border-left: 4px solid #eca154;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 8px 16px;
+    margin: 10px 10px 10px 0;
+    border-radius: 8px;
+    color: #1f2b3c;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    line-height: 1.5;
+    max-width: 220px;
+}

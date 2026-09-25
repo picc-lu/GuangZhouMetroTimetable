@@ -1,0 +1,159 @@
+/* ==========================================
+   基础设置
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background: #f2f6fc;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.banner {
+    background: #c5192d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 0;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    border-bottom: 4px solid #9a1221;
+    box-shadow: 0 4px 10px rgba(197, 25, 45, 0.2);
+}
+
+.metro-icon {
+    color: white;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   提示与加载信息
+   ========================================== */
+.notice-area {
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #1f2b3c;
+    background: #f9f9fc;
+    border-top: 1px solid #dbe2ed;
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.loading-message {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    padding: 100px 20px;
+    color: #1f2b3c;
+    background: #f9f9fc;
+    border-radius: 12px;
+    margin: 20px;
+}
+
+.version-highlight {
+    background-color: #2e7d32 !important;
+    color: white !important;
+    transition: background-color 0.5s ease;
+}
+
+/* ==========================================
+   回到顶部按钮
+   ========================================== */
+.back-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 50px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #c5192d;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(197, 25, 45, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.3s, filter 0.2s;
+    z-index: 999;
+    padding: 0;
+}
+
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    filter: brightness(1.15);
+    transform: translateY(-3px) !important;
+}
+
+.back-to-top:active {
+    filter: brightness(0.92);
+    transform: translateY(0) !important;
+}
+
+/* ==========================================
+   个人信息页脚（B站 AB君小子）
+   ========================================== */
+.author-footer {
+    text-align: center;
+    padding: 20px 0 40px;
+    background: #f2f6fc;
+}
+
+.bilibili-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #fb7299, #ff9db5);
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 28px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(251, 114, 153, 0.4);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bilibili-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(251, 114, 153, 0.6);
+    background: linear-gradient(135deg, #ff85a7, #ffb1c6);
+}
+
+.bilibili-link:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(251, 114, 153, 0.4);
+}
+
+.bilibili-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    padding: 4px;
+    margin-left: -6px;
+}
