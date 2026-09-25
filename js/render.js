@@ -229,14 +229,14 @@ function renderAllLines() {
                         const lastStr = minutesToDisplayStr(time.last);
                         let displayText, metaClass = 'time-meta';
                         if (active) {
-                            // 正在运营：显示末班车时间
                             displayText = `${lastStr}`;
+                        } else if (currentMin < time.first) {
+                            // 早上还没开始运营：显示首班车
+                            displayText = `首 ${firstStr}`;
                         } else if (hasActiveStation) {
-                            // 已结束但线路整体仍有站点运营：显示带删除线的末班车
                             displayText = `${lastStr}`;
                             metaClass += ' ended';
                         } else {
-                            // 全线均结束：显示首班车
                             displayText = `首 ${firstStr}`;
                         }
                         const boldText = displayText.replace(/^(首)/, '<b>$1</b>');
@@ -262,6 +262,8 @@ function renderAllLines() {
                             let displayText, metaClass = 'time-meta';
                             if (active) {
                                 displayText = `${lastStr}`;
+                            } else if (currentMin < time.first) {
+                                displayText = `首 ${firstStr}`;
                             } else if (hasActiveStation) {
                                 displayText = `${lastStr}`;
                                 metaClass += ' ended';
@@ -405,6 +407,9 @@ function renderAllLines() {
                         let displayText, metaClass = 'time-meta';
                         if (active) {
                             displayText = `${lastStr}`;
+                        } else if (currentMin < time.first) {
+                            // 早上还没开始运营：显示首班车
+                            displayText = `首 ${firstStr}`;
                         } else if (hasActiveStation) {
                             displayText = `${lastStr}`;
                             metaClass += ' ended';
@@ -434,6 +439,8 @@ function renderAllLines() {
                             let displayText, metaClass = 'time-meta';
                             if (active) {
                                 displayText = `${lastStr}`;
+                            } else if (currentMin < time.first) {
+                                displayText = `首 ${firstStr}`;
                             } else if (hasActiveStation) {
                                 displayText = `${lastStr}`;
                                 metaClass += ' ended';

@@ -59,15 +59,15 @@ document.getElementById('real-time-clock').textContent = (() => {
     return `${h}:${m}`;
 })();
 
-// ========== 凌晨时段（2:00~5:59）提示昨日数据 ==========
+// ========== 凌晨时段（2:00~4:59）提示昨日数据 ==========
 function showYesterdayDataNotice() {
     // 避免重复插入
     if (document.querySelector('.yesterday-data-notice')) return;
 
-    // 计算应显示的日期：若当前时间在 6:00 前，则为前一天
+    // 计算应显示的日期：若当前时间在 5:00 前，则为前一天
     const now = new Date();
     const displayDate = new Date(now);
-    if (now.getHours() < 6) {
+    if (now.getHours() < 5) {
         displayDate.setDate(displayDate.getDate() - 1);
     }
     const dateStr = displayDate.toLocaleDateString('zh-CN', {
@@ -78,7 +78,7 @@ function showYesterdayDataNotice() {
 
     const notice = document.createElement('div');
     notice.className = 'yesterday-data-notice';
-    notice.innerHTML = `⚠️ 当前显示的是 <b>${dateStr}</b> 的数据，新的运营数据将在 <b>6:00</b> 自动获取。`;
+    notice.innerHTML = `⚠️ 当前显示的是 <b>${dateStr}</b> 的数据，新的运营数据将在 <b>5:00</b> 自动获取。<p><i>官方大约在 <b>4:00</b> 提供新一天的运营数据</i>`;
 
     // 插入到 banner 之后
     const banner = document.querySelector('.banner');
@@ -89,7 +89,7 @@ function showYesterdayDataNotice() {
 
 // ========== 新增：强制获取最新数据 ==========
 function forceFetchLatestData() {
-    console.log('[6:00定时] 强制获取最新数据');
+    console.log('[5:00定时] 强制获取最新数据');
     (async () => {
         try {
             isFetchingData = true;
@@ -104,40 +104,40 @@ function forceFetchLatestData() {
                 scheduleNextMinuteTick();
             }
         } catch (err) {
-            console.error('[6:00定时] 获取数据失败', err);
+            console.error('[5:00定时] 获取数据失败', err);
         } finally {
             isFetchingData = false;
         }
     })();
 }
 
-// ========== 新增：设置 6:00 定时刷新 ==========
-function scheduleForceRefreshAt6AM() {
+// ========== 新增：设置 5:00 定时刷新 ==========
+function scheduleForceRefreshAt5AM() {
     const now = new Date();
-    const next6 = new Date(now);
-    next6.setHours(6, 0, 0, 0);
-    // 如果已经过了今天的 6:00，则目标改为明天的 6:00
-    if (next6 <= now) {
-        next6.setDate(next6.getDate() + 1);
+    const next5 = new Date(now);
+    next5.setHours(5, 0, 0, 0);
+    // 如果已经过了今天的 5:00，则目标改为明天的 5:00
+    if (next5 <= now) {
+        next5.setDate(next5.getDate() + 1);
     }
-    const delay = next6 - now;
-    console.log(`[定时] 下一次强制刷新时间：${next6.toLocaleString()}（约 ${Math.round(delay / 1000 / 60)} 分钟后）`);
+    const delay = next5 - now;
+    console.log(`[定时] 下一次强制刷新时间：${next5.toLocaleString()}（约 ${Math.round(delay / 1000 / 60)} 分钟后）`);
 
     systemTimeoutId = setTimeout(() => {
         forceFetchLatestData();
-        // 递归设置下一天的 6:00 定时
-        scheduleForceRefreshAt6AM();
+        // 递归设置下一天的 5:00 定时
+        scheduleForceRefreshAt5AM();
     }, delay);
 }
 
 // ========== 初始化数据加载 ==========
 const now = new Date();
-const isAfter6AM = now.getHours() >= 6;
+const isAfter5AM = now.getHours() >= 5;
 const cached = loadDataFromCache();
 
-if (isAfter6AM) {
-    // 6:00 之后：强制拉取最新数据
-    console.log('[初始化] 当前时间在 6:00 之后，强制获取最新数据');
+if (isAfter5AM) {
+    // 5:00 之后：强制拉取最新数据
+    console.log('[初始化] 当前时间在 5:00 之后，强制获取最新数据');
     (async () => {
         try {
             await fetchLineStations();
@@ -159,8 +159,8 @@ if (isAfter6AM) {
         }
     })();
 } else {
-    // 6:00 之前：优先使用缓存
-    console.log('[初始化] 当前时间在 6:00 之前，优先使用缓存');
+    // 5:00 之前：优先使用缓存
+    console.log('[初始化] 当前时间在 5:00 之前，优先使用缓存');
     if (cached) {
         LINE_STATIONS = cached.lineStations;
         rawServiceRecords = cached.serviceRecords;
@@ -170,10 +170,10 @@ if (isAfter6AM) {
         versionEl.textContent = `线路版本: 缓存数据 (${cached.date})`;
         currentCustomTime = null;
 
-        // 2:00~5:59 提示用户这是昨天数据
+        // 2:00~4:59 提示用户这是昨天数据
         const hour = now.getHours();
-        if (hour >= 2 && hour < 6) {
-            showYesterdayDataNotice(); // 不再传参数
+        if (hour >= 2 && hour < 5) {
+            showYesterdayDataNotice();
         }
     } else {
         // 无缓存时仍然尝试获取
@@ -182,9 +182,9 @@ if (isAfter6AM) {
                 await fetchLineStations();
                 await fetchServiceTimes();
 
-                // 新增：2:00~5:59 时，即使没有缓存，获取完数据后也提示用户这是昨天的数据
+                // 2:00~4:59 时，即使没有缓存，获取完数据后也提示用户这是昨天的数据
                 const hour = now.getHours();
-                if (hour >= 2 && hour < 6) {
+                if (hour >= 2 && hour < 5) {
                     showYesterdayDataNotice();
                 }
             } catch (err) {
@@ -196,8 +196,8 @@ if (isAfter6AM) {
     }
 }
 
-// 设置 6:00 定时刷新（无论何时打开页面，都会在下一个 6:00 触发）
-scheduleForceRefreshAt6AM();
+// 设置 5:00 定时刷新（无论何时打开页面，都会在下一个 5:00 触发）
+scheduleForceRefreshAt5AM();
 
 // 绑定获取数据按钮事件
 document.getElementById('fetch-data-btn').addEventListener('click', async () => {

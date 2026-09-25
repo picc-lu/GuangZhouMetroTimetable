@@ -13,11 +13,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://picc-lu.github.io/GuangZhouMetroTimetable/">
     <title>广州地铁 · 运营时间展示</title>
-    <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="controls.css">
-    <link rel="stylesheet" href="map.css">
-    <link rel="stylesheet" href="modal.css">
-    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/controls.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 <div class="banner">
@@ -66,7 +66,10 @@
 </div>
 
 <div class="map-wrapper" id="map-wrapper"></div>
-<div class="notice-area">注意：①乘坐末班车时建议预留5分钟进站时间<br>②节假日首末班车以官方公布为准</div>
+<div class="notice-area">
+    <div class="notice-item">乘坐末班车时建议预留 <b>5 分钟</b> 进站时间</div>
+    <div class="notice-item warn">节假日首末班车 <b>官方API已实现</b> 无需手动计算</div>
+</div>
 
 <!-- 新增：个人信息展示区 -->
 <div class="author-footer">
@@ -89,17 +92,17 @@
 </button>
 
 <!-- 数据文件 -->
-<script src="广州地铁线路各站.js"></script>
-<script src="广州地铁运营时间.js"></script>
+<script src="js/广州地铁线路各站.js"></script>
+<script src="js/广州地铁运营时间.js"></script>
 
 <!-- 模块化JS文件（按顺序加载） -->
-<script src="constants.js"></script>
-<script src="utils.js"></script>
-<script src="cache.js"></script>
-<script src="api.js"></script>
-<script src="ui.js"></script>
-<script src="render.js"></script>
-<script src="time.js"></script>
-<script src="main.js"></script>
+<script src="js/constants.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/cache.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/render.js"></script>
+<script src="js/time.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

@@ -39,18 +39,93 @@ body {
 /* ==========================================
    提示与加载信息
    ========================================== */
+/* ==========================================
+   提示与注意事项
+   ========================================== */
 .notice-area {
-    padding: 20px;
-    font-size: 16px;
+    max-width: 1200px;
+    width: calc(100% - 32px);
+    margin: 24px auto 32px;
+    padding: 20px 28px;
+    background: linear-gradient(135deg, #fefefe 0%, #f4f8fd 100%);
+    border: 1px solid #dbe6f2;
+    border-left: 5px solid #c5192d;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(31, 43, 60, 0.06);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+    align-items: stretch;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 顶部左侧小装饰 */
+.notice-area::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(197, 25, 45, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* 每个提示项 */
+.notice-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
     line-height: 1.6;
     color: #1f2b3c;
-    background: #f9f9fc;
-    border-top: 1px solid #dbe2ed;
-    text-align: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
+    font-weight: 500;
+    flex: 1 1 280px;
+    position: relative;
+    padding-left: 4px;
+}
+
+/* 圆点图标 */
+.notice-item::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c5192d;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(197, 25, 45, 0.15);
+}
+
+/* 高亮文字 */
+.notice-area b,
+.notice-area strong {
+    color: #c5192d;
+    font-weight: 700;
+}
+
+/* 不同颜色区分第二条 */
+.notice-item.warn::before {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+/* 顶部小图标条（可选装饰） */
+.notice-area::after {
+    content: 'ⓘ 温馨提示';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    background: #c5192d;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 14px 4px 12px;
+    border-radius: 14px 0 12px 0;
+    box-shadow: 0 2px 6px rgba(197, 25, 45, 0.25);
 }
 
 .loading-message {
@@ -176,3 +251,4 @@ body {
 .yesterday-data-notice b {
     color: #d97706;
 }
+

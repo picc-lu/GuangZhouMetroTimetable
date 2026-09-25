@@ -328,4 +328,23 @@
         font-size: 11px;
         padding: 1px 6px;
     }
+
+    .notice-area {
+        margin: 16px auto 24px;
+        padding: 24px 16px 16px;
+        gap: 12px;
+        flex-direction: column;
+        border-radius: 12px;
+    }
+
+    .notice-item {
+        font-size: 13px;
+        flex: 1 1 100%;
+    }
+
+    .notice-area::after {
+        font-size: 11px;
+        padding: 3px 12px 3px 10px;
+        border-radius: 12px 0 10px 0;
+    }
 }

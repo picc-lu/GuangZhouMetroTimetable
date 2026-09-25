@@ -364,10 +364,14 @@ function showLineDetails(line, keepScroll = false) {
         const active = currentMin >= first && currentMin <= last;
         const remaining = last - currentMin;
         const showRemaining = active && remaining >= 0 && remaining <= 60;
+        const notStarted = currentMin < first; // 早上还没开始运营
 
         let inner, cls = 'v-time-block';
         if (active) {
             inner = `<div class="v-time-line"><span><b>末</b> ${minutesToDisplayStr(last)}</span></div>`;
+        } else if (notStarted) {
+            // 早上还没开始运营：显示首班车时间
+            inner = `<div class="v-time-line"><span><b>首</b> ${minutesToDisplayStr(first)}</span></div>`;
         } else if (lineActive) {
             inner = `<div class="v-time-line ended"><span><b>末</b> ${minutesToDisplayStr(last)}</span></div>`;
             cls += ' ended';
