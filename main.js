@@ -1,7 +1,7 @@
 // 全局变量声明
 let rawServiceRecords = [];
 let LINE_STATIONS = { ...linesData.线路 };
-let LINE_COLORS = { ...linesData.颜色 };
+let LINE_COLORS = { ...HARDCODED_COLORS };
 let lineDirectionTime = {};
 let currentCustomTime = null;
 let systemTimeoutId = null;
@@ -130,7 +130,7 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
     } finally {
         const btn = document.getElementById('fetch-data-btn');
         btn.disabled = false;
-        btn.textContent = '🚇 获取最新首末时间数据';
+        btn.textContent = '🚇 获取最新首末数据';
         isFetchingData = false;
     }
 });

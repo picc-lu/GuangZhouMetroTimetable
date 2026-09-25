@@ -12,7 +12,7 @@ async function requestWithRetry(url, options = {}, retries = RETRY_TIMES) {
             console.log(`[请求] 成功: ${url}`);
             return data;
         } catch (err) {
-            console.warn(`[请求] 第 ${i+1} 次失败: ${err.message}`);
+            console.warn(`[请求] 第 ${i + 1} 次失败: ${err.message}`);
             if (i === retries - 1) throw err;
             await new Promise(r => setTimeout(r, 1000 * (i + 1)));
         }
@@ -43,7 +43,8 @@ function normalizeLineName(name) {
         .replace(/二十二号线/g, '22号线')
         .replace(/佛山地铁二号线|佛山地铁2号线/g, '佛山2号线')
         .replace(/佛山地铁三号线|佛山地铁3号线/g, '佛山3号线')
-        .replace(/\(联和-佛山大学\)/g, '北');
+        .replace(/\(联和-佛山大学\)/g, '北')
+        .replace(/^海珠有轨$/g, '海珠有轨1号线');
 }
 
 /** 通用字符串规范化 */
@@ -71,18 +72,19 @@ function normalizeString(str) {
         .replace(/二十二号线/g, '22号线')
         .replace(/佛山地铁二号线|佛山地铁2号线/g, '佛山2号线')
         .replace(/佛山地铁三号线|佛山地铁3号线/g, '佛山3号线')
-        .replace(/\(联和-佛山大学\)/g, '北');
+        .replace(/\(联和-佛山大学\)/g, '北')
+        .replace(/^海珠有轨$/g, '海珠有轨1号线');
 }
 
 /** 第一步：获取线路及站点 */
 async function fetchLineStations() {
     showLoadingMessage('正在获取最新运营首末时间... 准备中');
     const url = 'https://apis.gzmtr.com/app-map/metroweb/linestation';
-    const data = await requestWithRetry(url, { method: 'POST' });
+    const data = await requestWithRetry(url, {method: 'POST'});
     const lines = data.businessObject;
     if (!lines || !Array.isArray(lines)) throw new Error('线路数据格式错误');
 
-    const lineIds = [9, 1, 2, 4, 3, 5, 6, 10, 11, 7, 12, 32, 30, 31, 33, 13, 17, 14, 18, 16, 19, 8, 21, 23, 29];
+    const lineIds = [9, 1, 2, 4, 3, 5, 6, 10, 11, 7, 12, 32, 30, 31, 33, 13, 17, 14, 18, 16, 19, 8, 22, 21, 23, 29, 15, 20, 26];
     const lineMap = new Map(lines.map(l => [l.lineId, l]));
 
     const newLineStations = {};
@@ -101,7 +103,7 @@ async function fetchLineStations() {
     }
 
     LINE_STATIONS = newLineStations;
-    LINE_COLORS = { ...HARDCODED_COLORS };
+    LINE_COLORS = {...HARDCODED_COLORS};
     lineDirectionTime = {};
     populateLineFilter();
     populateLineButtons();
@@ -125,7 +127,7 @@ async function fetchServiceTimes() {
         const encodedStation = encodeURIComponent(station);
         const url = `${serviceTimeUrl}/${encodedStation}`;
         try {
-            const data = await requestWithRetry(url, { method: 'POST' });
+            const data = await requestWithRetry(url, {method: 'POST'});
             const records = data.businessObject || [];
             records.forEach(rec => {
                 const normalized = {};

@@ -39,32 +39,37 @@ function populateLineButtons() {
         .map(([line]) => line);
     console.log('[按钮] 生成的线路按钮：', lines);
 
-    lines.forEach(line => {
-        // 新增：当遇到 10号线时，插入一个强制换行块
-        // if (line === '10') {
-        //     const breakLine = document.createElement('div');
-        //     breakLine.style.width = '100%';
-        //     breakLine.style.height = '0';
-        //     breakLine.style.flexBasis = '100%'; // 强制换行
-        //     container.appendChild(breakLine);
-        // }
+    // ====== 新增：以“广佛线”为界，拆分成两行 ======
+    const splitIndex = lines.indexOf('广佛线');
+    let row1Lines = [];
+    let row2Lines = [];
 
+    if (splitIndex !== -1) {
+        row1Lines = lines.slice(0, splitIndex);
+        row2Lines = lines.slice(splitIndex); // 包含广佛线及其后面的所有线路
+    } else {
+        row1Lines = lines; // 找不到广佛线时全部放到第一行
+    }
+
+    // 创建两个横向滚动容器
+    const row1Container = document.createElement('div');
+    row1Container.className = 'line-scroll-row';
+    const row2Container = document.createElement('div');
+    row2Container.className = 'line-scroll-row';
+
+    // 生成按钮的工具函数
+    const createButton = (line) => {
         const btn = document.createElement('button');
         btn.className = 'line-button';
-
-        // 核心修改：处理按钮显示文字
         let displayText = line;
-        displayText = displayText.replace(/号线/g, ''); // 1. 删除所有"号线"
+        displayText = displayText.replace(/号线/g, '');
         if (displayText.includes('佛山')) {
-            displayText = displayText.replace(/佛山/g, '佛'); // 2. 佛山替换为佛，比如"佛山2号线"变成"佛2"
+            displayText = displayText.replace(/佛山/g, '佛');
         }
         btn.textContent = displayText;
-
-        btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
         btn.addEventListener('click', () => {
-            // 精确查找对应的线路容器
             const lineContainer = document.querySelector(`.line-container[data-line="${line}"]`);
             if (lineContainer) {
                 const controls = document.querySelector('.controls');
@@ -73,8 +78,17 @@ function populateLineButtons() {
                 window.scrollTo({top: targetPosition, behavior: 'smooth'});
             }
         });
-        container.appendChild(btn);
-    });
+        return btn;
+    };
+
+    // 填充第一行
+    row1Lines.forEach(line => row1Container.appendChild(createButton(line)));
+    // 填充第二行
+    row2Lines.forEach(line => row2Container.appendChild(createButton(line)));
+
+    // 将两行添加到主容器中
+    container.appendChild(row1Container);
+    container.appendChild(row2Container);
 }
 
 function showLoadingMessage(text) {
@@ -236,6 +250,26 @@ function showLineDetails(line, keepScroll = false) {
 
     const lineColor = LINE_COLORS[line] || '#888';
     const currentMin = getCurrentMinutes();
+
+    // ====== 新增：人工换乘映射表 ======
+    const MANUAL_TRANSFERS = {
+        "海珠有轨1号线": {
+            "广州塔（有轨）": "广州塔",
+            "万胜围（有轨）": "万胜围"
+        },
+        "黄埔有轨1号线": {
+            "地铁长平": "长平",
+            "地铁水西": "水西",
+            "市民广场": "萝岗",
+            "地铁香雪": "香雪"
+        },
+        "黄埔有轨2号线": {
+            "地铁香雪": "香雪"
+        },
+        "南海有轨1号线": {
+            "虫雷 岗（有轨）": "虫雷 岗" // 注：广佛线的站名实际是“礌岗”，若需显示“虫雷岗”可自行改为 "虫雷岗"
+        }
+    };
 
     // ====== 计算双向主题色：色相偏移 + 加深，保证可读性 ======
     function hexToHsl(hex) {
@@ -410,6 +444,93 @@ function showLineDetails(line, keepScroll = false) {
             upFull: null, upTerminal: null, downFull: null, downTerminal: null
         } : { up: [], down: [] });
 
+        // ====== 计算换乘线路 ======
+        const transferLines = new Map(); // key: 线路名, value: { realStation, isManual }
+
+        // 1. 标准匹配（站名完全一致，无需出闸）
+        for (const [otherLine, otherStations] of Object.entries(LINE_STATIONS)) {
+            if (otherLine !== line && otherStations.includes(station)) {
+                transferLines.set(otherLine, { realStation: station, isManual: false });
+            }
+        }
+
+        // 2. 处理有轨电车人工换乘映射（需出闸）
+        for (const [tramLine, mapping] of Object.entries(MANUAL_TRANSFERS)) {
+            if (tramLine === line) {
+                // 当前在有轨电车上，查找映射到的地铁站
+                const targetMetroStation = mapping[station];
+                if (targetMetroStation) {
+                    for (const [metroLine, metroStations] of Object.entries(LINE_STATIONS)) {
+                        if (metroLine !== line && metroStations.includes(targetMetroStation)) {
+                            transferLines.set(metroLine, { realStation: targetMetroStation, isManual: true });
+                        }
+                    }
+                }
+            } else {
+                // 当前在地铁上，查找是否有有轨电车站映射到此站
+                for (const [tramStation, metroStation] of Object.entries(mapping)) {
+                    if (metroStation === station) {
+                        if (LINE_STATIONS[tramLine] && LINE_STATIONS[tramLine].includes(tramStation)) {
+                            transferLines.set(tramLine, { realStation: tramStation, isManual: true });
+                        }
+                    }
+                }
+            }
+        }
+
+        let transferHtml = '';
+        if (transferLines.size > 0) {
+            transferHtml = `<div class="v-transfer-lines">`;
+            transferLines.forEach((data, tLine) => {
+                const { realStation, isManual } = data;
+
+                // 使用 realStation 查询运营状态
+                const transferData = lineDirectionTime[tLine]?.[realStation];
+                let isTransferActive = false;
+
+                if (transferData) {
+                    if (tLine === '11号线') {
+                        isTransferActive = (transferData.upFull && currentMin >= transferData.upFull.first && currentMin <= transferData.upFull.last) ||
+                            (transferData.upTerminal && currentMin >= transferData.upTerminal.first && currentMin <= transferData.upTerminal.last) ||
+                            (transferData.downFull && currentMin >= transferData.downFull.first && currentMin <= transferData.downFull.last) ||
+                            (transferData.downTerminal && currentMin >= transferData.downTerminal.first && currentMin <= transferData.downTerminal.last);
+                    } else {
+                        isTransferActive = (transferData.up || []).some(t => currentMin >= t.first && currentMin <= t.last) ||
+                            (transferData.down || []).some(t => currentMin >= t.first && currentMin <= t.last);
+                    }
+                }
+
+                // 获取原始颜色
+                let color = LINE_COLORS[tLine] || '#888';
+                let textColor = getContrastColor(color);
+                let badgeClass = 'v-transfer-badge';
+
+                // 如果已停止运营，变灰
+                if (!isTransferActive) {
+                    color = '#e2e8f0'; // 浅灰色背景
+                    textColor = '#94a3b8'; // 灰白色文字
+                    badgeClass += ' inactive';
+                }
+
+                // 如果是手动添加的换乘（出闸换乘），添加特殊样式和图标
+                let iconHtml = '';
+                if (isManual) {
+                    badgeClass += ' manual';
+                    iconHtml = '<span class="v-transfer-icon">出</span>'; // 将步行图标改为“出”字
+                }
+
+                // 简化线路名称显示 (例如 "佛山2号线" -> "佛2")
+                let displayName = tLine.replace(/号线/g, '');
+                if (displayName.includes('佛山')) displayName = displayName.replace(/佛山/g, '佛');
+
+                // 增加 title 提示，鼠标悬浮可见
+                const titleAttr = isManual ? 'title="需出闸换乘"' : '';
+
+                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};">${iconHtml}${displayName}</span>`;
+            });
+            transferHtml += `</div>`;
+        }
+
         let upCards = '';
         let downCards = '';
 
@@ -465,9 +586,13 @@ function showLineDetails(line, keepScroll = false) {
         const bottomClass = (idx === stations.length - 1) ? 'v-line bottom'
             : (bottomActive ? 'v-line bottom' : 'v-line bottom v-line-inactive');
 
+        // 修改下方最终拼接的 HTML，在 nameClass 中添加换乘线路
         html += `
             <div class="v-station-row">
-                <div class="${nameClass}">${station}</div>
+                <div class="${nameClass}">
+                    <span>${station}</span>
+                    ${transferHtml}
+                </div>
                 <div class="v-up-col">${upCard}</div>
                 <div class="v-line-col">
                     <div class="${topClass}"></div>
@@ -514,9 +639,22 @@ function showLineDetails(line, keepScroll = false) {
     if (!keepScroll) {
         const savedPos = modalScrollPositions[line] || 0;
         contentDiv.scrollTop = savedPos;
-        if (currentCustomTime === null) {
+    }
+
+    // ====== 新增：控制刷新按钮的显示与隐藏 ======
+    const refreshBtn = modalOverlay.querySelector('.v-refresh-btn');
+    if (currentCustomTime === null) {
+        // 系统时间模式：显示刷新按钮（'' 让它回到 CSS 默认的 flex 状态）
+        if (refreshBtn) refreshBtn.style.display = '';
+
+        if (!keepScroll) {
             startModalTimers(line);
-        } else {
+        }
+    } else {
+        // 自定义时间模式：隐藏刷新按钮
+        if (refreshBtn) refreshBtn.style.display = 'none';
+
+        if (!keepScroll) {
             // 自定义时间模式：只启动时钟，不启动 30 秒自动刷新
             stopModalTimers();
             currentModalLine = line;
