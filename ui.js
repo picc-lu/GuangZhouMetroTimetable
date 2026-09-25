@@ -622,6 +622,12 @@ function showLineDetails(line, keepScroll = false) {
     //     contentDiv.style.paddingBottom = '90px';
     // }
 
+    // ====== 新增：恢复进度条显示状态 ======
+    const refreshBar = document.querySelector('.modal-refresh-bar');
+    if (refreshBar) {
+        refreshBar.style.display = '';
+    }
+
     contentDiv.innerHTML = html;
     updateModalClock();
     modalOverlay.style.display = 'flex';

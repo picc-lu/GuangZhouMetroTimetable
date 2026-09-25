@@ -515,15 +515,44 @@ function renderAllLines() {
                 e.stopPropagation();
                 if (typeof ensureModal === 'function') {
                     ensureModal();
-                    const modalContent = document.querySelector('.modal-content');
-                    const modalTitle = document.querySelector('.modal-header h3');
-                    if (modalContent && modalTitle) {
-                        modalTitle.textContent = '3号线乘坐提示';
-                        modalContent.innerHTML = `<div style="padding: 20px; font-size: 16px; line-height: 1.8; color: #333;">
-                    在一日较晚时候，<b>海傍~珠江新城</b>无直达<b>机场北</b>的列车时，可乘坐<b>天河客运站</b>方向的列车，并在<b>体育西路</b>换乘<b>机场北</b>方向的列车。
-                </div>`;
-                        document.querySelector('.modal-overlay').style.display = 'flex';
+
+                    // 1. 停止所有定时器（防止后台刷新干扰）
+                    if (typeof stopModalTimers === 'function') {
+                        stopModalTimers();
                     }
+
+                    // 2. 设置抬头颜色为 3 号线主题色
+                    const modalHeader = document.querySelector('.modal-header');
+                    const lineColor = LINE_COLORS['3号线'] || '#eca154';
+                    modalHeader.style.background = lineColor;
+                    modalHeader.style.borderBottomColor = lineColor;
+                    const h3El = modalHeader.querySelector('h3');
+                    if (h3El) {
+                        h3El.textContent = '3号线乘坐提示';
+                        h3El.style.color = getContrastColor(lineColor);
+                    }
+
+                    // 3. 注入提示内容
+                    const modalContent = document.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.innerHTML = `<div style="padding: 20px; font-size: 16px; line-height: 1.8; color: #333;">
+                            在一日较晚时候，<b>海傍~珠江新城</b>无直达<b>机场北</b>的列车时，可乘坐<b>天河客运站</b>方向的列车，并在<b>体育西路</b>换乘<b>机场北</b>方向的列车。
+                        </div>`;
+                    }
+
+                    // 4. 隐藏倒计时进度条和刷新按钮
+                    const refreshBar = document.querySelector('.modal-refresh-bar');
+                    if (refreshBar) {
+                        refreshBar.classList.remove('animating');
+                        refreshBar.style.display = 'none';
+                    }
+                    const refreshBtn = document.querySelector('.v-refresh-btn');
+                    if (refreshBtn) {
+                        refreshBtn.style.display = 'none';
+                    }
+
+                    // 5. 显示弹窗
+                    document.querySelector('.modal-overlay').style.display = 'flex';
                 }
             });
 
