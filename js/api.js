@@ -1,20 +1,21 @@
 // ========== API 请求函数 ==========
 
 /** 带重试的fetch */
-async function requestWithRetry(url, options = {}, retries = RETRY_TIMES) {
-    console.log(`[请求] 发起请求: ${url} (重试次数: ${retries})`);
+async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeoutMs = 8000) {
     for (let i = 0; i < retries; i++) {
         try {
-            const resp = await fetch(url, {...options, mode: 'cors'});
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            const resp = await fetch(url, { ...options, mode: 'cors', signal: controller.signal });
+            clearTimeout(timer);
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await resp.json();
             if (data.success === false) throw new Error('接口返回 success=false');
-            console.log(`[请求] 成功: ${url}`);
             return data;
         } catch (err) {
-            console.warn(`[请求] 第 ${i + 1} 次失败: ${err.message}`);
             if (i === retries - 1) throw err;
-            await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+            // 缩短重试延迟：从 1s、2s 改为 500ms、1s
+            await new Promise(r => setTimeout(r, 500 * (i + 1)));
         }
     }
 }
@@ -108,6 +109,10 @@ async function fetchLineStations() {
     populateLineFilter();
     populateLineButtons();
     versionEl.textContent = `线路版本: 实时获取 (${new Date().toLocaleDateString()})`;
+
+    // 立即渲染线路骨架（时间占位 --:--），让用户先看到线路
+    // lineDirectionTime 为空时，renderAllLines 会自动显示 --:--
+    renderAllLines();
 }
 
 /** 第二步：获取各站运营时间 */
@@ -121,13 +126,14 @@ async function fetchServiceTimes() {
     const serviceTimeUrl = 'https://apis.gzmtr.com/app-map/serviceTime/list';
     const allRecords = [];
     let completed = 0;
-    const concurrency = 10;
+    const concurrency = 25;
+    const progressThreshold = 30; // 每完成 30 个站点刷新渲染 + 更新进度
 
     const tasks = uniqueStations.map(station => async () => {
         const encodedStation = encodeURIComponent(station);
         const url = `${serviceTimeUrl}/${encodedStation}`;
         try {
-            const data = await requestWithRetry(url, {method: 'POST'});
+            const data = await requestWithRetry(url, { method: 'POST' }, 1, 5000);
             const records = data.businessObject || [];
             records.forEach(rec => {
                 const normalized = {};
@@ -145,6 +151,11 @@ async function fetchServiceTimes() {
         } finally {
             completed++;
             updateLoadingMessage(`正在获取最新运营首末时间... ${completed}/${total}`);
+            // 每完成一定数量就刷新渲染
+            if (completed % progressThreshold === 0 || completed === total) {
+                rawServiceRecords = allRecords.slice();
+                parseTimeRecords(rawServiceRecords);
+            }
         }
     });
 

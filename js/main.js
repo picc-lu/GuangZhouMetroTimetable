@@ -78,7 +78,7 @@ function showYesterdayDataNotice() {
 
     const notice = document.createElement('div');
     notice.className = 'yesterday-data-notice';
-    notice.innerHTML = `⚠️ 当前显示的是 <b>${dateStr}</b> 的数据，新的运营数据将在 <b>5:00</b> 自动获取。<p><i>官方大约在 <b>4:00</b> 提供新一天的运营数据</i>`;
+    notice.innerHTML = `⚠️ 当前显示的是 <b>${dateStr}</b> 的数据，新的运营数据将在 <b>5:00</b> 自动获取。<p><i>官方大约在 <b>2:00~4:00</b> 提供新一天的运营数据</i>`;
 
     // 插入到 banner 之后
     const banner = document.querySelector('.banner');
@@ -132,71 +132,46 @@ function scheduleForceRefreshAt5AM() {
 
 // ========== 初始化数据加载 ==========
 const now = new Date();
-const isAfter5AM = now.getHours() >= 5;
 const cached = loadDataFromCache();
 
-if (isAfter5AM) {
-    // 5:00 之后：强制拉取最新数据
-    console.log('[初始化] 当前时间在 5:00 之后，强制获取最新数据');
+if (cached) {
+    // 有当日缓存：直接使用，不发起网络请求
+    console.log('[初始化] 命中当日缓存，使用缓存数据');
+    LINE_STATIONS = cached.lineStations;
+    rawServiceRecords = cached.serviceRecords;
+    populateLineFilter();
+    populateLineButtons();
+    parseTimeRecords(rawServiceRecords);
+    versionEl.textContent = `线路版本: 缓存数据 (${cached.date})`;
+    currentCustomTime = null;
+
+    // 2:00~4:59 提示用户这是昨天数据
+    const hour = now.getHours();
+    if (hour >= 2 && hour < 5) {
+        showYesterdayDataNotice();
+    }
+} else {
+    // 无当日缓存：拉取最新数据
+    console.log('[初始化] 无当日缓存，拉取最新数据');
     (async () => {
         try {
             await fetchLineStations();
             await fetchServiceTimes();
-        } catch (err) {
-            console.error('[初始化] 获取最新数据失败，尝试降级到缓存', err);
-            if (cached) {
-                LINE_STATIONS = cached.lineStations;
-                rawServiceRecords = cached.serviceRecords;
-                populateLineFilter();
-                populateLineButtons();
-                parseTimeRecords(rawServiceRecords);
-                versionEl.textContent = `线路版本: 缓存数据 (${cached.date})`;
-                currentCustomTime = null;
-            } else {
-                showLoadingMessage('获取数据失败，请检查网络后点击“获取最新首末数据”');
-                versionEl.textContent = '线路版本: 获取失败';
+
+            // 2:00~4:59 时，获取完数据后也提示用户这是昨天的数据
+            const hour = now.getHours();
+            if (hour >= 2 && hour < 5) {
+                showYesterdayDataNotice();
             }
+        } catch (err) {
+            console.error('[初始化] 获取数据失败', err);
+            showLoadingMessage('获取数据失败，请检查网络后点击“获取最新首末数据”');
+            versionEl.textContent = '线路版本: 获取失败';
         }
     })();
-} else {
-    // 5:00 之前：优先使用缓存
-    console.log('[初始化] 当前时间在 5:00 之前，优先使用缓存');
-    if (cached) {
-        LINE_STATIONS = cached.lineStations;
-        rawServiceRecords = cached.serviceRecords;
-        populateLineFilter();
-        populateLineButtons();
-        parseTimeRecords(rawServiceRecords);
-        versionEl.textContent = `线路版本: 缓存数据 (${cached.date})`;
-        currentCustomTime = null;
-
-        // 2:00~4:59 提示用户这是昨天数据
-        const hour = now.getHours();
-        if (hour >= 2 && hour < 5) {
-            showYesterdayDataNotice();
-        }
-    } else {
-        // 无缓存时仍然尝试获取
-        (async () => {
-            try {
-                await fetchLineStations();
-                await fetchServiceTimes();
-
-                // 2:00~4:59 时，即使没有缓存，获取完数据后也提示用户这是昨天的数据
-                const hour = now.getHours();
-                if (hour >= 2 && hour < 5) {
-                    showYesterdayDataNotice();
-                }
-            } catch (err) {
-                console.error('[初始化] 无缓存且自动获取失败', err);
-                showLoadingMessage('获取数据失败，请检查网络后点击“获取最新首末数据”');
-                versionEl.textContent = '线路版本: 获取失败';
-            }
-        })();
-    }
 }
 
-// 设置 5:00 定时刷新（无论何时打开页面，都会在下一个 5:00 触发）
+// 5:00 定时刷新仍然保留（页面长驻时用于自动更新数据）
 scheduleForceRefreshAt5AM();
 
 // 绑定获取数据按钮事件

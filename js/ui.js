@@ -93,15 +93,38 @@ function showLoadingMessage(text) {
 
 function updateLoadingMessage(text) {
     const wrapper = document.getElementById('map-wrapper');
-    const loadingDiv = wrapper.querySelector('.loading-message');
-    if (loadingDiv) {
-        loadingDiv.textContent = text;
-    } else {
-        wrapper.innerHTML = `<div class="loading-message">${text}</div>`;
+    const bigLoading = wrapper ? wrapper.querySelector('.loading-message') : null;
+
+    // 如果大块 loading 还在，只更新它的文本（首次加载阶段）
+    if (bigLoading) {
+        bigLoading.textContent = text;
+        return;
+    }
+
+    // 大块 loading 已经被线路图取代，改用浮动 toast 显示进度
+    let toast = document.getElementById('loading-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'loading-toast';
+        toast.className = 'loading-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = text;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+
+    // 如果进度形如 "300/300" 表示已完成，稍后淡出
+    const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+    if (match && match[1] === match[2]) {
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                toast.style.display = 'none';
+                toast.style.opacity = '1';
+            }, 300);
+        }, 800);
     }
 }
-
-// ========== 模态框相关 ==========
 
 // ========== 模态框相关 ==========
 
