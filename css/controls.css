@@ -459,13 +459,13 @@ select option:checked {
     width: 44px;
     height: 40px;
     cursor: pointer;
-    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.15s;
     padding: 0;
     flex-shrink: 0;
+    color: #1f2b3c;
 }
 
 .theme-toggle:hover {
@@ -478,10 +478,27 @@ select option:checked {
     transform: translateY(0);
 }
 
-@media (max-width: 768px) {
-    .theme-toggle {
-        width: 38px;
-        height: 34px;
-        font-size: 16px;
-    }
+/* 图标：默认显示月亮（日间模式），深色模式显示太阳 */
+.theme-toggle .theme-icon {
+    display: none;
+    flex-shrink: 0;
+}
+
+.theme-toggle .icon-moon {
+    display: block;
+}
+
+[data-theme="dark"] .theme-toggle .icon-moon {
+    display: none;
+}
+
+[data-theme="dark"] .theme-toggle .icon-sun {
+    display: block;
+}
+
+/* 深色模式下按钮底色（补充，避免被全局覆盖） */
+[data-theme="dark"] .theme-toggle {
+    background: #232b3d;
+    border-color: #3a4559;
+    color: #e2e8f0;
 }

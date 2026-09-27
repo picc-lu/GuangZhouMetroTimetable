@@ -16,7 +16,6 @@
         document.documentElement.setAttribute('data-theme', theme);
         const btn = document.getElementById('theme-toggle');
         if (btn) {
-            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
             btn.title = theme === 'dark' ? '切换到日间模式' : '切换到夜间模式';
         }
         // 若弹窗正开着，重新渲染以更新 --up-color / --down-color
