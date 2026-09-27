@@ -1,3 +1,17 @@
+// ========== 11 号线解析相关常量 ==========
+const LINE11_NAME = '11号线';
+// 11 号线的两种数据格式：
+//   格式 A（新）：带 remark 字段，如 "外环全程"、"内环终点"，
+//                或 toStationName 中带括号说明如 "XX(外环全程)"。
+//   格式 B（旧）：toStationName 形如 "本站(null-全程)" 表示全程，
+//                或 "龙潭(...)"、"赤沙(...)" 表示区间。
+// 本解析器先尝试格式 A，若无法确定方向/类型再退回格式 B。
+const LINE11_KEYWORD_OUTER = '外环';    // 外环 → up
+const LINE11_KEYWORD_INNER = '内环';    // 内环 → down
+const LINE11_KEYWORD_FULL = '全程';     // 全程 → full
+const LINE11_KEYWORD_TERMINAL = ['终点', '区间']; // 终点/区间 → terminal
+const LINE11_TERMINAL_STATIONS = ['龙潭', '赤沙']; // 两个区间终点
+
 function initTimeSelectors() {
     const hourSel = document.getElementById('hour-select');
     const minSel = document.getElementById('minute-select');
@@ -160,6 +174,112 @@ function scheduleNextMinuteTick() {
     }, delay);
 }
 
+/**
+ * 解析单条 11 号线的运营时间记录，直接写入 lineDirectionTime。
+ * @param {Object} rec - 一条原始记录
+ * @param {Object} fullCounter - 跨记录共享的全程计数器（用于区分上下行全程）
+ */
+function parseLine11Record(rec, fullCounter) {
+    const station = rec.stationName;
+    const to = rec.toStationName;
+    const remark = rec.remark || '';
+    const start = rec.startTime;
+    const end = rec.endTime;
+
+    if (!lineDirectionTime[LINE11_NAME]) lineDirectionTime[LINE11_NAME] = {};
+    if (!lineDirectionTime[LINE11_NAME][station]) {
+        lineDirectionTime[LINE11_NAME][station] = {
+            upFull: null,
+            upTerminal: null,
+            downFull: null,
+            downTerminal: null
+        };
+    }
+
+    let dir = null;   // 'up' 或 'down'
+    let type = null;  // 'full' 或 'terminal'
+
+    // --- 第一步：从 remark 或 to 括号中提取方向 ---
+    if (remark.includes(LINE11_KEYWORD_OUTER)) {
+        dir = 'up';
+    } else if (remark.includes(LINE11_KEYWORD_INNER)) {
+        dir = 'down';
+    } else {
+        const match = to.match(/\(([^)]+)\)/);
+        if (match) {
+            const bracket = match[1];
+            if (bracket.includes(LINE11_KEYWORD_OUTER)) dir = 'up';
+            else if (bracket.includes(LINE11_KEYWORD_INNER)) dir = 'down';
+        }
+    }
+
+    // --- 提取类型 ---
+    if (dir) {
+        if (remark.includes(LINE11_KEYWORD_FULL)) {
+            type = 'full';
+        } else if (LINE11_KEYWORD_TERMINAL.some(k => remark.includes(k))) {
+            type = 'terminal';
+        } else {
+            const match = to.match(/\(([^)]+)\)/);
+            if (match) {
+                const bracket = match[1];
+                if (bracket.includes(LINE11_KEYWORD_FULL)) type = 'full';
+                else if (LINE11_KEYWORD_TERMINAL.some(k => bracket.includes(k))) type = 'terminal';
+            }
+        }
+    }
+
+    // --- 第二步：若第一步无法确定，改用旧格式规则 ---
+    if (!dir || !type) {
+        if (to.includes('null-全程') || (to.startsWith(station) && !to.includes('('))) {
+            type = 'full';
+        } else if (LINE11_TERMINAL_STATIONS.some(k => to.includes(k))) {
+            type = 'terminal';
+        } else {
+            console.log(`[解析-11号线] 无法识别类型，忽略：`, { station, to, remark });
+            return;
+        }
+
+        if (type === 'full') {
+            if (!fullCounter[LINE11_NAME]) fullCounter[LINE11_NAME] = {};
+            if (!fullCounter[LINE11_NAME][station]) fullCounter[LINE11_NAME][station] = 0;
+            fullCounter[LINE11_NAME][station]++;
+            const count = fullCounter[LINE11_NAME][station];
+            if (count === 1) {
+                dir = 'up';
+            } else if (count === 2) {
+                dir = 'down';
+            } else {
+                console.log(`[解析-11号线] 多余全程记录，忽略：`, { station, to });
+                return;
+            }
+        } else {
+            if (to.includes('龙潭')) dir = 'up';
+            else if (to.includes('赤沙')) dir = 'down';
+            else {
+                console.log(`[解析-11号线] 无法确定区间方向，忽略：`, { station, to });
+                return;
+            }
+        }
+    }
+
+    const startMin = timeStrToMinutes(start);
+    const endMin = timeStrToMinutes(end);
+    if (startMin === null || endMin === null) {
+        console.warn(`[解析] 时间转换失败: start=${start}, end=${end}`);
+        return;
+    }
+
+    const field = dir + (type === 'full' ? 'Full' : 'Terminal');
+    const existing = lineDirectionTime[LINE11_NAME][station][field];
+    if (!existing) {
+        lineDirectionTime[LINE11_NAME][station][field] = { first: startMin, last: endMin };
+    } else {
+        existing.first = Math.min(existing.first, startMin);
+        existing.last = Math.max(existing.last, endMin);
+    }
+}
+
 function parseTimeRecords(records) {
     console.log('[解析] 开始解析运营时间记录，总数：', records.length);
     lineDirectionTime = {};
@@ -169,7 +289,6 @@ function parseTimeRecords(records) {
         const line = rec.lineCn;
         const station = rec.stationName;
         const to = rec.toStationName;
-        const remark = rec.remark || '';
         const start = rec.startTime;
         const end = rec.endTime;
         if (!line || !station || !start || !end || start === '——') return;
@@ -180,98 +299,9 @@ function parseTimeRecords(records) {
             return;
         }
 
-        // 11号线特殊处理
-        if (line === '11号线') {
-            if (!lineDirectionTime[line]) lineDirectionTime[line] = {};
-            if (!lineDirectionTime[line][station]) {
-                lineDirectionTime[line][station] = {
-                    upFull: null,
-                    upTerminal: null,
-                    downFull: null,
-                    downTerminal: null
-                };
-            }
-
-            let dir = null;   // 'up' 或 'down'
-            let type = null;  // 'full' 或 'terminal'
-
-            // --- 第一步：尝试从 remark 或 to 括号中提取（第一种数据）---
-            if (remark.includes('外环')) {
-                dir = 'up';
-            } else if (remark.includes('内环')) {
-                dir = 'down';
-            } else {
-                const match = to.match(/\(([^)]+)\)/);
-                if (match) {
-                    const bracket = match[1];
-                    if (bracket.includes('外环')) dir = 'up';
-                    else if (bracket.includes('内环')) dir = 'down';
-                }
-            }
-
-            if (dir) {
-                if (remark.includes('全程')) {
-                    type = 'full';
-                } else if (remark.includes('终点') || remark.includes('区间')) {
-                    type = 'terminal';
-                } else {
-                    const match = to.match(/\(([^)]+)\)/);
-                    if (match) {
-                        const bracket = match[1];
-                        if (bracket.includes('全程')) type = 'full';
-                        else if (bracket.includes('终点') || bracket.includes('区间')) type = 'terminal';
-                    }
-                }
-            }
-
-            // --- 第二步：如果未通过第一种确定，则使用第二种数据规则（null-全程格式）---
-            if (!dir || !type) {
-                if (to.includes('null-全程') || (to.startsWith(station) && !to.includes('('))) {
-                    type = 'full';
-                } else if (to.includes('龙潭') || to.includes('赤沙')) {
-                    type = 'terminal';
-                } else {
-                    console.log(`[解析-11号线] 无法识别类型，忽略：`, {line, station, to, remark});
-                    return;
-                }
-
-                if (type === 'full') {
-                    if (!fullCounter[line]) fullCounter[line] = {};
-                    if (!fullCounter[line][station]) fullCounter[line][station] = 0;
-                    fullCounter[line][station]++;
-                    if (fullCounter[line][station] === 1) {
-                        dir = 'up';
-                    } else if (fullCounter[line][station] === 2) {
-                        dir = 'down';
-                    } else {
-                        console.log(`[解析-11号线] 多余全程记录，忽略：`, {line, station, to});
-                        return;
-                    }
-                } else {
-                    if (to.includes('龙潭')) dir = 'up';
-                    else if (to.includes('赤沙')) dir = 'down';
-                    else {
-                        console.log(`[解析-11号线] 无法确定区间方向，忽略：`, {line, station, to});
-                        return;
-                    }
-                }
-            }
-
-            const startMin = timeStrToMinutes(start);
-            const endMin = timeStrToMinutes(end);
-            if (startMin === null || endMin === null) {
-                console.warn(`[解析] 时间转换失败: start=${start}, end=${end}`);
-                return;
-            }
-
-            const field = dir + (type === 'full' ? 'Full' : 'Terminal');
-            const existing = lineDirectionTime[line][station][field];
-            if (!existing) {
-                lineDirectionTime[line][station][field] = { first: startMin, last: endMin };
-            } else {
-                existing.first = Math.min(existing.first, startMin);
-                existing.last = Math.max(existing.last, endMin);
-            }
+        // 11号线特殊处理：交给专用解析函数
+        if (line === LINE11_NAME) {
+            parseLine11Record(rec, fullCounter);
             return;
         }
 
@@ -309,7 +339,7 @@ function parseTimeRecords(records) {
         if (!lineDirectionTime[line]) lineDirectionTime[line] = {};
         LINE_STATIONS[line].forEach(st => {
             if (!lineDirectionTime[line][st]) {
-                if (line === '11号线') {
+                if (line === LINE11_NAME) {
                     lineDirectionTime[line][st] = {
                         upFull: null,
                         upTerminal: null,

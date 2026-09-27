@@ -79,6 +79,44 @@
     white-space: nowrap;
 }
 
+/* ==========================================
+   弹窗左下角的"返回上一条线路"按钮
+   ========================================== */
+.v-prev-btn {
+    position: absolute;
+    bottom: 16px;
+    left: 24px;
+    background: #1f2b3c;
+    color: #fff;
+    border: none;
+    padding: 10px 26px;
+    border-radius: 22px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;                       /* 默认隐藏，有历史时才显示 */
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    z-index: 5;
+}
+
+.v-prev-btn.show {
+    display: flex;
+}
+
+.v-prev-btn:hover {
+    background: #2f405a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.v-prev-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
 /* 30 秒刷新倒计时进度条 */
 .modal-refresh-bar {
     position: absolute;

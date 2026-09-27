@@ -401,3 +401,19 @@
             0 0 18px rgba(255, 255, 255, 0.55),
             0 6px 18px rgba(0, 0, 0, 0.7);
 }
+
+[data-theme="dark"] .v-prev-btn {
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.15),
+            0 0 12px rgba(255, 255, 255, 0.35),
+            0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .v-prev-btn:hover {
+    border-color: #ffffff;
+    box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.25),
+            0 0 18px rgba(255, 255, 255, 0.55),
+            0 6px 18px rgba(0, 0, 0, 0.7);
+}

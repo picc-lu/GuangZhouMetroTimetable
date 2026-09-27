@@ -359,6 +359,14 @@
         font-size: 11px;
     }
 
+    .v-prev-btn {
+        bottom: 12px;
+        left: 16px;
+        padding: 9px 20px;
+        font-size: 15px;
+        border-radius: 20px;
+    }
+
     .notice-area {
         margin: 16px auto 24px;
         padding: 24px 16px 16px;

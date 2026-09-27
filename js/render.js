@@ -103,6 +103,7 @@ function renderAllLines() {
         meta.style.cursor = 'pointer';
         meta.addEventListener('click', (e) => {
             e.stopPropagation();
+            modalHistory.length = 0;
             showLineDetails(line);
         });
         lineDiv.appendChild(meta);
@@ -164,8 +165,10 @@ function renderAllLines() {
                     let text, className = 'time-meta';
                     if (fullActive) text = `全程 ${lastStr}`;
                     else if (fullEnded) {
-                        if (upTerminal && terminalActive) { text = `全程 ${lastStr}`; className += ' ended'; }
-                        else text = `全程 首 ${firstStr}`;
+                        if (upTerminal && terminalActive) {
+                            text = `全程 ${lastStr}`;
+                            className += ' ended';
+                        } else text = `全程 首 ${firstStr}`;
                     } else if (fullNotStarted) text = `全程 首 ${firstStr}`;
                     if (text) {
                         text = text.replace(/\b(首)\b/g, '<b>$1</b>');
@@ -178,8 +181,10 @@ function renderAllLines() {
                     let text, className = 'time-meta';
                     if (terminalActive) text = `龙潭 ${lastStr}`;
                     else if (terminalEnded) {
-                        if (upFull && fullActive) { text = `龙潭 ${lastStr}`; className += ' ended'; }
-                        else text = `龙潭 首 ${firstStr}`;
+                        if (upFull && fullActive) {
+                            text = `龙潭 ${lastStr}`;
+                            className += ' ended';
+                        } else text = `龙潭 首 ${firstStr}`;
                     } else if (terminalNotStarted) text = `龙潭 首 ${firstStr}`;
                     if (text) {
                         text = text.replace(/\b(首)\b/g, '<b>$1</b>');
@@ -337,8 +342,10 @@ function renderAllLines() {
                     let text, className = 'time-meta';
                     if (fullActive) text = `全程 ${lastStr}`;
                     else if (fullEnded) {
-                        if (downTerminal && terminalActive) { text = `全程 ${lastStr}`; className += ' ended'; }
-                        else text = `全程 首 ${firstStr}`;
+                        if (downTerminal && terminalActive) {
+                            text = `全程 ${lastStr}`;
+                            className += ' ended';
+                        } else text = `全程 首 ${firstStr}`;
                     } else if (fullNotStarted) text = `全程 首 ${firstStr}`;
                     if (text) {
                         text = text.replace(/\b(首)\b/g, '<b>$1</b>');
@@ -351,9 +358,14 @@ function renderAllLines() {
                     let text, className = 'time-meta';
                     if (terminalActive) text = `赤沙 ${lastStr}`;
                     else if (terminalEnded) {
-                        if (fullActive) { text = `赤沙 ${lastStr}`; className += ' ended'; }
-                        else if (fullEnded) text = `赤沙 首 ${firstStr}`;
-                        else if (fullNotStarted) { text = `赤沙 ${lastStr}`; className += ' ended'; }
+                        if (fullActive) {
+                            text = `赤沙 ${lastStr}`;
+                            className += ' ended';
+                        } else if (fullEnded) text = `赤沙 首 ${firstStr}`;
+                        else if (fullNotStarted) {
+                            text = `赤沙 ${lastStr}`;
+                            className += ' ended';
+                        }
                     } else if (terminalNotStarted) {
                         if (fullActive || fullNotStarted) text = `赤沙 首 ${firstStr}`;
                         else if (fullEnded) text = `赤沙 首 ${firstStr}`;
@@ -523,6 +535,8 @@ function renderAllLines() {
                 if (typeof ensureModal === 'function') {
                     ensureModal();
 
+                    modalHistory.length = 0;
+
                     // 1. 停止所有定时器（防止后台刷新干扰）
                     if (typeof stopModalTimers === 'function') {
                         stopModalTimers();
@@ -557,6 +571,10 @@ function renderAllLines() {
                     if (refreshBtn) {
                         refreshBtn.style.display = 'none';
                     }
+
+                    // 隐藏返回按钮（因为提示不是线路详情）
+                    const prevBtn = document.querySelector('.v-prev-btn');
+                    if (prevBtn) prevBtn.classList.remove('show');
 
                     // 5. 显示弹窗
                     document.querySelector('.modal-overlay').style.display = 'flex';
@@ -625,14 +643,16 @@ function updateLinesTime() {
                     (d.upTerminal && currentMin >= d.upTerminal.first && currentMin <= d.upTerminal.last) ||
                     (d.downFull && currentMin >= d.downFull.first && currentMin <= d.downFull.last) ||
                     (d.downTerminal && currentMin >= d.downTerminal.first && currentMin <= d.downTerminal.last)) {
-                    hasActiveStation = true; break;
+                    hasActiveStation = true;
+                    break;
                 }
             } else {
                 const up = lineDirectionTime[line]?.[st]?.up || [];
                 const down = lineDirectionTime[line]?.[st]?.down || [];
                 if (up.some(t => currentMin >= t.first && currentMin <= t.last) ||
                     down.some(t => currentMin >= t.first && currentMin <= t.last)) {
-                    hasActiveStation = true; break;
+                    hasActiveStation = true;
+                    break;
                 }
             }
         }
@@ -723,8 +743,8 @@ function renderCellContent(line, station, stations, idx, isUp, currentMin, hasAc
     }
 
     const times = lineDirectionTime[line]?.[station] || (line === '11号线'
-        ? { upFull: null, upTerminal: null, downFull: null, downTerminal: null }
-        : { up: [], down: [] });
+        ? {upFull: null, upTerminal: null, downFull: null, downTerminal: null}
+        : {up: [], down: []});
 
     if (line === '11号线') {
         return buildLine11Cell(times, isUp, currentMin, timeMetaFontSize);
@@ -804,8 +824,12 @@ function buildLine11Cell(times, isUp, currentMin, timeMetaFontSize) {
                 extra = `background-color: hsl(30, 80%, ${lightness}%); border-color: hsl(30, 80%, ${lightness - 10}%); color: #1f3a60;`;
             }
         } else if (fullEnded) {
-            if (terminal && terminalActive) { text = `全程 ${lastStr}`; className += ' ended'; }
-            else { text = `全程 首 ${firstStr}`; }
+            if (terminal && terminalActive) {
+                text = `全程 ${lastStr}`;
+                className += ' ended';
+            } else {
+                text = `全程 首 ${firstStr}`;
+            }
         } else if (fullNotStarted) {
             text = `全程 首 ${firstStr}`;
         }
@@ -829,12 +853,21 @@ function buildLine11Cell(times, isUp, currentMin, timeMetaFontSize) {
                 extra = `background-color: hsl(30, 80%, ${lightness}%); border-color: hsl(30, 80%, ${lightness - 10}%); color: #1f3a60;`;
             }
         } else if (terminalEnded) {
-            if (fullActive) { text = `${terminalName} ${lastStr}`; className += ' ended'; }
-            else if (fullEnded) { text = `${terminalName} 首 ${firstStr}`; }
-            else if (fullNotStarted) { text = `${terminalName} ${lastStr}`; className += ' ended'; }
+            if (fullActive) {
+                text = `${terminalName} ${lastStr}`;
+                className += ' ended';
+            } else if (fullEnded) {
+                text = `${terminalName} 首 ${firstStr}`;
+            } else if (fullNotStarted) {
+                text = `${terminalName} ${lastStr}`;
+                className += ' ended';
+            }
         } else if (terminalNotStarted) {
-            if (fullActive || fullNotStarted) { text = `${terminalName} 首 ${firstStr}`; }
-            else if (fullEnded) { text = `${terminalName} 首 ${firstStr}`; }
+            if (fullActive || fullNotStarted) {
+                text = `${terminalName} 首 ${firstStr}`;
+            } else if (fullEnded) {
+                text = `${terminalName} 首 ${firstStr}`;
+            }
         }
 
         if (text) {

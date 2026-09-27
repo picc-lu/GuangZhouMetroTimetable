@@ -71,7 +71,7 @@ function populateLineButtons() {
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
         btn.addEventListener('click', () => {
-            // 改为弹出详情
+            modalHistory.length = 0;
             showLineDetails(line);
         });
         return btn;
@@ -154,6 +154,7 @@ let modalOverlay = null;
 let modalRefreshTimer = null;
 let modalClockTimer = null;
 let currentModalLine = null;
+const modalHistory = []; // 线路跳转历史栈
 const modalScrollPositions = {}; // 每条线路独立的滚动位置
 let bodyScrollY = 0;
 
@@ -162,25 +163,27 @@ function ensureModal() {
         modalOverlay = document.createElement('div');
         modalOverlay.className = 'modal-overlay';
         modalOverlay.innerHTML = `
-            <div class="modal-container">
-                <div class="modal-header">
-                    <h3>线路详情</h3>
-                    <div class="modal-refresh-bar" id="modal-refresh-bar"></div>
-                </div>
-                <div class="modal-content"></div>
-                <button class="v-refresh-btn" type="button" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <polyline points="1 20 1 14 7 14"></polyline>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                    </svg>
-                </button>
-                <button class="v-back-btn" type="button">✕ 关闭</button>
-            </div>
-        `;
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>线路详情</h3>
+            <div class="modal-refresh-bar" id="modal-refresh-bar"></div>
+        </div>
+        <div class="modal-content"></div>
+        <button class="v-refresh-btn" type="button" title="刷新" aria-label="刷新">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+        </button>
+        <button class="v-back-btn" type="button">✕ 关闭</button>
+        <button class="v-prev-btn" type="button">← 上一条</button>
+    </div>
+`;
         document.body.appendChild(modalOverlay);
 
         window.closeMetroModal = function() {
+            modalHistory.length = 0;
             if (!modalOverlay || modalOverlay.style.display === 'none') return;
             // 防止动画期间重复触发
             if (modalOverlay.classList.contains('closing')) return;
@@ -220,7 +223,7 @@ function ensureModal() {
         };
 
         modalOverlay.querySelector('.v-back-btn').addEventListener('click', closeMetroModal);
-
+        modalOverlay.querySelector('.v-prev-btn').addEventListener('click', goBackInModal);
         // 手动刷新按钮：保持滚动位置
         modalOverlay.querySelector('.v-refresh-btn').addEventListener('click', () => {
             if (currentModalLine) {
@@ -290,6 +293,12 @@ function stopModalTimers() {
     currentModalLine = null;
 }
 
+function goBackInModal() {
+    if (modalHistory.length === 0) return;
+    const prevLine = modalHistory.pop();
+    showLineDetails(prevLine); // 不传 pushHistory
+}
+
 function restartRefreshBar() {
     const bar = document.getElementById('modal-refresh-bar');
     if (!bar) return;
@@ -298,7 +307,11 @@ function restartRefreshBar() {
     bar.classList.add('animating');
 }
 
-function showLineDetails(line, keepScroll = false) {
+function showLineDetails(line, keepScroll = false, pushHistory = false) {
+    // 若为跳转操作，把当前线路压入历史栈
+    if (pushHistory && currentModalLine && currentModalLine !== line) {
+        modalHistory.push(currentModalLine);
+    }
     ensureModal();
 
     const stations = LINE_STATIONS[line];
@@ -617,7 +630,7 @@ function showLineDetails(line, keepScroll = false) {
                 const titleAttr = isManual ? 'title="需出闸换乘"' : '';
 
                 // 添加点击跳转事件
-                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};" onclick="event.stopPropagation(); showLineDetails('${tLine}');">${iconHtml}${displayName}</span>`;
+                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};" onclick="event.stopPropagation(); showLineDetails('${tLine}', false, true);">${iconHtml}${displayName}</span>`;
             });
             transferHtml += `</div>`;
         }
@@ -761,6 +774,12 @@ function showLineDetails(line, keepScroll = false) {
     if (!keepScroll) {
         const savedPos = modalScrollPositions[line] || 0;
         contentDiv.scrollTop = savedPos;
+    }
+
+    // ====== 更新返回按钮显隐 ======
+    const prevBtn = modalOverlay.querySelector('.v-prev-btn');
+    if (prevBtn) {
+        prevBtn.classList.toggle('show', modalHistory.length > 0);
     }
 
     // ====== 新增：控制刷新按钮的显示与隐藏 ======
