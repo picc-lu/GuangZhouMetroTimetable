@@ -108,8 +108,8 @@ async function fetchLineStations() {
     lineDirectionTime = {};
     populateLineFilter();
     populateLineButtons();
+    setAllLineButtonsToGray(); // 新增：按钮先置灰，等数据到齐后再逐条恢复
     versionEl.textContent = `线路版本: 实时获取 (${new Date().toLocaleDateString()})`;
-
     // 立即渲染线路骨架（时间占位 --:--），让用户先看到线路
     // lineDirectionTime 为空时，renderAllLines 会自动显示 --:--
     renderAllLines();
@@ -128,6 +128,21 @@ async function fetchServiceTimes() {
     let completed = 0;
     const concurrency = 25;
     const progressThreshold = 30; // 每完成 30 个站点刷新渲染 + 更新进度
+
+    // 新增：记录已完成站点 & 已恢复的线路
+    const completedStations = new Set();
+    const restoredLines = new Set();
+
+    // 新增：检查是否有线路的全部站点已获取，若有则恢复按钮颜色
+    function checkAndRestoreLines() {
+        for (const [line, stations] of Object.entries(LINE_STATIONS)) {
+            if (restoredLines.has(line)) continue;
+            if (stations.every(s => completedStations.has(s))) {
+                restoredLines.add(line);
+                setLineButtonState(line, true);
+            }
+        }
+    }
 
     const tasks = uniqueStations.map(station => async () => {
         const encodedStation = encodeURIComponent(station);
@@ -150,6 +165,8 @@ async function fetchServiceTimes() {
             console.warn(`获取站点 ${station} 失败:`, err);
         } finally {
             completed++;
+            completedStations.add(station); // 新增
+            checkAndRestoreLines();          // 新增
             updateLoadingMessage(`正在获取最新运营首末时间... ${completed}/${total}`);
             // 每完成一定数量就刷新渲染
             if (completed % progressThreshold === 0 || completed === total) {

@@ -340,7 +340,6 @@ select option:checked {
     margin-left: auto;
 }
 
-/* 线路按钮 */
 .line-button {
     display: inline-block;
     padding: 4px 12px;
@@ -350,7 +349,11 @@ select option:checked {
     cursor: pointer;
     border: none;
     white-space: nowrap;
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition:
+            transform 0.1s,
+            box-shadow 0.1s,
+            background-color 0.3s ease,
+            color 0.3s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 

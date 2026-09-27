@@ -67,6 +67,7 @@ function populateLineButtons() {
             displayText = displayText.replace(/佛山/g, '佛');
         }
         btn.textContent = displayText;
+        btn.dataset.line = line;
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
         btn.addEventListener('click', () => {
@@ -84,6 +85,27 @@ function populateLineButtons() {
     // 将两行添加到主容器中
     container.appendChild(row1Container);
     container.appendChild(row2Container);
+}
+
+/** 设置单个线路按钮的颜色状态 */
+function setLineButtonState(line, isActive) {
+    const btn = document.querySelector(`.line-button[data-line="${line}"]`);
+    if (!btn) return;
+    if (isActive) {
+        btn.style.backgroundColor = LINE_COLORS[line];
+        btn.style.color = getContrastColor(LINE_COLORS[line]);
+    } else {
+        btn.style.backgroundColor = '#cbd5e1';
+        btn.style.color = '#ffffff';
+    }
+}
+
+/** 把所有线路按钮置灰（获取数据前调用） */
+function setAllLineButtonsToGray() {
+    document.querySelectorAll('.line-button').forEach(btn => {
+        btn.style.backgroundColor = '#cbd5e1';
+        btn.style.color = '#ffffff';
+    });
 }
 
 function showLoadingMessage(text) {
