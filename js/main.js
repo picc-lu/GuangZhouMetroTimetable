@@ -1,6 +1,6 @@
 // 全局变量声明
 let rawServiceRecords = [];
-let LINE_STATIONS = { ...linesData.线路 };
+let LINE_STATIONS = {  };
 let LINE_COLORS = { ...HARDCODED_COLORS };
 let lineDirectionTime = {};
 let currentCustomTime = null;

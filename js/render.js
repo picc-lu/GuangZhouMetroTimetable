@@ -582,3 +582,269 @@ function renderAllLines() {
 
     highlightActiveMode();
 }
+
+/**
+ * 快速刷新：只更新线路图中随时间变化的部分（时间标签、激活状态、箭头颜色、站名颜色）。
+ * 不重建 DOM 结构。适用于整分刷新。
+ */
+function updateLinesTime() {
+    const wrapper = document.getElementById('map-wrapper');
+    if (!wrapper || !wrapper.querySelector('.line-container')) {
+        // DOM 尚未建立，退回完整渲染
+        return renderAllLines();
+    }
+
+    const currentMin = getCurrentMinutes();
+
+    let timeMetaFontSize = '12px';
+    if (rowHeight === 65) timeMetaFontSize = '14px';
+    else if (rowHeight === 55) timeMetaFontSize = '13px';
+
+    let stationFontSize = 16;
+    if (rowHeight === 65) stationFontSize = 18;
+    else if (rowHeight === 55) stationFontSize = 17;
+    else if (rowHeight === 45) stationFontSize = 16;
+    else if (rowHeight === 35) stationFontSize = 15;
+    else if (rowHeight === 25) stationFontSize = 14;
+
+    wrapper.querySelectorAll('.line-container').forEach(lineDiv => {
+        const line = lineDiv.dataset.line;
+        const stations = LINE_STATIONS[line];
+        if (!stations) return;
+
+        const originalColor = LINE_COLORS[line] || '#888';
+        const n = stations.length;
+
+        // 计算该线路是否有活动站点
+        let hasActiveStation = false;
+        for (let i = 0; i < n; i++) {
+            const st = stations[i];
+            if (line === '11号线') {
+                const d = lineDirectionTime[line]?.[st] || {};
+                if ((d.upFull && currentMin >= d.upFull.first && currentMin <= d.upFull.last) ||
+                    (d.upTerminal && currentMin >= d.upTerminal.first && currentMin <= d.upTerminal.last) ||
+                    (d.downFull && currentMin >= d.downFull.first && currentMin <= d.downFull.last) ||
+                    (d.downTerminal && currentMin >= d.downTerminal.first && currentMin <= d.downTerminal.last)) {
+                    hasActiveStation = true; break;
+                }
+            } else {
+                const up = lineDirectionTime[line]?.[st]?.up || [];
+                const down = lineDirectionTime[line]?.[st]?.down || [];
+                if (up.some(t => currentMin >= t.first && currentMin <= t.last) ||
+                    down.some(t => currentMin >= t.first && currentMin <= t.last)) {
+                    hasActiveStation = true; break;
+                }
+            }
+        }
+
+        const color = hasActiveStation ? originalColor : getGrayscaleColor(originalColor);
+
+        // 更新线路名卡片颜色
+        const meta = lineDiv.querySelector('.line-meta');
+        if (meta) {
+            meta.style.backgroundColor = color;
+            meta.style.color = getContrastColor(color);
+        }
+
+        // 预计算每站活动状态
+        const upActiveCache = [];
+        const downActiveCache = [];
+        for (let i = 0; i < n; i++) {
+            const st = stations[i];
+            if (line === '11号线') {
+                const d = lineDirectionTime[line]?.[st] || {};
+                upActiveCache[i] = (d.upFull ? (currentMin >= d.upFull.first && currentMin <= d.upFull.last) : false) ||
+                    (d.upTerminal ? (currentMin >= d.upTerminal.first && currentMin <= d.upTerminal.last) : false);
+                downActiveCache[i] = (d.downFull ? (currentMin >= d.downFull.first && currentMin <= d.downFull.last) : false) ||
+                    (d.downTerminal ? (currentMin >= d.downTerminal.first && currentMin <= d.downTerminal.last) : false);
+            } else {
+                const up = lineDirectionTime[line]?.[st]?.up || [];
+                const down = lineDirectionTime[line]?.[st]?.down || [];
+                upActiveCache[i] = up.some(t => currentMin >= t.first && currentMin <= t.last);
+                downActiveCache[i] = down.some(t => currentMin >= t.first && currentMin <= t.last);
+            }
+        }
+
+        // 更新每个站点列
+        lineDiv.querySelectorAll('.station-column').forEach((col, i) => {
+            const station = stations[i];
+            const upDiv = col.querySelector('.col-up');
+            const downDiv = col.querySelector('.col-down');
+            const nameDiv = col.querySelector('.col-station');
+
+            if (upDiv) {
+                upDiv.innerHTML = renderCellContent(line, station, stations, i, true, currentMin, hasActiveStation, timeMetaFontSize);
+                upDiv.classList.toggle('active-dot', upActiveCache[i]);
+                upDiv.classList.toggle('inactive-dot', !upActiveCache[i]);
+            }
+            if (downDiv) {
+                downDiv.innerHTML = renderCellContent(line, station, stations, i, false, currentMin, hasActiveStation, timeMetaFontSize);
+                downDiv.classList.toggle('active-dot', downActiveCache[i]);
+                downDiv.classList.toggle('inactive-dot', !downActiveCache[i]);
+            }
+            if (nameDiv) {
+                nameDiv.style.fontSize = stationFontSize + 'px';
+                nameDiv.style.color = (upActiveCache[i] || downActiveCache[i]) ? '' : '#aaa';
+            }
+        });
+
+        // 更新箭头
+        lineDiv.querySelectorAll('.arrow-column').forEach((arrowCol, i) => {
+            const upArrow = arrowCol.querySelector('.arrow-up .segment-cell');
+            const downArrow = arrowCol.querySelector('.arrow-down .segment-cell');
+            if (upArrow) {
+                const isActive = upActiveCache[i];
+                upArrow.classList.toggle('active-segment', isActive);
+                upArrow.classList.toggle('inactive-segment', !isActive);
+                upArrow.style.color = isActive ? color : '#b3c3d9';
+            }
+            if (downArrow) {
+                const isActive = downActiveCache[i + 1];
+                downArrow.classList.toggle('active-segment', isActive);
+                downArrow.classList.toggle('inactive-segment', !isActive);
+                downArrow.style.color = isActive ? color : '#b3c3d9';
+            }
+        });
+    });
+
+    highlightActiveMode();
+}
+
+/**
+ * 构建单个时间单元格的 HTML。
+ */
+function renderCellContent(line, station, stations, idx, isUp, currentMin, hasActiveStation, timeMetaFontSize) {
+    const total = stations.length;
+
+    // 非 11 号线的终点符号
+    if (line !== '11号线') {
+        if (isUp && idx === total - 1) return '<span class="dot-symbol">终</span>';
+        if (!isUp && idx === 0) return '<span class="dot-symbol">终</span>';
+    }
+
+    const times = lineDirectionTime[line]?.[station] || (line === '11号线'
+        ? { upFull: null, upTerminal: null, downFull: null, downTerminal: null }
+        : { up: [], down: [] });
+
+    if (line === '11号线') {
+        return buildLine11Cell(times, isUp, currentMin, timeMetaFontSize);
+    }
+
+    const dirTimes = (isUp ? times.up : times.down) || [];
+    if (dirTimes.length === 0) {
+        return `<span class="time-meta" style="font-size: ${timeMetaFontSize};">--:--</span>`;
+    }
+    if (dirTimes.length === 1) {
+        return buildOneTime(dirTimes[0], currentMin, hasActiveStation, timeMetaFontSize);
+    }
+    // 多方向
+    return dirTimes.map(t => {
+        let toName = t.to;
+        if (toName.includes('（') && toName.includes('）')) toName = toName.split('（')[0];
+        return buildOneTime(t, currentMin, hasActiveStation, timeMetaFontSize, toName);
+    }).join('');
+}
+
+function buildOneTime(time, currentMin, hasActiveStation, timeMetaFontSize, prefix) {
+    const active = currentMin >= time.first && currentMin <= time.last;
+    const firstStr = minutesToDisplayStr(time.first);
+    const lastStr = minutesToDisplayStr(time.last);
+    let displayText, metaClass = 'time-meta';
+    if (active) {
+        displayText = `${lastStr}`;
+    } else if (currentMin < time.first) {
+        displayText = `首 ${firstStr}`;
+    } else if (hasActiveStation) {
+        displayText = `${lastStr}`;
+        metaClass += ' ended';
+    } else {
+        displayText = `首 ${firstStr}`;
+    }
+    const boldText = displayText.replace(/^(首)/, '<b>$1</b>');
+
+    let extra = '';
+    if (active) {
+        const remaining = time.last - currentMin;
+        if (remaining >= 0 && remaining <= 15) {
+            const lightness = 70 + (remaining / 15) * 25;
+            extra = `background-color: hsl(30, 80%, ${lightness}%); border-color: hsl(30, 80%, ${lightness - 10}%); color: #1f3a60;`;
+        }
+    }
+
+    const displayInline = prefix ? 'display: inline-block;' : '';
+    const fullText = prefix ? `${prefix} ${boldText}` : boldText;
+
+    return `<span class="${metaClass}" style="font-size: ${timeMetaFontSize}; ${displayInline} ${extra}">${fullText}</span>`;
+}
+
+function buildLine11Cell(times, isUp, currentMin, timeMetaFontSize) {
+    const full = isUp ? times.upFull : times.downFull;
+    const terminal = isUp ? times.upTerminal : times.downTerminal;
+    const terminalName = isUp ? '龙潭' : '赤沙';
+
+    const fullActive = full ? (currentMin >= full.first && currentMin <= full.last) : false;
+    const fullEnded = full ? (currentMin > full.last) : false;
+    const fullNotStarted = full ? (currentMin < full.first) : false;
+    const terminalActive = terminal ? (currentMin >= terminal.first && currentMin <= terminal.last) : false;
+    const terminalEnded = terminal ? (currentMin > terminal.last) : false;
+    const terminalNotStarted = terminal ? (currentMin < terminal.first) : false;
+
+    const fragments = [];
+
+    if (full) {
+        const firstStr = minutesToDisplayStr(full.first);
+        const lastStr = minutesToDisplayStr(full.last);
+        let text = '', className = 'time-meta', extra = '';
+
+        if (fullActive) {
+            text = `全程 ${lastStr}`;
+            const remaining = full.last - currentMin;
+            if (remaining >= 0 && remaining <= 15) {
+                const lightness = 70 + (remaining / 15) * 25;
+                extra = `background-color: hsl(30, 80%, ${lightness}%); border-color: hsl(30, 80%, ${lightness - 10}%); color: #1f3a60;`;
+            }
+        } else if (fullEnded) {
+            if (terminal && terminalActive) { text = `全程 ${lastStr}`; className += ' ended'; }
+            else { text = `全程 首 ${firstStr}`; }
+        } else if (fullNotStarted) {
+            text = `全程 首 ${firstStr}`;
+        }
+
+        if (text) {
+            text = text.replace(/\b(首)\b/g, '<b>$1</b>');
+            fragments.push(`<span class="${className}" style="font-size: ${timeMetaFontSize}; ${extra}">${text}</span>`);
+        }
+    }
+
+    if (terminal) {
+        const firstStr = minutesToDisplayStr(terminal.first);
+        const lastStr = minutesToDisplayStr(terminal.last);
+        let text = '', className = 'time-meta', extra = '';
+
+        if (terminalActive) {
+            text = `${terminalName} ${lastStr}`;
+            const remaining = terminal.last - currentMin;
+            if (remaining >= 0 && remaining <= 15) {
+                const lightness = 70 + (remaining / 15) * 25;
+                extra = `background-color: hsl(30, 80%, ${lightness}%); border-color: hsl(30, 80%, ${lightness - 10}%); color: #1f3a60;`;
+            }
+        } else if (terminalEnded) {
+            if (fullActive) { text = `${terminalName} ${lastStr}`; className += ' ended'; }
+            else if (fullEnded) { text = `${terminalName} 首 ${firstStr}`; }
+            else if (fullNotStarted) { text = `${terminalName} ${lastStr}`; className += ' ended'; }
+        } else if (terminalNotStarted) {
+            if (fullActive || fullNotStarted) { text = `${terminalName} 首 ${firstStr}`; }
+            else if (fullEnded) { text = `${terminalName} 首 ${firstStr}`; }
+        }
+
+        if (text) {
+            text = text.replace(/\b(首)\b/g, '<b>$1</b>');
+            fragments.push(`<span class="${className}" style="font-size: ${timeMetaFontSize}; ${extra}">${text}</span>`);
+        }
+    }
+
+    if (fragments.length === 0) {
+        return `<span class="time-meta" style="font-size: ${timeMetaFontSize};">--:--</span>`;
+    }
+    return fragments.join('');
+}

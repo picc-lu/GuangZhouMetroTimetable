@@ -145,7 +145,7 @@ function updateRealTimeClock() {
     const h = now.getHours().toString().padStart(2,'0');
     const m = now.getMinutes().toString().padStart(2,'0');
     clockSpan.textContent = `${h}:${m}`;
-    if (currentCustomTime === null) renderAllLines();
+    if (currentCustomTime === null) updateLinesTime();
     scheduleNextMinuteTick();
 }
 
