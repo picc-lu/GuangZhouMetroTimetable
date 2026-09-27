@@ -129,7 +129,7 @@ select option:checked {
 }
 
 .size-control select {
-    min-width: 65px;
+    min-width: 50px;
     text-align: center;
     padding: 6px 12px;
     background-position: right 6px center;
@@ -229,7 +229,6 @@ select option:checked {
 .system-time-area {
     display: flex;
     align-items: center;
-    gap: 10px;
     background: #ffffff;
     padding: 4px 16px 4px 12px;
     border-radius: 40px;
