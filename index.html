@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/map.css">
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/dark.css">
 </head>
 <body>
 <div class="banner">
@@ -55,6 +56,7 @@
                 <option value="45" selected>中</option>
             </select>
         </div>
+        <button id="theme-toggle" class="theme-toggle" type="button" title="切换到夜间模式">🌙</button>
     </div>
     <div class="controls-row-2">
         <div class="file-group">
@@ -69,6 +71,14 @@
 <div class="notice-area">
     <div class="notice-item">乘坐末班车时建议预留 <b>5 分钟</b> 进站时间</div>
     <div class="notice-item warn">节假日首末班车 <b>官方API已实现</b> 无需手动计算</div>
+</div>
+
+<div class="copyright-notice">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M14.83 9.17a4 4 0 1 0 0 5.66"></path>
+    </svg>
+    地铁运营数据版权归 <b>广州地铁</b> 所有，本页面仅供查询参考
 </div>
 
 <!-- 新增：个人信息展示区 -->
@@ -103,6 +113,7 @@
 <script src="js/ui.js"></script>
 <script src="js/render.js"></script>
 <script src="js/time.js"></script>
+<script src="js/theme.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

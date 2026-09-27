@@ -1,0 +1,403 @@
+/* ==========================================
+   夜间模式
+   ========================================== */
+
+/* ---------- 基础 ---------- */
+[data-theme="dark"] body {
+    background: #0f1419;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .banner {
+    background: #8b1a2b;
+    border-bottom-color: #6b101f;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .notice-area {
+    background: linear-gradient(135deg, #1a2030 0%, #1e2638 100%);
+    border-color: #2d3748;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .notice-item {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .notice-area b,
+[data-theme="dark"] .notice-area strong {
+    color: #5da0ff;
+}
+
+[data-theme="dark"] .author-footer {
+    background: #0f1419;
+}
+
+[data-theme="dark"] .yesterday-data-notice {
+    background: #3a2a10;
+    color: #fbbf24;
+    border-bottom-color: #d97706;
+}
+
+[data-theme="dark"] .yesterday-data-notice b {
+    color: #fcd34d;
+}
+
+[data-theme="dark"] .copyright-notice {
+    color: #64748b;
+}
+
+[data-theme="dark"] .loading-message {
+    background: #1a2030;
+    color: #e2e8f0;
+}
+
+/* ---------- 控制栏 ---------- */
+[data-theme="dark"] .controls {
+    background: #1a2030;
+    border-color: #2d3748;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] select {
+    background-color: #232b3d;
+    border-color: #3a4559;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] select:hover,
+[data-theme="dark"] select:focus {
+    background-color: #2a3348;
+    border-color: #4a5568;
+    box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.2);
+}
+
+[data-theme="dark"] select option {
+    background-color: #232b3d;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] select option:hover,
+[data-theme="dark"] select option:checked {
+    background-color: #2d3748;
+}
+
+[data-theme="dark"] .time-panel,
+[data-theme="dark"] .system-time-area,
+[data-theme="dark"] .filter-area,
+[data-theme="dark"] .size-control {
+    background: #1a2030;
+    border-color: #2d3748;
+}
+
+[data-theme="dark"] .time-panel label,
+[data-theme="dark"] .filter-area label,
+[data-theme="dark"] .size-control label {
+    background: #232b3d;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .time-panel span {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .time-panel.active-mode,
+[data-theme="dark"] .system-time-area.active-mode {
+    background: #1f3323;
+    border-color: #4a7d50;
+}
+
+[data-theme="dark"] .time-panel.active-mode label {
+    background: #2d4a32;
+    color: #86efac;
+}
+
+[data-theme="dark"] #real-time-clock {
+    background: #232b3d;
+    color: #e2e8f0;
+    border-color: #3a4559;
+}
+
+[data-theme="dark"] .header-version {
+    background: #232b3d;
+    color: #94a3b8;
+    border-color: #2d3748;
+}
+
+/* ---------- 时间选择器 ---------- */
+[data-theme="dark"] .hour-trigger {
+    background: #232b3d;
+    color: #e2e8f0;
+    border-color: #3a4559;
+}
+
+[data-theme="dark"] .hour-trigger:hover {
+    background: #2a3348;
+    border-color: #4a5568;
+}
+
+[data-theme="dark"] .hour-dropdown {
+    background: #1a2030;
+    border-color: #2d3748;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .hour-btn {
+    background: #232b3d;
+    border-color: #3a4559;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .hour-btn:hover {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+[data-theme="dark"] .hour-btn:active {
+    background: #2b7de9;
+    color: #fff;
+    border-color: #2b7de9;
+}
+
+/* ---------- 线路图 ---------- */
+[data-theme="dark"] .map-wrapper {
+    background: #131a26;
+    border-color: #2d3748;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .line-container {
+    background: #131a26;
+    border-bottom-color: #1e2638;
+}
+
+[data-theme="dark"] .line-container:nth-child(odd) {
+    background: #161d2b;
+}
+
+[data-theme="dark"] .line-meta {
+    border-color: #2d3748;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .col-station {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .time-meta {
+    background: #232b3d;
+    color: #94a3b8;
+    border-color: #2d3748;
+}
+
+[data-theme="dark"] .line-note {
+    background: #232b3d;
+    color: #cbd5e1;
+    border-left-color: #f59e0b;
+}
+
+/* ---------- 弹窗 ---------- */
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="dark"] .modal-container {
+    background: #131a26;
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .modal-header {
+    background: #1a2030;
+    border-bottom-color: #2d3748;
+}
+
+[data-theme="dark"] .modal-sticky-header {
+    background: #131a26;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .modal-live-clock {
+    background: #232b3d;
+    color: #e2e8f0;
+    border-color: #3a4559;
+}
+
+[data-theme="dark"] .modal-content {
+    background: #131a26;
+}
+
+[data-theme="dark"] .v-custom-time-notice {
+    background: #3a2a10;
+    color: #fbbf24;
+    border-left-color: #d97706;
+}
+
+[data-theme="dark"] .v-custom-icon {
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .v-notice-inline {
+    background: #3a2a10;
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .v-notice-inline strong {
+    color: #fcd34d;
+}
+
+/* 站点名 */
+[data-theme="dark"] .v-name {
+    color: #e2e8f0;
+    background: #131a26;
+    box-shadow: 0 0 0 4px #131a26;
+}
+
+[data-theme="dark"] .v-name-inactive {
+    color: #64748b !important;
+}
+
+/* 时间卡片 */
+[data-theme="dark"] .v-card {
+    background: #1e2638;
+}
+
+[data-theme="dark"] .v-card.v-card-ended {
+    background: #1a2030;
+}
+
+[data-theme="dark"] .v-dir {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .v-time-block + .v-time-block {
+    border-top-color: #2d3748;
+}
+
+[data-theme="dark"] .v-time-line {
+    color: #cbd5e1;
+}
+
+/* 图例 */
+[data-theme="dark"] .v-legend {
+    background: #1a2030;
+    border-bottom-color: #2d3748;
+}
+
+[data-theme="dark"] .v-legend-divider {
+    color: #475569;
+}
+
+/* 分割线、站点行 */
+[data-theme="dark"] .v-station-row {
+    border-bottom-color: #2d3748;
+}
+
+[data-theme="dark"] .v-line-inactive {
+    background: #475569 !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .v-dot {
+    box-shadow: 0 0 0 3px #131a26;
+}
+
+/* 未激活的换乘标签 */
+[data-theme="dark"] .v-transfer-badge.inactive {
+    background: #232b3d !important;
+    color: #64748b !important;
+    border-color: #2d3748 !important;
+}
+
+/* 多终点站分割线 */
+[data-theme="dark"] .v-multi-terminals .v-time-block:not(:first-child) {
+    border-left-color: #2d3748;
+}
+
+/* 3号线提示卡片（如果用内联） */
+[data-theme="dark"] .modal-content > div[style*="color: #333"] {
+    color: #cbd5e1 !important;
+}
+
+/* ---------- 切换按钮 ---------- */
+[data-theme="dark"] .theme-toggle {
+    background: #232b3d;
+    border-color: #3a4559;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    background: #2a3348;
+    border-color: #4a5568;
+}
+
+/* 站点行：非活动站名微调 */
+[data-theme="dark"] .v-name-inactive {
+    color: #64748b !important;
+}
+
+/* 站点行：线条与箭头 */
+[data-theme="dark"] .v-line {
+    opacity: 0.6;
+}
+
+/* 弹窗里的“终”字和箭头 */
+[data-theme="dark"] .dot-symbol,
+[data-theme="dark"] .segment-cell {
+    color: #94a3b8;
+}
+
+/* 未激活的箭头颜色 */
+[data-theme="dark"] .inactive-segment {
+    color: #475569 !important;
+}
+
+/* 未激活圆点 */
+[data-theme="dark"] .inactive-dot .dot-symbol {
+    color: #475569 !important;
+}
+
+/* 时间卡片的默认未激活颜色（lineActive=false 时的字体） */
+[data-theme="dark"] .v-card .v-time-line {
+    color: var(--up-color, #cbd5e1);
+}
+
+/* 顶部图例分隔符 */
+[data-theme="dark"] .v-legend-divider {
+    color: #475569;
+}
+
+/* 3号线提示等内联样式块里的黑字 */
+[data-theme="dark"] .modal-content [style*="color: #333"],
+[data-theme="dark"] .modal-content [style*="color:#333"] {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .v-card.v-card-ended {
+    background: #1a2030;
+}
+
+[data-theme="dark"] .v-card.v-card-ended .v-time-line,
+[data-theme="dark"] .v-card.v-card-ended .v-dir {
+    color: #64748b !important;
+}
+
+/* ==========================================
+   夜间模式：悬浮按钮加发亮白色边框
+   ========================================== */
+[data-theme="dark"] .v-refresh-btn,
+[data-theme="dark"] .v-back-btn {
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.15),
+            0 0 12px rgba(255, 255, 255, 0.35),
+            0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .v-refresh-btn:hover,
+[data-theme="dark"] .v-back-btn:hover {
+    border-color: #ffffff;
+    box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.25),
+            0 0 18px rgba(255, 255, 255, 0.55),
+            0 6px 18px rgba(0, 0, 0, 0.7);
+}

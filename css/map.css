@@ -13,7 +13,8 @@
 
 .line-container {
     display: flex;
-    align-items: stretch;
+    align-items: center;          /* 改为 center */
+    min-height: 135px;            /* 新增：固定最小高度，让线路图有上下居中的空间 */
     margin-bottom: 0;
     padding: 0;
     border-bottom: 7px dashed #e9eef5;
@@ -41,6 +42,7 @@
     align-items: center !important;
     transition: background 0.1s;
     position: relative;
+    align-self: stretch;          /* 新增：让线路名卡片依然撑满整行高度，作为视觉分隔 */
 }
 
 .line-name {
@@ -63,12 +65,13 @@
     flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-top: 10px;
     cursor: grab;
     user-select: none;
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
     transition: scrollbar-color 0.2s;
+    display: flex;                /* 新增 */
+    align-items: center;          /* 新增：垂直居中 */
 }
 
 .scroll-area:hover {
@@ -98,7 +101,7 @@
 .line-diagram {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
+    align-items: center;          /* 由 stretch 改为 center */
     min-width: max-content;
     pointer-events: none;
     padding-right: 20px;
@@ -110,6 +113,7 @@
     align-items: center;
     justify-content: stretch;
     min-width: 60px;
+    align-self: center;       /* 新增 */
 }
 
 .col-up, .col-down {
@@ -139,6 +143,7 @@
     align-items: center;
     justify-content: stretch;
     min-width: 30px;
+    align-self: center;       /* 新增 */
 }
 
 .arrow-up, .arrow-down {

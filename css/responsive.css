@@ -88,9 +88,11 @@
         scrollbar-width: none;
         padding-bottom: 4px;
     }
+
     .line-scroll-row::-webkit-scrollbar {
         display: none;
     }
+
     .controls-row-3::-webkit-scrollbar {
         display: none;
     }
@@ -106,7 +108,7 @@
         left: 50% !important;
         transform: translateX(-50%) !important;
         border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         z-index: 1000;
     }
 
@@ -185,17 +187,27 @@
         background: #fff3e0;
         border-left: 4px solid #eca154;
         border-radius: 0 12px 12px 0 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         text-align: center;
         line-height: 1.4;
     }
 
     /* ---------- 站点列、箭头列与箭头 ---------- */
-    .station-column { min-width: 40px !important; }
-    .arrow-column { min-width: 20px !important; }
-    .arrow-up, .arrow-down { font-size: 20px !important; }
+    .station-column {
+        min-width: 40px !important;
+    }
 
-    .dot-symbol { font-size: 12px !important; }
+    .arrow-column {
+        min-width: 20px !important;
+    }
+
+    .arrow-up, .arrow-down {
+        font-size: 20px !important;
+    }
+
+    .dot-symbol {
+        font-size: 12px !important;
+    }
 
     /* ---------- 回到顶部 ---------- */
     .back-to-top {
@@ -204,13 +216,17 @@
         right: 20px;
         bottom: 50px;
     }
+
     .back-to-top svg {
         width: 20px;
         height: 20px;
     }
 
     /* ---------- 个人信息页脚 ---------- */
-    .author-footer { padding: 15px 0 30px; }
+    .author-footer {
+        padding: 15px 0 30px;
+    }
+
     .bilibili-link {
         padding: 8px 22px;
         font-size: 14px;
@@ -244,7 +260,9 @@
         padding-top: 24px;
     }
 
-    .v-up-col, .v-down-col { padding: 4px 0; }
+    .v-up-col, .v-down-col {
+        padding: 4px 0;
+    }
 
     .v-card {
         padding: 10px 10px;
@@ -252,9 +270,17 @@
         gap: 4px;
     }
 
-    .v-dir { font-size: 13px; }
-    .v-time-line { font-size: 14px; }
-    .v-time-line b { font-size: 12px; }
+    .v-dir {
+        font-size: 13px;
+    }
+
+    .v-time-line {
+        font-size: 14px;
+    }
+
+    .v-time-line b {
+        font-size: 12px;
+    }
 
     /* ---------- 剩余时间徽章 ---------- */
     .v-remaining {
@@ -264,6 +290,7 @@
         transform: rotate(-5deg);
         margin: 0 3px;
     }
+
     .v-remaining.v-remaining-urgent {
         font-size: 9px;
         padding: 1px 4px;
@@ -280,7 +307,7 @@
     }
 
     .v-notice-inline {
-        margin: 10px 12px 0;
+        margin: 10px 12px 10px;
         padding: 10px 12px;
         font-size: 12px;
     }
@@ -291,6 +318,7 @@
         width: 42px;
         height: 42px;
     }
+
     .v-refresh-btn svg {
         width: 18px;
         height: 18px;
@@ -302,15 +330,17 @@
         gap: 6px;
         font-size: 13px;
     }
+
     .v-legend-arrow {
         font-size: 16px;
     }
 
     .v-custom-time-notice {
-        margin: 10px 12px 0;
+        margin: 10px 12px 10px;
         padding: 8px 12px;
         font-size: 12px;
     }
+
     .v-custom-icon {
         font-size: 14px;
     }
@@ -324,9 +354,9 @@
     .v-transfer-lines {
         gap: 4px;
     }
+
     .v-transfer-badge {
         font-size: 11px;
-        padding: 1px 6px;
     }
 
     .notice-area {
@@ -345,6 +375,6 @@
     .notice-area::after {
         font-size: 11px;
         padding: 3px 12px 3px 10px;
-        border-radius: 12px 0 10px 0;
+        border-radius: 7px 0 10px 0; /* 移动端卡片圆角为 12，内侧约 7 */
     }
 }

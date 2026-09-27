@@ -153,12 +153,16 @@ function ensureModal() {
                         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                     </svg>
                 </button>
-                <button class="v-back-btn" type="button">← 返回</button>
+                <button class="v-back-btn" type="button">✕ 关闭</button>
             </div>
         `;
         document.body.appendChild(modalOverlay);
 
         window.closeMetroModal = function() {
+            if (!modalOverlay || modalOverlay.style.display === 'none') return;
+            // 防止动画期间重复触发
+            if (modalOverlay.classList.contains('closing')) return;
+
             // 保存当前线路的滚动位置
             if (currentModalLine) {
                 const contentDiv = modalOverlay.querySelector('.modal-content');
@@ -167,14 +171,30 @@ function ensureModal() {
                 }
             }
             stopModalTimers();
-            modalOverlay.style.display = 'none';
 
-            // 恢复 body 滚动
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-            window.scrollTo(0, bodyScrollY);
+            // 添加关闭动画
+            modalOverlay.classList.add('closing');
+
+            // 动画结束后真正隐藏弹窗
+            const container = modalOverlay.querySelector('.modal-container');
+            const finishClose = () => {
+                modalOverlay.classList.remove('closing');
+                modalOverlay.style.display = 'none';
+
+                // 恢复 body 滚动
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                document.body.style.top = '';
+                window.scrollTo(0, bodyScrollY);
+            };
+
+            // 监听动画结束事件，只执行一次
+            container.addEventListener('animationend', finishClose, { once: true });
+            // 兜底：如果 animationend 没触发（例如浏览器不支持），250ms 后强制关闭
+            setTimeout(() => {
+                if (modalOverlay.classList.contains('closing')) finishClose();
+            }, 250);
         };
 
         modalOverlay.querySelector('.v-back-btn').addEventListener('click', closeMetroModal);
@@ -320,10 +340,13 @@ function showLineDetails(line, keepScroll = false) {
     const baseHsl = hexToHsl(lineColor);
     // 饱和度下限 55%，保证有颜色，避免灰色线路变成一片灰
     const colorS = Math.max(baseHsl.s, 55);
-    // 上行：线路色相，加深到 32% 亮度
-    const upColor = `hsl(${baseHsl.h}, ${colorS}%, 32%)`;
-    // 下行：色相偏移 150°，加深到 32% 亮度，与上行对比明显
-    const downColor = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 32%)`;
+    // 根据当前主题决定亮度：深色背景用 70%，浅色背景用 32%
+    const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textLightness = isDarkTheme ? 70 : 32;
+    // 上行：线路色相
+    const upColor = `hsl(${baseHsl.h}, ${colorS}%, ${textLightness}%)`;
+    // 下行：色相偏移 150°，与上行对比明显
+    const downColor = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, ${textLightness}%)`;
 
     // 预计算每一站的运营状态
     const stationStatus = stations.map(station => {
