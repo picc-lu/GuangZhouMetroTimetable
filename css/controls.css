@@ -504,3 +504,41 @@ select option:checked {
     border-color: #3a4559;
     color: #e2e8f0;
 }
+
+/* ==========================================
+   失败站点提示（fixed 底部 toast）
+   ========================================== */
+.fetch-error-badge {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    background: #dc2626;
+    color: #ffffff;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;                    /* 默认隐藏，有失败时显示 */
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    z-index: 1600;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+    max-width: 90vw;
+}
+
+.fetch-error-badge:hover {
+    background: #b91c1c;
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.55);
+}
+
+.fetch-error-badge:active {
+    transform: translateX(-50%) translateY(0);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+}

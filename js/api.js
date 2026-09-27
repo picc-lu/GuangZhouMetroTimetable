@@ -1,5 +1,8 @@
 // ========== API 请求函数 ==========
 
+// 记录失败的站点（供提示和重试）
+let failedStations = [];
+
 /** 带重试的fetch */
 async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeoutMs = 8000) {
     for (let i = 0; i < retries; i++) {
@@ -108,32 +111,47 @@ async function fetchLineStations() {
     lineDirectionTime = {};
     populateLineFilter();
     populateLineButtons();
-    setAllLineButtonsToGray(); // 新增：按钮先置灰，等数据到齐后再逐条恢复
+    setAllLineButtonsToGray(); // 按钮先置灰，等数据到齐后再逐条恢复
     versionEl.textContent = `线路版本: 实时获取 (${new Date().toLocaleDateString()})`;
     // 立即渲染线路骨架（时间占位 --:--），让用户先看到线路
-    // lineDirectionTime 为空时，renderAllLines 会自动显示 --:--
     renderAllLines();
 }
 
-/** 第二步：获取各站运营时间 */
-async function fetchServiceTimes() {
-    const allStations = new Set();
-    Object.values(LINE_STATIONS).forEach(stations => stations.forEach(s => allStations.add(s)));
-    const uniqueStations = Array.from(allStations);
+/** 第二步：获取各站运营时间（可选传入要抓取的站点子集，用于重试） */
+async function fetchServiceTimes(stationsToFetch = null) {
+    const allStationsSet = new Set();
+    Object.values(LINE_STATIONS).forEach(stations => stations.forEach(s => allStationsSet.add(s)));
+
+    const isRetry = Array.isArray(stationsToFetch);
+    const uniqueStations = isRetry
+        ? stationsToFetch.filter(s => allStationsSet.has(s))
+        : Array.from(allStationsSet);
     const total = uniqueStations.length;
+
+    if (total === 0) return;
+
+    // 首次抓取时清空历史，重试时保留已有数据
+    if (!isRetry) {
+        rawServiceRecords = [];
+        failedStations = [];
+    } else {
+        // 从失败列表中移除本次要重试的站点（重试失败会重新加回来）
+        failedStations = failedStations.filter(s => !uniqueStations.includes(s));
+    }
+
     updateLoadingMessage(`正在获取最新运营首末时间... 0/${total}`);
 
     const serviceTimeUrl = 'https://apis.gzmtr.com/app-map/serviceTime/list';
-    const allRecords = [];
     let completed = 0;
     const concurrency = 25;
-    const progressThreshold = 30; // 每完成 30 个站点刷新渲染 + 更新进度
+    const progressThreshold = 30;
 
-    // 新增：记录已完成站点 & 已恢复的线路
-    const completedStations = new Set();
+    // 记录已完成站点（跨重试保留）& 已恢复的线路
+    if (!window._gzCompletedStations) window._gzCompletedStations = new Set();
+    const completedStations = window._gzCompletedStations;
     const restoredLines = new Set();
 
-    // 新增：检查是否有线路的全部站点已获取，若有则恢复按钮颜色
+    // 检查是否有线路的全部站点已获取，若有则恢复按钮颜色
     function checkAndRestoreLines() {
         for (const [line, stations] of Object.entries(LINE_STATIONS)) {
             if (restoredLines.has(line)) continue;
@@ -144,11 +162,18 @@ async function fetchServiceTimes() {
         }
     }
 
+    // 首次进入时，先把已完成站点的线路恢复颜色（覆盖重试场景）
+    for (const [line, stations] of Object.entries(LINE_STATIONS)) {
+        if (stations.every(s => completedStations.has(s))) {
+            setLineButtonState(line, true);
+        }
+    }
+
     const tasks = uniqueStations.map(station => async () => {
         const encodedStation = encodeURIComponent(station);
         const url = `${serviceTimeUrl}/${encodedStation}`;
         try {
-            const data = await requestWithRetry(url, { method: 'POST' }, 1, 5000);
+            const data = await requestWithRetry(url, { method: 'POST' }, 1, 12000);
             const records = data.businessObject || [];
             records.forEach(rec => {
                 const normalized = {};
@@ -159,18 +184,17 @@ async function fetchServiceTimes() {
                         normalized[key] = value;
                     }
                 }
-                allRecords.push(normalized);
+                rawServiceRecords.push(normalized);
             });
         } catch (err) {
             console.warn(`获取站点 ${station} 失败:`, err);
+            failedStations.push(station);
         } finally {
             completed++;
-            completedStations.add(station); // 新增
-            checkAndRestoreLines();          // 新增
+            completedStations.add(station);
+            checkAndRestoreLines();
             updateLoadingMessage(`正在获取最新运营首末时间... ${completed}/${total}`);
-            // 每完成一定数量就刷新渲染
             if (completed % progressThreshold === 0 || completed === total) {
-                rawServiceRecords = allRecords.slice();
                 parseTimeRecords(rawServiceRecords);
             }
         }
@@ -190,7 +214,46 @@ async function fetchServiceTimes() {
 
     await runTasks(tasks, concurrency);
 
-    rawServiceRecords = allRecords;
-    parseTimeRecords(allRecords);
-    saveDataToCache(LINE_STATIONS, rawServiceRecords);
+    parseTimeRecords(rawServiceRecords);
+
+    // 失败站点比例 <= 5% 才保存缓存，否则下次打开可能读到残缺数据
+    const totalAll = allStationsSet.size;
+    const failureRatio = failedStations.length / Math.max(totalAll, 1);
+    if (failureRatio <= 0.05) {
+        saveDataToCache(LINE_STATIONS, rawServiceRecords);
+    } else {
+        console.warn(`[缓存] 失败站点过多 (${failedStations.length}/${totalAll} = ${(failureRatio * 100).toFixed(1)}%)，跳过保存`);
+    }
+
+    // 更新失败徽章
+    updateFetchErrorBadge();
+}
+
+/** 更新"失败站点"提示 toast（fixed 定位，不受布局影响） */
+function updateFetchErrorBadge() {
+    let toast = document.getElementById('fetch-error-badge');
+
+    // 没有失败站点：移除或隐藏
+    if (failedStations.length === 0) {
+        if (toast) toast.style.display = 'none';
+        return;
+    }
+
+    if (!toast) {
+        toast = document.createElement('button');
+        toast.id = 'fetch-error-badge';
+        toast.className = 'fetch-error-badge';
+        toast.addEventListener('click', () => {
+            if (failedStations.length === 0) return;
+            const toRetry = failedStations.slice();
+            console.log('[重试] 重试失败站点：', toRetry);
+            toast.style.display = 'none';
+            fetchServiceTimes(toRetry);
+        });
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = `⚠️ ${failedStations.length} 个站点获取失败，点击重试`;
+    toast.title = failedStations.join('\n');
+    toast.style.display = 'flex';
 }

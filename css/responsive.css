@@ -396,4 +396,10 @@
         height: 18px;
     }
 
+    .fetch-error-badge {
+        bottom: 16px;
+        padding: 8px 18px;
+        font-size: 13px;
+        border-radius: 20px;
+    }
 }

@@ -93,6 +93,7 @@ function forceFetchLatestData() {
     (async () => {
         try {
             isFetchingData = true;
+            window._gzCompletedStations = new Set();
             await fetchLineStations();
             await fetchServiceTimes();
 
@@ -155,6 +156,7 @@ if (cached) {
     console.log('[初始化] 无当日缓存，拉取最新数据');
     (async () => {
         try {
+            window._gzCompletedStations = new Set();
             await fetchLineStations();
             await fetchServiceTimes();
 
@@ -165,7 +167,7 @@ if (cached) {
             }
         } catch (err) {
             console.error('[初始化] 获取数据失败', err);
-            showLoadingMessage('获取数据失败，请检查网络后点击“获取最新首末数据”');
+            showLoadingMessage('获取数据失败，请检查网络后刷新页面重试');
             versionEl.textContent = '线路版本: 获取失败';
         }
     })();
@@ -202,6 +204,7 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
                 versionEl.classList.remove('version-highlight');
             }, 3000);
         } else {
+            window._gzCompletedStations = new Set();
             await fetchLineStations();
             await fetchServiceTimes();
         }

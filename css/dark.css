@@ -417,3 +417,14 @@
             0 0 18px rgba(255, 255, 255, 0.55),
             0 6px 18px rgba(0, 0, 0, 0.7);
 }
+
+/* 夜间模式：失败站点 toast */
+[data-theme="dark"] .fetch-error-badge {
+    background: #b91c1c;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+}
+
+[data-theme="dark"] .fetch-error-badge:hover {
+    background: #dc2626;
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.65);
+}
