@@ -222,6 +222,21 @@
     padding-top: 40px;
 }
 
+/* ==========================================
+   主题变量映射：浅色 / 深色 自动切换
+   ========================================== */
+.vertical-diagram,
+.v-legend {
+    --up-color: var(--up-color-light);
+    --down-color: var(--down-color-light);
+}
+
+[data-theme="dark"] .vertical-diagram,
+[data-theme="dark"] .v-legend {
+    --up-color: var(--up-color-dark);
+    --down-color: var(--down-color-dark);
+}
+
 /* 站点行基础样式 */
 .v-station-row {
     display: grid;

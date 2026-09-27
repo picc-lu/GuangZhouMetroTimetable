@@ -1,0 +1,25 @@
+{
+  "name": "广州地铁 · 运营时间展示",
+  "short_name": "地铁时间",
+  "description": "实时查询广州地铁、佛山地铁及有轨电车的首末班车时间",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f6fc",
+  "theme_color": "#c5192d",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },{
+      "src": "icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

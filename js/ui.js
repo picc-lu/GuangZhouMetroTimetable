@@ -373,15 +373,15 @@ function showLineDetails(line, keepScroll = false, pushHistory = false) {
     }
 
     const baseHsl = hexToHsl(lineColor);
-    // 饱和度下限 55%，保证有颜色，避免灰色线路变成一片灰
     const colorS = Math.max(baseHsl.s, 55);
-    // 根据当前主题决定亮度：深色背景用 70%，浅色背景用 32%
-    const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textLightness = isDarkTheme ? 70 : 32;
-    // 上行：线路色相
-    const upColor = `hsl(${baseHsl.h}, ${colorS}%, ${textLightness}%)`;
-    // 下行：色相偏移 150°，与上行对比明显
-    const downColor = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, ${textLightness}%)`;
+    // 同时计算浅色和深色两套颜色，由 CSS 根据主题切换
+    const upColorLight  = `hsl(${baseHsl.h}, ${colorS}%, 32%)`;
+    const upColorDark   = `hsl(${baseHsl.h}, ${colorS}%, 70%)`;
+    const downColorLight = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 32%)`;
+    const downColorDark  = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 70%)`;
+    // 兼容旧代码：upColor / downColor 仍指向浅色版本
+    const upColor = upColorLight;
+    const downColor = downColorLight;
 
     // 预计算每一站的运营状态
     const stationStatus = stations.map(station => {
@@ -495,7 +495,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false) {
     html += `<div class="modal-sticky-header">`;
 
     if (useTopLegend) {
-        html += `<div class="v-legend" style="--up-color: ${upColor}; --down-color: ${downColor};">
+        html += `<div class="v-legend" style="--up-color-light: ${upColorLight}; --up-color-dark: ${upColorDark}; --down-color-light: ${downColorLight}; --down-color-dark: ${downColorDark};">
             <div class="v-legend-up">
                 <span class="v-legend-arrow">↓</span>
                 <span>往 ${upTargetName || '--'}</span>
@@ -516,8 +516,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false) {
     html += `</div>`; // 结束 modal-sticky-header
 
     // 站点详情
-    html += `<div class="vertical-diagram" style="--line-color: ${lineColor}; --up-color: ${upColor}; --down-color: ${downColor};">`;
-
+    html += `<div class="vertical-diagram" style="--line-color: ${lineColor}; --up-color-light: ${upColorLight}; --up-color-dark: ${upColorDark}; --down-color-light: ${downColorLight}; --down-color-dark: ${downColorDark};">`;
     for (let idx = 0; idx < stations.length; idx++) {
         const station = stations[idx];
         const times = lineDirectionTime[line]?.[station] || (line === '11号线' ? {

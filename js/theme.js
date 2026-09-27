@@ -18,21 +18,6 @@
         if (btn) {
             btn.title = theme === 'dark' ? '切换到日间模式' : '切换到夜间模式';
         }
-        // 若弹窗正开着，重新渲染以更新 --up-color / --down-color
-        if (typeof currentModalLine !== 'undefined' && currentModalLine) {
-            const overlay = document.querySelector('.modal-overlay');
-            if (overlay && overlay.style.display === 'flex') {
-                const line = currentModalLine;
-                const contentDiv = overlay.querySelector('.modal-content');
-                const scrollTop = contentDiv ? contentDiv.scrollTop : 0;
-                if (typeof showLineDetails === 'function') {
-                    showLineDetails(line, true);
-                    requestAnimationFrame(() => {
-                        if (contentDiv) contentDiv.scrollTop = scrollTop;
-                    });
-                }
-            }
-        }
     }
 
     function toggleTheme() {

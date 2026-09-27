@@ -19,6 +19,14 @@
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/dark.css">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c5192d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="地铁时间">
+
+    <link rel="apple-touch-icon" href="icons/icon-384.png">
 </head>
 <body>
 <div class="banner">
@@ -121,5 +129,14 @@
 <script src="js/time.js"></script>
 <script src="js/theme.js"></script>
 <script src="js/main.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => {
+                console.warn('[SW] 注册失败:', err);
+            });
+        });
+    }
+</script>
 </body>
 </html>
