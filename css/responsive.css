@@ -447,7 +447,7 @@
 
     .search-input {
         width: 100%;
-        font-size: 13px;
+        font-size: 16px;
         padding: 6px 12px;
         height: 36px;
     }
@@ -457,7 +457,7 @@
         flex: 1;
         padding: 4px 12px;
         height: 36px;
-        font-size: 13px;
+        font-size: 16px;
         margin-left: 6px;
     }
     /* 搜索框移动端：展开时占满剩余宽度 */
