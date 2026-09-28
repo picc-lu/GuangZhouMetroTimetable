@@ -193,6 +193,7 @@ if (cached) {
 scheduleForceRefreshAt5AM();
 
 initStationSearch();
+initNearbyButton();
 
 // 绑定获取数据按钮事件
 document.getElementById('fetch-data-btn').addEventListener('click', async () => {

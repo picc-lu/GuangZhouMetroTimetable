@@ -726,3 +726,239 @@ select option:checked {
     }
     /* 最后 0.45 秒淡出 */
 }
+
+/* ==========================================
+   附近站点按钮
+   ========================================== */
+.nearby-btn {
+    background: #ffffff;
+    border: 2px solid #d0ddee;
+    border-radius: 40px;
+    width: 44px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    padding: 0;
+    flex-shrink: 0;
+    color: #1f2b3c;
+}
+
+.nearby-btn:hover {
+    border-color: #8fa8c9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.nearby-btn:active {
+    transform: translateY(0);
+}
+
+.nearby-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ==========================================
+   附近站点面板
+   ========================================== */
+.nearby-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.nearby-container {
+    background: #ffffff;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+}
+
+.nearby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-weight: 600;
+    font-size: 16px;
+    color: #1e293b;
+}
+
+.nearby-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    line-height: 1;
+}
+
+.nearby-close:hover {
+    background: #e2e8f0;
+}
+
+.nearby-body {
+    overflow-y: auto;
+}
+
+.nearby-item {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.nearby-item:hover {
+    background: #f8fafc;
+}
+
+.nearby-item.expanded {
+    background: #f8fafc;
+}
+
+.nearby-item:last-child {
+    border-bottom: none;
+}
+
+.nearby-info {
+    flex-shrink: 0;
+}
+
+.nearby-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.nearby-dist {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.nearby-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.nearby-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.nearby-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.nearby-loading,
+.nearby-error {
+    padding: 40px 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.nearby-error p {
+    margin: 0 0 16px;
+}
+
+.nearby-retry-btn {
+    display: inline-block;
+    background: #2b7de9;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 26px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 6px rgba(43, 125, 233, 0.3);
+}
+
+.nearby-retry-btn:hover {
+    background: #1a6bd5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(43, 125, 233, 0.4);
+}
+
+.nearby-retry-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(43, 125, 233, 0.3);
+}
+
+/* 多线路站点的线路选择列表 */
+.nearby-line-picker {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.nearby-picker-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s, filter 0.1s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.nearby-picker-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.08);
+}
+
+.nearby-picker-btn:active {
+    transform: translateY(0);
+}
+
+.nearby-picker-arrow {
+    font-size: 18px;
+    opacity: 0.85;
+}
