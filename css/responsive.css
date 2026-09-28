@@ -5,6 +5,7 @@
     /* ---------- 顶部控制栏 ---------- */
     .controls {
         position: relative;
+        position: relative;
         top: auto;
         padding: 12px 16px;
         border-radius: 0 0 16px 16px;
@@ -13,21 +14,53 @@
 
     .controls-row-1 {
         display: flex;
-        flex-wrap: wrap !important;
+        flex-wrap: nowrap !important;   /* 强制不换行 */
         flex-direction: row !important;
+        align-items: center;
         gap: 8px !important;
     }
 
+    /* 自定义时间面板：与系统时间面板等高 */
     .time-panel {
-        flex: 0 0 100% !important;
-        width: 100% !important;
+        flex: 0 1 auto !important;
+        min-width: 0;
+        width: auto !important;
+        padding: 4px 8px !important;
         justify-content: space-between;
-        padding: 4px 12px;
+        gap: 0 !important;
+        min-height: 58px;                    /* 与系统时间面板等高 */
+        align-items: center;
+    }
+
+    .time-panel label {
+        padding: 3px 8px !important;
+        font-size: 12px !important;
+        flex-shrink: 0;
     }
 
     .time-panel select {
-        min-width: unset;
+        min-width: 0;
         flex: 1;
+    }
+
+    .time-panel .action-button {
+        padding: 5px 12px !important;
+        font-size: 12px !important;
+    }
+
+    /* 小时/分钟触发器缩小 */
+    .hour-trigger {
+        padding: 4px 10px !important;
+        font-size: 13px !important;
+        min-width: 40px !important;
+    }
+
+    /* 系统时间排到最前 */
+    .system-time-area {
+        order: -1;
+        flex: 0 0 auto !important;
+        padding: 4px 10px !important;
+        gap: 2px !important;
     }
 
     .system-time-area,
@@ -42,12 +75,12 @@
 
     #real-time-clock {
         min-width: auto !important;
-        padding: 2px 6px !important;
+        padding: 2px 8px !important;
         font-size: 12px !important;
     }
 
     .system-time-area .action-button {
-        padding: 4px 8px !important;
+        padding: 3px 10px !important;
         font-size: 11px !important;
     }
 
@@ -103,31 +136,28 @@
         font-size: 12px !important;
     }
 
-    /* ---------- 时间下拉菜单 ---------- */
     .hour-dropdown, .minute-dropdown {
-        left: 50% !important;
-        transform: translateX(-50%) !important;
         border-radius: 16px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         z-index: 1000;
     }
 
     .hour-dropdown {
-        width: 250px !important;
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(7, 1fr) !important;
         padding: 10px !important;
-    }
-
-    .minute-dropdown {
-        width: 200px !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        padding: 10px !important;
+        gap: 8px !important;
     }
 
     .hour-btn {
-        padding: 8px 0 !important;
+        padding: 10px 0 !important;
         font-size: 14px !important;
-        margin: 2px !important;
+        margin: 1px !important;
+    }
+
+    .minute-dropdown {
+        grid-template-columns: repeat(4, 1fr) !important;
+        padding: 10px !important;
+        gap: 8px !important;
     }
 
     /* ---------- 线路名卡片 ---------- */
@@ -401,5 +431,52 @@
         padding: 8px 18px;
         font-size: 13px;
         border-radius: 20px;
+    }
+    /* 第二行：筛选（移动端隐藏） + 图标按钮右对齐 */
+    .controls-row-1b {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px !important;
+    }
+
+    /* 搜索框（移动端） */
+    .search-wrapper {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .search-input {
+        width: 100%;
+        font-size: 13px;
+        padding: 6px 12px;
+        height: 36px;
+    }
+
+    .search-wrapper.expanded .search-input {
+        width: 100%;
+        flex: 1;
+        padding: 4px 12px;
+        height: 36px;
+        font-size: 13px;
+        margin-left: 6px;
+    }
+    /* 搜索框移动端：展开时占满剩余宽度 */
+    .search-toggle {
+        width: 40px;
+        height: 36px;
+    }
+
+    .search-result {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .search-station {
+        font-size: 17px;
+    }
+
+    .search-line-badge {
+        font-size: 15px;
+        padding: 3px 12px;
     }
 }

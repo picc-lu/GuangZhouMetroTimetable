@@ -1,7 +1,7 @@
 // 全局变量声明
 let rawServiceRecords = [];
-let LINE_STATIONS = {  };
-let LINE_COLORS = { ...HARDCODED_COLORS };
+let LINE_STATIONS = {};
+let LINE_COLORS = {...HARDCODED_COLORS};
 let lineDirectionTime = {};
 let currentCustomTime = null;
 let systemTimeoutId = null;
@@ -12,10 +12,26 @@ let rowHeight = 45;
 const versionEl = document.getElementById('version-display');
 versionEl.textContent = '线路版本: 2026-03-03 (内置)';
 
-// 事件监听绑定
 document.getElementById('apply-custom-time').addEventListener('click', () => {
-    const h = parseInt(document.getElementById('hour-select').value, 10);
-    const m = parseInt(document.getElementById('minute-select').value, 10);
+    const hourSel = document.getElementById('hour-select');
+    const minSel = document.getElementById('minute-select');
+
+    // 优先用 select 的 value；若为空（选项缺失），回退到触发器显示的文字
+    let h = parseInt(hourSel.value, 10);
+    let m = parseInt(minSel.value, 10);
+
+    if (isNaN(h)) {
+        h = parseInt(document.getElementById('hour-trigger').textContent, 10);
+    }
+    if (isNaN(m)) {
+        m = parseInt(document.getElementById('minute-trigger').textContent, 10);
+    }
+
+    if (isNaN(h) || isNaN(m)) {
+        console.warn('[事件] 无法解析自定义时间，忽略本次操作');
+        return;
+    }
+
     const d = new Date();
     d.setHours(h, m, 0, 0);
     currentCustomTime = d;
@@ -43,11 +59,11 @@ document.getElementById('deselect-all').addEventListener('click', () => {
     applyFilter();
 });
 
-document.getElementById('size-select').addEventListener('change', (e) => {
-    console.log(`[事件] 行高调整为：${e.target.value}`);
-    rowHeight = parseInt(e.target.value, 10);
-    renderAllLines();
-});
+// document.getElementById('size-select').addEventListener('change', (e) => {
+//     console.log(`[事件] 行高调整为：${e.target.value}`);
+//     rowHeight = parseInt(e.target.value, 10);
+//     renderAllLines();
+// });
 
 // 初始化时间选择器、时钟、整分刷新
 initTimeSelectors();
@@ -160,9 +176,9 @@ if (cached) {
             await fetchLineStations();
             await fetchServiceTimes();
 
-            // 2:00~4:59 时，获取完数据后也提示用户这是昨天的数据
+            // 2:00~3:59 时，获取完数据后也提示用户这是昨天的数据
             const hour = now.getHours();
-            if (hour >= 2 && hour < 5) {
+            if (hour >= 2 && hour < 4) {
                 showYesterdayDataNotice();
             }
         } catch (err) {
@@ -175,6 +191,8 @@ if (cached) {
 
 // 5:00 定时刷新仍然保留（页面长驻时用于自动更新数据）
 scheduleForceRefreshAt5AM();
+
+initStationSearch();
 
 // 绑定获取数据按钮事件
 document.getElementById('fetch-data-btn').addEventListener('click', async () => {
@@ -264,10 +282,10 @@ if (backToTopBtn) {
         } else {
             backToTopBtn.classList.remove('show');
         }
-    }, { passive: true });
+    }, {passive: true});
 
     // 8. 点击平滑回到顶部
     backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     });
 }

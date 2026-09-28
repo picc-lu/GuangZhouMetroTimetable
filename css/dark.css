@@ -318,7 +318,6 @@
     color: #cbd5e1 !important;
 }
 
-/* ---------- 切换按钮 ---------- */
 [data-theme="dark"] .theme-toggle {
     background: #232b3d;
     border-color: #3a4559;
@@ -427,4 +426,51 @@
 [data-theme="dark"] .fetch-error-badge:hover {
     background: #dc2626;
     box-shadow: 0 8px 24px rgba(220, 38, 38, 0.65);
+}
+
+[data-theme="dark"] .search-input {
+    background: #232b3d;
+    border-color: #3a4559;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .search-input:focus {
+    border-color: #5da0ff;
+    box-shadow: 0 0 0 3px rgba(93, 160, 255, 0.2);
+}
+
+[data-theme="dark"] .search-input::placeholder {
+    color: #64748b;
+}
+
+[data-theme="dark"] .search-results {
+    background: #1a2030;
+    border-color: #2d3748;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .search-result {
+    border-bottom-color: #2d3748;
+}
+
+[data-theme="dark"] .search-result.is-single:hover {
+    background: #232b3d;
+}
+
+[data-theme="dark"] .search-station {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .search-empty {
+    color: #64748b;
+}
+
+[data-theme="dark"] .v-station-row.search-highlight {
+    animation: searchPulseDark 3s ease-out;
+}
+
+@keyframes searchPulseDark {
+    0%   { background: rgba(93, 160, 255, 0.3); }
+    85%  { background: rgba(93, 160, 255, 0.3); }
+    100% { background: transparent; }
 }

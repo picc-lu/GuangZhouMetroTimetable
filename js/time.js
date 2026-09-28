@@ -16,11 +16,15 @@ function initTimeSelectors() {
     const hourSel = document.getElementById('hour-select');
     const minSel = document.getElementById('minute-select');
 
-    for (let i = 0; i < 24; i++) {
-        if (i >= 2 && i <= 5) continue; // ← 新增这行，跳过 02~05
+    // 生成小时顺序：05→23, 00, 01（00/01 移到末尾）
+    const hourOrder = [];
+    for (let i = 5; i <= 23; i++) hourOrder.push(i);
+    hourOrder.push(0, 1);
+
+    for (const h of hourOrder) {
         const opt = document.createElement('option');
-        opt.value = i.toString().padStart(2, '0');
-        opt.textContent = i.toString().padStart(2, '0');
+        opt.value = h.toString().padStart(2, '0');
+        opt.textContent = h.toString().padStart(2, '0');
         hourSel.appendChild(opt);
     }
 
@@ -59,13 +63,12 @@ function initTimeSelectors() {
     hourDropdown.style.display = 'none';
     hourDropdown.setAttribute('role', 'grid');
 
-    for (let i = 0; i < 24; i++) {
-        if (i >= 2 && i <= 5) continue; // ← 新增这行，跳过 02~05
+    for (const h of hourOrder) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'hour-btn';
-        btn.dataset.hour = i.toString().padStart(2, '0');
-        btn.textContent = i.toString().padStart(2, '0');
+        btn.dataset.hour = h.toString().padStart(2, '0');
+        btn.textContent = h.toString().padStart(2, '0');
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             const hour = this.dataset.hour;
@@ -129,6 +132,7 @@ function initTimeSelectors() {
         const isHidden = hourDropdown.style.display === 'none';
         minuteDropdown.style.display = 'none';
         minuteTrigger.setAttribute('aria-expanded', 'false');
+        if (isHidden) positionDropdownOnMobile(hourDropdown, hourTrigger, 'center');
         hourDropdown.style.display = isHidden ? 'grid' : 'none';
         this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
@@ -138,6 +142,7 @@ function initTimeSelectors() {
         const isHidden = minuteDropdown.style.display === 'none';
         hourDropdown.style.display = 'none';
         hourTrigger.setAttribute('aria-expanded', 'false');
+        if (isHidden) positionDropdownOnMobile(minuteDropdown, minuteTrigger, 'right');
         minuteDropdown.style.display = isHidden ? 'grid' : 'none';
         this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
@@ -172,6 +177,46 @@ function scheduleNextMinuteTick() {
     systemTimeoutId = setTimeout(() => {
         updateRealTimeClock();
     }, delay);
+}
+
+/** 移动端把下拉框定位到合适位置 */
+function positionDropdownOnMobile(dropdown, trigger, align = 'center') {
+    if (window.innerWidth > 768) {
+        // 桌面端：恢复 CSS 默认定位
+        dropdown.style.position = '';
+        dropdown.style.top = '';
+        dropdown.style.left = '';
+        dropdown.style.right = '';
+        dropdown.style.transform = '';
+        dropdown.style.width = '';
+        dropdown.style.maxWidth = '';
+        return;
+    }
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth;
+    // 分钟下拉框更窄，小时下拉框宽一些
+    const maxW = dropdown.classList.contains('minute-dropdown') ? 240 : 400;
+    const ddWidth = Math.min(vw - 32, maxW);
+
+    let left;
+    if (align === 'right') {
+        // 右边缘对齐到触发框右边缘，但不超出屏幕
+        left = Math.min(rect.right - ddWidth, vw - ddWidth - 16);
+        left = Math.max(16, left);
+    } else if (align === 'left') {
+        left = Math.max(16, Math.min(rect.left, vw - ddWidth - 16));
+    } else {
+        // 居中
+        left = (vw - ddWidth) / 2;
+    }
+
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (rect.bottom + 6) + 'px';
+    dropdown.style.left = left + 'px';
+    dropdown.style.right = 'auto';
+    dropdown.style.transform = 'none';
+    dropdown.style.width = ddWidth + 'px';
+    dropdown.style.maxWidth = 'none';
 }
 
 /**

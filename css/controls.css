@@ -15,14 +15,26 @@
     gap: 12px;
     border: 1px solid #dbe2ed;
     border-top: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
 }
 
+/* 第一行：自定义时间 + 应用系统时间 */
 .controls-row-1 {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
+}
+
+.controls-row-1b {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.controls-row-1b .filter-area {
+    margin-right: auto;
 }
 
 .controls-row-2 {
@@ -48,6 +60,7 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
+
 .line-scroll-row::-webkit-scrollbar {
     display: none;
 }
@@ -67,7 +80,7 @@ select {
     font-weight: 500;
     color: #1f2b3c;
     cursor: pointer;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
     transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
     background-repeat: no-repeat;
     background-position: right 12px center;
@@ -82,7 +95,7 @@ select:hover {
 select:focus {
     outline: none;
     border-color: #1f2b3c;
-    box-shadow: 0 0 0 3px rgba(31,43,60,0.1);
+    box-shadow: 0 0 0 3px rgba(31, 43, 60, 0.1);
     background-color: #ffffff;
 }
 
@@ -100,7 +113,7 @@ select[multiple]:hover,
 select[multiple]:focus {
     background-color: white;
     border-color: #1f2b3c;
-    box-shadow: 0 0 0 3px rgba(31,43,60,0.1);
+    box-shadow: 0 0 0 3px rgba(31, 43, 60, 0.1);
 }
 
 select option {
@@ -145,10 +158,10 @@ select option:checked {
     gap: 8px;
     background: #ffffff;
     padding: 4px 16px 4px 12px;
-    border-radius: 40px;
+    border-radius: 20px;
     transition: 0.2s;
     border: 2px solid #d0ddee;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     flex-wrap: wrap;
 }
 
@@ -169,6 +182,13 @@ select option:checked {
     margin: 0 -2px;
 }
 
+.system-time-area .action-button {
+    padding: 4px 14px;
+    font-size: 12px;
+    margin-left: 0;
+    border-radius: 20px;
+}
+
 .time-panel .action-button,
 .system-time-area .action-button {
     background: #1f2b3c;
@@ -183,19 +203,19 @@ select option:checked {
     transition: all 0.15s;
     white-space: nowrap;
     margin-left: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .time-panel .action-button:hover {
     background: #2f405a;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .time-panel.active-mode {
     border-color: #2e7d32;
     background: #e1f0e1;
-    box-shadow: 0 0 0 2px rgba(46,125,50,0.1);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
 }
 
 .time-panel.active-mode label {
@@ -228,12 +248,15 @@ select option:checked {
 
 .system-time-area {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 2px;
     background: #ffffff;
-    padding: 4px 16px 4px 12px;
-    border-radius: 40px;
+    padding: 4px 14px;
+    border-radius: 20px;
     border: 2px solid #d0ddee;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     transition: 0.2s;
 }
 
@@ -243,15 +266,16 @@ select option:checked {
 }
 
 #real-time-clock {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: #1e3c5a;
     background: white;
-    padding: 4px 16px;
-    border-radius: 40px;
+    padding: 2px 14px;
+    border-radius: 20px;
     border: 1px solid #c2cfde;
-    min-width: 85px;
+    min-width: 70px;
     text-align: center;
+    line-height: 1.4;
 }
 
 .filter-area {
@@ -262,7 +286,7 @@ select option:checked {
     padding: 4px 16px 4px 12px;
     border-radius: 40px;
     border: 2px solid #d0ddee;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .filter-area label {
@@ -287,24 +311,24 @@ select option:checked {
     border: 1px solid #1f2b3c;
     transition: all 0.15s;
     white-space: nowrap;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .filter-area .action-button:hover {
     background: #2f405a;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .size-control {
-    display: flex;
+    display: none !important;
     align-items: center;
     gap: 8px;
     background: #ffffff;
     padding: 4px 16px 4px 12px;
     border-radius: 40px;
     border: 2px solid #d0ddee;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .size-control label {
@@ -349,22 +373,21 @@ select option:checked {
     cursor: pointer;
     border: none;
     white-space: nowrap;
-    transition:
-            transform 0.1s,
-            box-shadow 0.1s,
-            background-color 0.3s ease,
-            color 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.1s,
+    box-shadow 0.1s,
+    background-color 0.3s ease,
+    color 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .line-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .line-button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 新增：强制换行占位元素 */
@@ -387,7 +410,7 @@ select option:checked {
     font-weight: 500;
     color: #1f2b3c;
     cursor: pointer;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
     transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
     min-width: 50px;
     text-align: center;
@@ -404,7 +427,7 @@ select option:checked {
 .hour-trigger:focus {
     outline: none;
     border-color: #1f2b3c;
-    box-shadow: 0 0 0 3px rgba(31,43,60,0.1);
+    box-shadow: 0 0 0 3px rgba(31, 43, 60, 0.1);
 }
 
 .hour-dropdown {
@@ -415,11 +438,11 @@ select option:checked {
     background: white;
     border: 1px solid #c2cfde;
     border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     padding: 12px;
-    width: 220px;
+    width: 400px;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 6px;
 }
 
@@ -447,9 +470,17 @@ select option:checked {
     border-color: #1f2b3c;
 }
 
-.time-panel .hour-select-wrapper { margin-right: 4px; }
-.minute-dropdown { width: 120px; }
-.minute-select-wrapper { margin-left: 4px; }
+.time-panel .hour-select-wrapper {
+    margin-right: 4px;
+}
+
+.minute-dropdown {
+    width: 400px;
+}
+
+.minute-select-wrapper {
+    margin-left: 4px;
+}
 
 /* ==========================================
    夜间模式切换按钮
@@ -521,7 +552,7 @@ select option:checked {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    display: none;                    /* 默认隐藏，有失败时显示 */
+    display: none; /* 默认隐藏，有失败时显示 */
     align-items: center;
     justify-content: center;
     white-space: nowrap;
@@ -541,4 +572,157 @@ select option:checked {
 .fetch-error-badge:active {
     transform: translateX(-50%) translateY(0);
     box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+}
+
+/* ==========================================
+   站点搜索框（默认折叠为放大镜按钮）
+   ========================================== */
+.search-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.search-input {
+    width: 180px;
+    padding: 8px 16px;
+    border: 2px solid #d0ddee;
+    border-radius: 40px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1f2b3c;
+    outline: none;
+    box-sizing: border-box;
+    background: #ffffff;
+    height: 40px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-input:focus {
+    border-color: #2b7de9;
+    box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15);
+}
+
+.search-input::placeholder {
+    color: #94a3b8;
+}
+
+.search-wrapper.expanded .search-input {
+    width: 200px;
+    padding: 6px 16px;
+    margin-left: 6px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.search-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;                    /* 右边缘对齐 wrapper 右侧 */
+    width: auto;                 /* 宽度由 left + right 决定，即和输入框同宽 */
+    min-width: 0;                /* 取消最小宽度限制 */
+    background: #ffffff;
+    border: 1px solid #dbe6f2;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(31, 43, 60, 0.12);
+    max-height: 380px;
+    overflow-y: auto;
+    z-index: 1200;
+    display: none;
+}
+
+.search-result {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 18px;
+    padding: 12px 14px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s;
+}
+
+.search-result:last-child {
+    border-bottom: none;
+}
+
+.search-result.is-single {
+    cursor: pointer;
+}
+
+.search-result.is-single:hover {
+    background: #eef6ff;
+}
+
+.search-result.is-transfer {
+    cursor: default;
+}
+
+.search-station {
+    font-weight: 700;
+    color: #1f2b3c;
+    font-size: 19px;
+    flex-shrink: 0;
+}
+
+.search-line-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;                   /* 线路徽章之间的间隔 */
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: center;
+}
+
+.search-line-badge {
+    display: inline-block;
+    padding: 4px 14px; /* 内边距稍大 */
+    border-radius: 6px;
+    font-size: 16px; /* 从 15px 加大到 16px */
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: transform 0.1s, box-shadow 0.1s, filter 0.1s;
+    line-height: 1.4;
+}
+
+.search-line-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.08);
+}
+
+.search-line-badge:active {
+    transform: scale(0.98);
+}
+
+.search-empty {
+    padding: 16px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* 搜索结果跳转后的短暂高亮（保持 3 秒后淡出） */
+.v-station-row.search-highlight {
+    animation: searchPulse 2s ease-out;
+}
+
+@keyframes searchPulse {
+    0% {
+        background: rgba(43, 125, 233, 0.25);
+    }
+    85% {
+        background: rgba(43, 125, 233, 0.25);
+    }
+    /* 前 2.55 秒保持 */
+    100% {
+        background: transparent;
+    }
+    /* 最后 0.45 秒淡出 */
 }

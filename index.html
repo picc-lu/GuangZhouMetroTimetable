@@ -8,7 +8,7 @@
     <meta name="keywords" content="广州地铁,运营时间,首末班车,广州地铁线路图,APM,佛山地铁">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="广州地铁运营时间展示">
+    <meta property="og:title" content="广州地铁·运营时间展示">
     <meta property="og:description" content="实时查询广州地铁各线路首末班车时间，支持自定义时间模拟。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://picc-lu.github.io/GuangZhouMetroTimetable/">
@@ -50,26 +50,22 @@
             <span id="real-time-clock">--:--</span>
             <button id="use-system-time" class="action-button">应用系统时间</button>
         </div>
+    </div>
+    <div class="controls-row-1b">
         <div class="filter-area">
             <label>🚉 筛选</label>
             <select id="line-filter" class="filter-select" multiple size="1"></select>
             <button id="select-all" class="action-button">全选</button>
             <button id="deselect-all" class="action-button">清空</button>
         </div>
-        <div class="size-control">
-            <label>📏 尺寸</label>
-            <select id="size-select">
-                <option value="65">最大</option>
-                <option value="55">大</option>
-                <option value="45" selected>中</option>
-            </select>
+        <div class="search-wrapper" id="search-wrapper">
+            <input type="text" id="search-input" class="search-input" placeholder="🔍 搜索站点" autocomplete="off">
+            <div class="search-results" id="search-results"></div>
         </div>
         <button id="theme-toggle" class="theme-toggle" type="button" title="切换到夜间模式">
-            <!-- 太阳（日间模式显示，提示可切换到夜间） -->
             <svg class="theme-icon icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
-            <!-- 太阳（夜间模式显示，提示可切换到日间） -->
             <svg class="theme-icon icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4"></circle>
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
@@ -121,6 +117,9 @@
 
 <!-- 模块化JS文件（按顺序加载） -->
 <script src="js/constants.js"></script>
+<script src="data/GZCoords.js"></script>
+<script src="js/coords.js"></script>
+<script src="js/search.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/cache.js"></script>
 <script src="js/api.js"></script>

@@ -16,6 +16,8 @@ function populateLineFilter() {
     selectedLines.clear();
     allLines.forEach(line => selectedLines.add(line));
     console.log('[筛选] 最终 selectedLines：', Array.from(selectedLines));
+
+    if (typeof buildStationIndex === 'function') buildStationIndex();
 }
 
 function applyFilter() {
@@ -307,7 +309,7 @@ function restartRefreshBar() {
     bar.classList.add('animating');
 }
 
-function showLineDetails(line, keepScroll = false, pushHistory = false) {
+function showLineDetails(line, keepScroll = false, pushHistory = false, scrollToStation = null) {
     // 若为跳转操作，把当前线路压入历史栈
     if (pushHistory && currentModalLine && currentModalLine !== line) {
         modalHistory.push(currentModalLine);
@@ -773,6 +775,25 @@ function showLineDetails(line, keepScroll = false, pushHistory = false) {
     if (!keepScroll) {
         const savedPos = modalScrollPositions[line] || 0;
         contentDiv.scrollTop = savedPos;
+    }
+
+    // 如果指定了 scrollToStation，滚动到对应站点并高亮
+    if (scrollToStation) {
+        requestAnimationFrame(() => {
+            const rows = contentDiv.querySelectorAll('.v-station-row');
+            for (const row of rows) {
+                // 取 .v-name 里第一个 span 的文字，精确匹配站名（避免"美的"命中"美的大道"）
+                const nameSpan = row.querySelector('.v-name > span');
+                if (nameSpan && nameSpan.textContent.trim() === scrollToStation) {
+                    const top = row.offsetTop - 80; // 留出顶部图例的空间
+                    contentDiv.scrollTo({ top, behavior: 'smooth' });
+                    // 高亮：先保持 3 秒，再淡出
+                    row.classList.add('search-highlight');
+                    setTimeout(() => row.classList.remove('search-highlight'), 3000);
+                    break;
+                }
+            }
+        });
     }
 
     // ====== 更新返回按钮显隐 ======
