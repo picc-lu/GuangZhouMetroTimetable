@@ -39,11 +39,27 @@ document.getElementById('apply-custom-time').addEventListener('click', () => {
     renderAllLines();
 });
 
-document.getElementById('use-system-time').addEventListener('click', () => {
+// 抽出一个可复用的处理函数
+function applySystemTime() {
     console.log('[事件] 应用系统时间');
     currentCustomTime = null;
     renderAllLines();
+}
+
+// 点击"应用系统时间"按钮触发
+document.getElementById('use-system-time').addEventListener('click', (e) => {
+    e.stopPropagation(); // 防止冒泡到外层再次触发
+    applySystemTime();
 });
+
+// 点击整个 system-time-area 也触发
+const systemTimePanel = document.getElementById('system-time-panel');
+if (systemTimePanel) {
+    systemTimePanel.style.cursor = 'pointer';
+    systemTimePanel.addEventListener('click', () => {
+        applySystemTime();
+    });
+}
 
 document.getElementById('line-filter').addEventListener('change', applyFilter);
 document.getElementById('select-all').addEventListener('click', () => {
