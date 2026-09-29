@@ -444,6 +444,9 @@
 }
 
 [data-theme="dark"] .search-results {
+    background: #1a2030;
+    border-color: #2d3748;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     scrollbar-color: #3a4559 #1a2030;
 }
 
