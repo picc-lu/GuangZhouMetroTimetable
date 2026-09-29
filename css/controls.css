@@ -620,9 +620,9 @@ select option:checked {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
-    right: 0;                    /* 右边缘对齐 wrapper 右侧 */
-    width: auto;                 /* 宽度由 left + right 决定，即和输入框同宽 */
-    min-width: 0;                /* 取消最小宽度限制 */
+    right: 0;
+    width: auto;
+    min-width: 0;
     background: #ffffff;
     border: 1px solid #dbe6f2;
     border-radius: 12px;
@@ -631,6 +631,33 @@ select option:checked {
     overflow-y: auto;
     z-index: 1200;
     display: none;
+
+    /* 常亮滚动条（Firefox） */
+    scrollbar-width: thin;
+    scrollbar-color: #c2cfde #f1f5f9;
+
+    /* 让右侧留出滚动条空间，避免内容被遮挡 */
+    padding-right: 2px;
+}
+
+/* 常亮滚动条（Webkit：Chrome / Safari / Edge） */
+.search-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background: #c2cfde;
+    border-radius: 4px;
+    border: 1.5px solid #f1f5f9;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: #a3b6cd;
 }
 
 .search-result {
@@ -671,7 +698,7 @@ select option:checked {
 .search-line-badges {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;                   /* 线路徽章之间的间隔 */
+    gap: 8px; /* 线路徽章之间的间隔 */
     flex: 1 1 auto;
     min-width: 0;
     align-items: center;
@@ -828,15 +855,11 @@ select option:checked {
     align-items: center;
     padding: 12px 20px;
     border-bottom: 1px solid #f1f5f9;
-    gap: 12px;
     cursor: pointer;
     transition: background 0.15s;
 }
 
-.nearby-item:hover {
-    background: #f8fafc;
-}
-
+.nearby-item:hover,
 .nearby-item.expanded {
     background: #f8fafc;
 }
@@ -847,6 +870,14 @@ select option:checked {
 
 .nearby-info {
     flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.nearby-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
 }
 
 .nearby-name {
@@ -859,13 +890,6 @@ select option:checked {
 .nearby-dist {
     font-size: 12px;
     color: #64748b;
-}
-
-.nearby-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: flex-end;
 }
 
 .nearby-badge {
@@ -922,14 +946,31 @@ select option:checked {
     box-shadow: 0 2px 6px rgba(43, 125, 233, 0.3);
 }
 
-/* 多线路站点的线路选择列表 */
+/* 多线路站点的线路选择列表（外层只管高度，内层管样式） */
 .nearby-line-picker {
     flex-basis: 100%;
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-top: 0;
+    transition:
+            grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            margin-top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.3s ease;
+}
+
+.nearby-line-picker.open {
+    grid-template-rows: 1fr;
+    margin-top: 12px;
+    opacity: 1;
+}
+
+.nearby-picker-inner {
+    min-height: 0;              /* grid 子项高度过渡必需 */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 4px;
-    padding-top: 12px;
     border-top: 1px dashed #e2e8f0;
 }
 

@@ -128,6 +128,13 @@ function initStationSearch() {
         renderSearchResults(searchStations(input.value));
     });
 
+    // 重新聚焦时，如果输入框有内容，重新显示结果
+    input.addEventListener('focus', () => {
+        if (input.value.trim()) {
+            renderSearchResults(searchStations(input.value));
+        }
+    });
+
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             input.value = '';

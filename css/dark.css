@@ -444,9 +444,20 @@
 }
 
 [data-theme="dark"] .search-results {
+    scrollbar-color: #3a4559 #1a2030;
+}
+
+[data-theme="dark"] .search-results::-webkit-scrollbar-track {
     background: #1a2030;
-    border-color: #2d3748;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .search-results::-webkit-scrollbar-thumb {
+    background: #3a4559;
+    border-color: #1a2030;
+}
+
+[data-theme="dark"] .search-results::-webkit-scrollbar-thumb:hover {
+    background: #4a5568;
 }
 
 [data-theme="dark"] .search-result {
@@ -537,6 +548,6 @@
     background: #1a2030;
 }
 
-[data-theme="dark"] .nearby-line-picker {
+[data-theme="dark"] .nearby-picker-inner {
     border-top-color: #2d3748;
 }

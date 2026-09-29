@@ -157,20 +157,21 @@ function showNearbyPanel(state, data) {
 
 /** 展开/收起多线路站点的线路选择列表 */
 function toggleNearbyLinePicker(item, station, lines) {
-    // 已展开则收起
     const existing = item.querySelector('.nearby-line-picker');
     if (existing) {
-        existing.remove();
-        item.classList.remove('expanded');
+        collapsePicker(existing, item);
         return;
     }
-    // 先收起所有其他展开项
-    document.querySelectorAll('.nearby-line-picker').forEach(p => p.remove());
-    document.querySelectorAll('.nearby-item.expanded').forEach(i => i.classList.remove('expanded'));
+
+    // 收起所有其他展开项
+    document.querySelectorAll('.nearby-line-picker').forEach(p => {
+        const parent = p.closest('.nearby-item');
+        collapsePicker(p, parent);
+    });
 
     const picker = document.createElement('div');
     picker.className = 'nearby-line-picker';
-    picker.innerHTML = lines.map(l => {
+    picker.innerHTML = `<div class="nearby-picker-inner">` + lines.map(l => {
         const color = LINE_COLORS[l] || '#888';
         const textColor = getContrastColor(color);
         return `<button class="nearby-picker-btn"
@@ -180,10 +181,17 @@ function toggleNearbyLinePicker(item, station, lines) {
             <span class="nearby-picker-name">${l}</span>
             <span class="nearby-picker-arrow">→</span>
         </button>`;
-    }).join('');
+    }).join('') + `</div>`;
 
     item.appendChild(picker);
     item.classList.add('expanded');
+
+    // 两次 rAF 让 grid-template-rows 从 0fr 平滑过渡到 1fr
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            picker.classList.add('open');
+        });
+    });
 
     picker.querySelectorAll('.nearby-picker-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -192,4 +200,17 @@ function toggleNearbyLinePicker(item, station, lines) {
             doSearchJump(btn.dataset.line, btn.dataset.station);
         });
     });
+}
+
+function collapsePicker(picker, item) {
+    if (!picker || picker.dataset.collapsing === '1') return;
+    picker.dataset.collapsing = '1';
+
+    picker.classList.remove('open');
+
+    // 时长与 CSS 一致，留 50ms 余量后移除
+    setTimeout(() => {
+        picker.remove();
+        if (item) item.classList.remove('expanded');
+    }, 400);
 }
