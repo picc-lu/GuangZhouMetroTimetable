@@ -1,7 +1,4 @@
 // ========== 站点搜索 ==========
-
-let STATION_INDEX = {};
-
 /** 从 LINE_STATIONS 构建站点到线路的映射 */
 function buildStationIndex() {
     STATION_INDEX = {};

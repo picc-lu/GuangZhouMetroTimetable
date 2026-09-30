@@ -1,5 +1,5 @@
 // 版本号变更时触发缓存更新
-const CACHE_NAME = 'gz-metro-v1.0.8';
+const CACHE_NAME = 'gz-metro-v1.0.9';
 const ASSETS = [
     './',
     './index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
     './css/responsive.css',
     './css/dark.css',
     './js/constants.js',
+    './js/store.js',
     './data/GZCoords.js',
     './js/utils.js',
     './js/coords.js',

@@ -63,16 +63,19 @@
             <div class="search-results" id="search-results"></div>
         </div>
         <button id="nearby-btn" class="nearby-btn" type="button" title="附近站点" aria-label="附近站点">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
             </svg>
         </button>
         <button id="theme-toggle" class="theme-toggle" type="button" title="切换到夜间模式">
-            <svg class="theme-icon icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="theme-icon icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
-            <svg class="theme-icon icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="theme-icon icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4"></circle>
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
             </svg>
@@ -94,7 +97,8 @@
 </div>
 
 <div class="copyright-notice">
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M14.83 9.17a4 4 0 1 0 0 5.66"></path>
     </svg>
@@ -121,8 +125,8 @@
     </svg>
 </button>
 
-<!-- 模块化JS文件（按顺序加载） -->
 <script src="js/constants.js"></script>
+<script src="js/store.js"></script>
 <script src="data/GZCoords.js"></script>
 <script src="js/coords.js"></script>
 <script src="js/search.js"></script>
@@ -181,7 +185,7 @@
         toast.querySelector('.sw-update-close').addEventListener('click', () => toast.remove());
         toast.querySelector('.sw-update-btn').addEventListener('click', () => {
             if (reg.waiting) {
-                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                reg.waiting.postMessage({type: 'SKIP_WAITING'});
             } else {
                 window.location.reload();
             }

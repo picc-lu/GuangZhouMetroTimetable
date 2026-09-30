@@ -325,7 +325,8 @@ function parseLine11Record(rec, fullCounter) {
     }
 }
 
-function parseTimeRecords(records) {
+function parseTimeRecords(records, options = {}) {
+    const { skipRender = false } = options;
     console.log('[解析] 开始解析运营时间记录，总数：', records.length);
     lineDirectionTime = {};
     const fullCounter = {}; // 用于11号线全程计数器
@@ -398,4 +399,8 @@ function parseTimeRecords(records) {
         });
     }
     renderAllLines();
+
+    if (!skipRender) {
+        renderAllLines();
+    }
 }

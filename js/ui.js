@@ -150,16 +150,6 @@ function updateLoadingMessage(text) {
     }
 }
 
-// ========== 模态框相关 ==========
-
-let modalOverlay = null;
-let modalRefreshTimer = null;
-let modalClockTimer = null;
-let currentModalLine = null;
-const modalHistory = []; // 线路跳转历史栈
-const modalScrollPositions = {}; // 每条线路独立的滚动位置
-let bodyScrollY = 0;
-
 function ensureModal() {
     if (!modalOverlay) {
         modalOverlay = document.createElement('div');

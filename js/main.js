@@ -1,14 +1,3 @@
-// 全局变量声明
-let rawServiceRecords = [];
-let LINE_STATIONS = {};
-let LINE_COLORS = {...HARDCODED_COLORS};
-let lineDirectionTime = {};
-let currentCustomTime = null;
-let systemTimeoutId = null;
-let scrollPositions = {};
-let selectedLines = new Set();
-let rowHeight = 45;
-
 const versionEl = document.getElementById('version-display');
 versionEl.textContent = '线路版本: 2026-03-03 (内置)';
 
@@ -125,7 +114,7 @@ function forceFetchLatestData() {
     (async () => {
         try {
             isFetchingData = true;
-            window._gzCompletedStations = new Set();
+            _gzCompletedStations = new Set();
             await fetchLineStations();
             await fetchServiceTimes();
 
@@ -163,47 +152,39 @@ function scheduleForceRefreshAt5AM() {
     }, delay);
 }
 
-// ========== 初始化数据加载 ==========
 const now = new Date();
-const cached = loadDataFromCache();
 
-if (cached) {
-    // 有当日缓存：直接使用，不发起网络请求
-    console.log('[初始化] 命中当日缓存，使用缓存数据');
-    LINE_STATIONS = cached.lineStations;
-    rawServiceRecords = cached.serviceRecords;
-    populateLineFilter();
-    populateLineButtons();
-    parseTimeRecords(rawServiceRecords);
-    versionEl.textContent = `线路版本: 缓存数据 (${cached.serviceDate})`;
-    currentCustomTime = null;
+(async () => {
+    const cached = await loadDataFromCache();
 
-    // 2:00~4:59 提示用户这是昨天数据
-    const hour = now.getHours();
-    if (hour >= 2 && hour < 5) {
-        showYesterdayDataNotice();
-    }
-} else {
-    // 无当日缓存：拉取最新数据
-    console.log('[初始化] 无当日缓存，拉取最新数据');
-    (async () => {
+    if (cached) {
+        console.log('[初始化] 命中当日缓存，使用缓存数据');
+        LINE_STATIONS = cached.lineStations;
+        rawServiceRecords = cached.serviceRecords;
+        populateLineFilter();
+        populateLineButtons();
+        parseTimeRecords(rawServiceRecords);
+        versionEl.textContent = `线路版本: 缓存数据 (${cached.serviceDate})`;
+        currentCustomTime = null;
+
+        const hour = now.getHours();
+        if (hour >= 2 && hour < 5) showYesterdayDataNotice();
+    } else {
+        console.log('[初始化] 无当日缓存，拉取最新数据');
         try {
-            window._gzCompletedStations = new Set();
+            _gzCompletedStations = new Set();
             await fetchLineStations();
             await fetchServiceTimes();
 
-            // 2:00~3:59 时，获取完数据后也提示用户这是昨天的数据
             const hour = now.getHours();
-            if (hour >= 2 && hour < 4) {
-                showYesterdayDataNotice();
-            }
+            if (hour >= 2 && hour < 4) showYesterdayDataNotice();
         } catch (err) {
             console.error('[初始化] 获取数据失败', err);
             showLoadingMessage('获取数据失败，请检查网络后刷新页面重试');
             versionEl.textContent = '线路版本: 获取失败';
         }
-    })();
-}
+    }
+})();
 
 // 5:00 定时刷新仍然保留（页面长驻时用于自动更新数据）
 scheduleForceRefreshAt5AM();
@@ -225,7 +206,7 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
         }
         isFetchingData = true;
 
-        const cached = loadDataFromCache();
+        const cached = await loadDataFromCache();
         if (cached) {
             console.log('[事件] 使用缓存数据');
             LINE_STATIONS = cached.lineStations;
@@ -239,7 +220,7 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
                 versionEl.classList.remove('version-highlight');
             }, 3000);
         } else {
-            window._gzCompletedStations = new Set();
+            _gzCompletedStations = new Set();
             await fetchLineStations();
             await fetchServiceTimes();
         }
@@ -260,9 +241,6 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
         isFetchingData = false;
     }
 });
-
-// 全局标志，用于防止在获取数据期间因系统时间自动刷新而重复渲染
-let isFetchingData = false;
 
 // ========== 回到顶部按钮逻辑 ==========
 const backToTopBtn = document.getElementById('back-to-top');

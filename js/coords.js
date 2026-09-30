@@ -1,5 +1,5 @@
 // ========== 站点坐标归一化 ==========
-let STATION_COORDS = normalizeStationCoords(GZ_COORDS_RAW);
+STATION_COORDS = normalizeStationCoords(GZ_COORDS_RAW);
 
 function normalizeStationCoords(raw) {
     const coords = {};

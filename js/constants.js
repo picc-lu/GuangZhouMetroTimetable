@@ -33,4 +33,3 @@ const HARDCODED_COLORS = {
 };
 
 const RETRY_TIMES = 3;
-const CACHE_KEY = 'gz_metro_cache';
