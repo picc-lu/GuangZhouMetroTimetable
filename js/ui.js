@@ -184,7 +184,7 @@ function ensureModal() {
 `;
         document.body.appendChild(modalOverlay);
 
-        window.closeMetroModal = function() {
+        window.closeMetroModal = function () {
             modalHistory.length = 0;
             if (!modalOverlay || modalOverlay.style.display === 'none') return;
             // 防止动画期间重复触发
@@ -217,7 +217,7 @@ function ensureModal() {
             };
 
             // 监听动画结束事件，只执行一次
-            container.addEventListener('animationend', finishClose, { once: true });
+            container.addEventListener('animationend', finishClose, {once: true});
             // 兜底：如果 animationend 没触发（例如浏览器不支持），250ms 后强制关闭
             setTimeout(() => {
                 if (modalOverlay.classList.contains('closing')) finishClose();
@@ -253,7 +253,7 @@ function ensureModal() {
             if (!scrollable) {
                 e.preventDefault();
             }
-        }, { passive: false });
+        }, {passive: false});
     }
 }
 
@@ -290,8 +290,14 @@ function startModalTimers(line) {
 }
 
 function stopModalTimers() {
-    if (modalClockTimer) { clearInterval(modalClockTimer); modalClockTimer = null; }
-    if (modalRefreshTimer) { clearInterval(modalRefreshTimer); modalRefreshTimer = null; }
+    if (modalClockTimer) {
+        clearInterval(modalClockTimer);
+        modalClockTimer = null;
+    }
+    if (modalRefreshTimer) {
+        clearInterval(modalRefreshTimer);
+        modalRefreshTimer = null;
+    }
     currentModalLine = null;
 }
 
@@ -365,22 +371,28 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
             const d = max - min;
             s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
             switch (max) {
-                case r: hDeg = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: hDeg = (b - r) / d + 2; break;
-                case b: hDeg = (r - g) / d + 4; break;
+                case r:
+                    hDeg = (g - b) / d + (g < b ? 6 : 0);
+                    break;
+                case g:
+                    hDeg = (b - r) / d + 2;
+                    break;
+                case b:
+                    hDeg = (r - g) / d + 4;
+                    break;
             }
             hDeg /= 6;
         }
-        return { h: Math.round(hDeg * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        return {h: Math.round(hDeg * 360), s: Math.round(s * 100), l: Math.round(l * 100)};
     }
 
     const baseHsl = hexToHsl(lineColor);
     const colorS = Math.max(baseHsl.s, 55);
     // 同时计算浅色和深色两套颜色，由 CSS 根据主题切换
-    const upColorLight  = `hsl(${baseHsl.h}, ${colorS}%, 32%)`;
-    const upColorDark   = `hsl(${baseHsl.h}, ${colorS}%, 70%)`;
+    const upColorLight = `hsl(${baseHsl.h}, ${colorS}%, 32%)`;
+    const upColorDark = `hsl(${baseHsl.h}, ${colorS}%, 70%)`;
     const downColorLight = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 32%)`;
-    const downColorDark  = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 70%)`;
+    const downColorDark = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 70%)`;
     // 兼容旧代码：upColor / downColor 仍指向浅色版本
     const upColor = upColorLight;
     const downColor = downColorLight;
@@ -400,7 +412,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
                 downActive = (data.down || []).some(t => currentMin >= t.first && currentMin <= t.last);
             }
         }
-        return { upActive, downActive, anyActive: upActive || downActive };
+        return {upActive, downActive, anyActive: upActive || downActive};
     });
 
     const lineActive = stationStatus.some(s => s.anyActive);
@@ -523,7 +535,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         const station = stations[idx];
         const times = lineDirectionTime[line]?.[station] || (line === '11号线' ? {
             upFull: null, upTerminal: null, downFull: null, downTerminal: null
-        } : { up: [], down: [] });
+        } : {up: [], down: []});
 
         // ====== 计算换乘线路 ======
         const transferLines = new Map(); // key: 线路名, value: { realStation, isManual }
@@ -531,7 +543,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         // 1. 标准匹配（站名完全一致，无需出闸）
         for (const [otherLine, otherStations] of Object.entries(LINE_STATIONS)) {
             if (otherLine !== line && otherStations.includes(station)) {
-                transferLines.set(otherLine, { realStation: station, isManual: false });
+                transferLines.set(otherLine, {realStation: station, isManual: false});
             }
         }
 
@@ -542,7 +554,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
                 if (targetMetroStation) {
                     for (const [metroLine, metroStations] of Object.entries(LINE_STATIONS)) {
                         if (metroLine !== line && metroStations.includes(targetMetroStation)) {
-                            transferLines.set(metroLine, { realStation: targetMetroStation, isManual: true });
+                            transferLines.set(metroLine, {realStation: targetMetroStation, isManual: true});
                         }
                     }
                 }
@@ -550,7 +562,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
                 for (const [tramStation, metroStation] of Object.entries(mapping)) {
                     if (metroStation === station) {
                         if (LINE_STATIONS[tramLine] && LINE_STATIONS[tramLine].includes(tramStation)) {
-                            transferLines.set(tramLine, { realStation: tramStation, isManual: true });
+                            transferLines.set(tramLine, {realStation: tramStation, isManual: true});
                         }
                     }
                 }
@@ -561,7 +573,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         if (transferLines.size > 0) {
             transferHtml = `<div class="v-transfer-lines">`;
             transferLines.forEach((data, tLine) => {
-                const { realStation, isManual } = data;
+                const {realStation, isManual} = data;
                 const transferData = lineDirectionTime[tLine]?.[realStation];
                 let isTransferActive = false;
                 let upActive = false;
@@ -630,8 +642,13 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
 
                 const titleAttr = isManual ? 'title="需出闸换乘"' : '';
 
-                // 添加点击跳转事件
-                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};" onclick="event.stopPropagation(); showLineDetails('${tLine}', false, true);">${iconHtml}${displayName}</span>`;
+                // 目标站点名做 HTML/JS 字符串双重转义，防止站名含引号时破坏内联 onclick
+                const safeStation = String(realStation)
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'");
+
+                // 添加点击跳转事件（第 4 个参数 scrollToStation：跳转后自动滚到该站并高亮）
+                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};" onclick="event.stopPropagation(); showLineDetails('${tLine}', false, true, '${safeStation}');">${iconHtml}${displayName}</span>`;
             });
             transferHtml += `</div>`;
         }
@@ -641,10 +658,10 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
 
         if (line === '11号线') {
             // up 视觉向下 → 用 ↓；down 视觉向上 → 用 ↑
-            if (times.upFull)     upCards   += makeBlock('↓ 外环 全程',   times.upFull.first,     times.upFull.last,true);
-            if (times.upTerminal) upCards   += makeBlock('↓ 外环 往龙潭', times.upTerminal.first, times.upTerminal.last,true);
-            if (times.downFull)   downCards += makeBlock('↑ 内环 全程',   times.downFull.first,   times.downFull.last,false);
-            if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last,false);
+            if (times.upFull) upCards += makeBlock('↓ 外环 全程', times.upFull.first, times.upFull.last, true);
+            if (times.upTerminal) upCards += makeBlock('↓ 外环 往龙潭', times.upTerminal.first, times.upTerminal.last, true);
+            if (times.downFull) downCards += makeBlock('↑ 内环 全程', times.downFull.first, times.downFull.last, false);
+            if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last, false);
         } else {
             // 非11号线：方向已提取至顶部，卡片内不再显示具体方向
             // 修改：判断是否有多个终点，如果有，则用容器包裹并左右分布
@@ -786,7 +803,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
                 const nameSpan = row.querySelector('.v-name > span');
                 if (nameSpan && nameSpan.textContent.trim() === scrollToStation) {
                     const top = row.offsetTop - 80; // 留出顶部图例的空间
-                    contentDiv.scrollTo({ top, behavior: 'smooth' });
+                    contentDiv.scrollTo({top, behavior: 'smooth'});
                     // 高亮：先保持 3 秒，再淡出
                     row.classList.add('search-highlight');
                     setTimeout(() => row.classList.remove('search-highlight'), 3000);

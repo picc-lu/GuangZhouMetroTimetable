@@ -147,6 +147,10 @@ function showNearbyPanel(state, data) {
             });
         }
     } else if (state === 'results') {
+        // 懒构建兜底（同 search.js 逻辑）
+        if (Object.keys(STATION_INDEX).length === 0 && Object.keys(LINE_STATIONS).length > 0) {
+            buildStationIndex();
+        }
         if (!data || data.length === 0) {
             body.innerHTML = `<div class="nearby-error">未找到附近站点</div>`;
         } else {

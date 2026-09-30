@@ -17,6 +17,13 @@ function buildStationIndex() {
 function searchStations(query) {
     const q = query.trim();
     if (!q) return [];
+
+    // 懒构建：若索引为空但线路数据已就绪，立即构建
+    // （解决"首屏搜索时 LINE_STATIONS 已就绪但 populateLineFilter 尚未调用"的竞态）
+    if (Object.keys(STATION_INDEX).length === 0 && Object.keys(LINE_STATIONS).length > 0) {
+        buildStationIndex();
+    }
+
     const results = [];
     for (const [station, lines] of Object.entries(STATION_INDEX)) {
         if (station.includes(q)) {

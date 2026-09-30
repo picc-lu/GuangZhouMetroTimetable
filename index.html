@@ -138,9 +138,53 @@
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(err => {
+            navigator.serviceWorker.register('./sw.js').then((reg) => {
+                // 已有 SW 在控制页面时，才提示更新（首次安装无需提示）
+                if (navigator.serviceWorker.controller) {
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed') {
+                                showSwUpdateToast(reg);
+                            }
+                        });
+                    });
+                }
+            }).catch(err => {
                 console.warn('[SW] 注册失败:', err);
             });
+
+            // SW 激活切换后，自动刷新页面一次
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+            });
+        });
+    }
+
+    function showSwUpdateToast(reg) {
+        if (document.getElementById('sw-update-toast')) return;
+
+        const toast = document.createElement('div');
+        toast.id = 'sw-update-toast';
+        toast.className = 'sw-update-toast';
+        toast.innerHTML = `
+            <span>🎉 新版本已就绪</span>
+            <button type="button" class="sw-update-btn">立即刷新</button>
+            <button type="button" class="sw-update-close" aria-label="关闭">✕</button>
+        `;
+        document.body.appendChild(toast);
+
+        toast.querySelector('.sw-update-close').addEventListener('click', () => toast.remove());
+        toast.querySelector('.sw-update-btn').addEventListener('click', () => {
+            if (reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            } else {
+                window.location.reload();
+            }
         });
     }
 </script>

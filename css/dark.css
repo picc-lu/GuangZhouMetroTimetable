@@ -248,8 +248,6 @@
 /* 站点名 */
 [data-theme="dark"] .v-name {
     color: #e2e8f0;
-    background: #131a26;
-    box-shadow: 0 0 0 4px #131a26;
 }
 
 [data-theme="dark"] .v-name-inactive {
@@ -553,4 +551,8 @@
 
 [data-theme="dark"] .nearby-picker-inner {
     border-top-color: #2d3748;
+}
+
+[data-theme="dark"] .sw-update-toast {
+    background: rgba(35, 43, 61, 0.96);
 }

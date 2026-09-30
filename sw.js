@@ -1,5 +1,5 @@
 // 版本号变更时触发缓存更新
-const CACHE_NAME = 'gz-metro-v1.0.7';
+const CACHE_NAME = 'gz-metro-v1.0.8';
 const ASSETS = [
     './',
     './index.html',
@@ -31,7 +31,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(ASSETS))
-            .then(() => self.skipWaiting())
+        // 注意：不再自动 skipWaiting，等待用户确认
     );
 });
 
@@ -41,6 +41,13 @@ self.addEventListener('activate', (event) => {
             Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
         ).then(() => self.clients.claim())
     );
+});
+
+// 接收页面发来的"跳过等待"指令
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('fetch', (event) => {

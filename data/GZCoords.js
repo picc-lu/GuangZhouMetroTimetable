@@ -1,3 +1,4 @@
+//GCJ02
 const GZ_COORDS_RAW = {
     "地铁|低涌": [
         113.484818,

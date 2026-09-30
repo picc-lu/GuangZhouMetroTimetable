@@ -175,7 +175,7 @@ if (cached) {
     populateLineFilter();
     populateLineButtons();
     parseTimeRecords(rawServiceRecords);
-    versionEl.textContent = `线路版本: 缓存数据 (${cached.date})`;
+    versionEl.textContent = `线路版本: 缓存数据 (${cached.serviceDate})`;
     currentCustomTime = null;
 
     // 2:00~4:59 提示用户这是昨天数据
@@ -233,7 +233,7 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
             populateLineFilter();
             populateLineButtons();
             parseTimeRecords(rawServiceRecords);
-            versionEl.textContent = `线路版本: 缓存数据 (${cached.date})`;
+            versionEl.textContent = `线路版本: 缓存数据 (${cached.serviceDate})`;
             versionEl.classList.add('version-highlight');
             setTimeout(() => {
                 versionEl.classList.remove('version-highlight');

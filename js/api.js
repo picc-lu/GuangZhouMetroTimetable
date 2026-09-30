@@ -143,7 +143,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
 
     const serviceTimeUrl = 'https://apis.gzmtr.com/app-map/serviceTime/list';
     let completed = 0;
-    const concurrency = 25;
+    const concurrency = 5;
     const progressThreshold = 30;
 
     // 记录已完成站点（跨重试保留）& 已恢复的线路
@@ -173,7 +173,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
         const encodedStation = encodeURIComponent(station);
         const url = `${serviceTimeUrl}/${encodedStation}`;
         try {
-            const data = await requestWithRetry(url, { method: 'POST' }, 1, 12000);
+            const data = await requestWithRetry(url, { method: 'POST' }, 1, 3000);
             const records = data.businessObject || [];
             records.forEach(rec => {
                 const normalized = {};
