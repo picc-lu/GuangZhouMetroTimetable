@@ -111,27 +111,65 @@ const PINYIN_DICT = {
     '逸': 'yi', '部': 'bu', '都': 'du', '醍': 'ti', '里': 'li',
     '铁': 'tie', '阁': 'ge', '雷': 'lei', '霄': 'xiao', '鞍': 'an',
     '顷': 'qing', '顺': 'shun', '飞': 'fei', '馆': 'guan', '验': 'yan',
-    '鱼': 'yu', '鹅': 'e',
+    '鱼': 'yu', '鹅': 'e', '㘵': 'bu'
+};
+
+// ========== 词组级多音字表（优先于单字字典匹配） ==========
+// 格式：词组 → 每个字的读音数组（长度必须等于词组汉字数）
+// 注意：只写汉字，不含括号/数字/字母
+const PINYIN_PHRASE_DICT = {
+    // 「区」：区庄读 ōu，其余读 qū
+    '区庄': ['ou', 'zhuang'],
+    '区少年宫': ['qu', 'shao', 'nian', 'gong'],
+    '虫雷': ['lei'],
+
+    // 以后遇到类似情况，一行一个词
+    // 例：'番禺': ['pan', 'yu'],
+    // 例：'长湴': ['chang', 'ban'],
 };
 
 // 站名 → { py: 'quanzhuang', abbr: 'qz' }
 let STATION_PINYIN_INDEX = {};
 
 function stationToPinyin(name) {
-    let py = '', abbr = '';
-    for (const ch of name) {
-        const p = PINYIN_DICT[ch];
-        if (p) {
-            py += p;
-            abbr += p[0];
+    const chars = [...name];
+    let py = '';
+    let abbr = '';
+    let i = 0;
+    const MAX_PHRASE_LEN = 6;  // 词组最长 6 个字，够用
+
+    while (i < chars.length) {
+        let matched = false;
+
+        // 从最长开始尝试词组匹配（贪心最长匹配）
+        for (let len = Math.min(MAX_PHRASE_LEN, chars.length - i); len >= 2; len--) {
+            const sub = chars.slice(i, i + len).join('');
+            const arr = PINYIN_PHRASE_DICT[sub];
+            if (arr) {
+                py += arr.join('');
+                abbr += arr.map(s => s[0]).join('');
+                i += len;
+                matched = true;
+                break;
+            }
+        }
+        if (matched) continue;
+
+        // 单字回退
+        const ch = chars[i];
+        if (PINYIN_DICT[ch]) {
+            py += PINYIN_DICT[ch];
+            abbr += PINYIN_DICT[ch][0];
         } else if (/[\u4e00-\u9fa5]/.test(ch)) {
-            // 未收录的汉字：直接落字，方便后续补充字典时能看出来
+            // 未收录汉字：保留原字，便于审计
             py += ch;
             abbr += ch;
         }
-        // 非汉字（数字、英文、括号）忽略
+        // 非汉字（括号、数字、字母）直接跳过
+        i++;
     }
-    return {py, abbr};
+
+    return {py: py.toLowerCase(), abbr: abbr.toLowerCase()};
 }
 
 function buildStationPinyinIndex() {
