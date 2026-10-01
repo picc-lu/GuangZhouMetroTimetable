@@ -198,6 +198,17 @@ function renderAllLines() {
             downDiv.innerHTML = renderCellContent(line, station, stations, i, false, currentMin, hasActiveStation, timeMetaFontSize);
             col.appendChild(downDiv);
 
+            // 站点列点击：打开该线路详情并聚焦该站
+            col.addEventListener('click', (e) => {
+                const area = col.closest('.scroll-area');
+                // 拖拽滚动后的 click 不算点击，直接吞掉
+                if (area && area.dataset.dragged === '1') return;
+
+                e.stopPropagation();
+                modalHistory.length = 0;
+                showLineDetails(line, false, false, station);
+            });
+
             diagram.appendChild(col);
 
             if (i < n - 1) {

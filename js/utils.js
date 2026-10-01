@@ -39,6 +39,7 @@ function initDragScroll() {
 
         area.addEventListener('mousedown', (e) => {
             isDown = true;
+            area.dataset.dragged = '';
             area.classList.add('active');
             startX = e.pageX - area.offsetLeft;
             scrollLeft = area.scrollLeft;
@@ -53,12 +54,18 @@ function initDragScroll() {
         area.addEventListener('mouseup', () => {
             isDown = false;
             area.classList.remove('active');
+            // 延迟清除，让紧随其后的 click 先读到 dragged 标记
+            setTimeout(() => { delete area.dataset.dragged; }, 0);
         });
 
         area.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - area.offsetLeft;
+            // 位移超过 5px 才认定为“拖拽”，避免手抖误判
+            if (Math.abs(x - startX) > 5) {
+                area.dataset.dragged = '1';
+            }
             const walk = (x - startX) * 1.5;
             area.scrollLeft = scrollLeft - walk;
         });

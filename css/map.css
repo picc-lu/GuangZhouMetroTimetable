@@ -7,14 +7,14 @@
     border: 1px solid #e3eaf3;
     border-bottom: none;
     border-radius: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     flex: 1;
 }
 
 .line-container {
     display: flex;
-    align-items: center;          /* 改为 center */
-    min-height: 135px;            /* 新增：固定最小高度，让线路图有上下居中的空间 */
+    align-items: center; /* 改为 center */
+    min-height: 135px; /* 新增：固定最小高度，让线路图有上下居中的空间 */
     margin-bottom: 0;
     padding: 0;
     border-bottom: 7px dashed #e9eef5;
@@ -37,12 +37,12 @@
     border-radius: 0 40px 40px 0;
     border: 1px solid #ccd9ec;
     border-left: none;
-    box-shadow: 0 2px 6px rgba(0,20,40,0.04);
+    box-shadow: 0 2px 6px rgba(0, 20, 40, 0.04);
     display: flex !important;
     align-items: center !important;
     transition: background 0.1s;
     position: relative;
-    align-self: stretch;          /* 新增：让线路名卡片依然撑满整行高度，作为视觉分隔 */
+    align-self: stretch; /* 新增：让线路名卡片依然撑满整行高度，作为视觉分隔 */
 }
 
 .line-name {
@@ -70,8 +70,8 @@
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
     transition: scrollbar-color 0.2s;
-    display: flex;                /* 新增 */
-    align-items: center;          /* 新增：垂直居中 */
+    display: flex; /* 新增 */
+    align-items: center; /* 新增：垂直居中 */
 }
 
 .scroll-area:hover {
@@ -101,7 +101,7 @@
 .line-diagram {
     display: flex;
     flex-direction: row;
-    align-items: center;          /* 由 stretch 改为 center */
+    align-items: center; /* 由 stretch 改为 center */
     min-width: max-content;
     pointer-events: none;
     padding-right: 20px;
@@ -113,7 +113,20 @@
     align-items: center;
     justify-content: stretch;
     min-width: 60px;
-    align-self: center;       /* 新增 */
+    align-self: center;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+/* 悬停时给一点视觉反馈 */
+.station-column:hover {
+    background: rgba(43, 125, 233, 0.06);
+    border-radius: 8px;
+}
+
+.station-column:hover .col-station {
+    color: #2b7de9;
 }
 
 .col-up, .col-down {
@@ -143,7 +156,7 @@
     align-items: center;
     justify-content: stretch;
     min-width: 30px;
-    align-self: center;       /* 新增 */
+    align-self: center; /* 新增 */
 }
 
 .arrow-up, .arrow-down {
@@ -190,10 +203,21 @@
     letter-spacing: 0;
 }
 
-.active-segment { color: currentColor; }
-.inactive-segment { color: #b3c3d9 !important; }
-.active-dot .dot-symbol { color: currentColor; }
-.inactive-dot .dot-symbol { color: #b3c3d9 !important; }
+.active-segment {
+    color: currentColor;
+}
+
+.inactive-segment {
+    color: #b3c3d9 !important;
+}
+
+.active-dot .dot-symbol {
+    color: currentColor;
+}
+
+.inactive-dot .dot-symbol {
+    color: #b3c3d9 !important;
+}
 
 .line-note {
     background: #f0f4fc;
@@ -204,7 +228,7 @@
     margin: 10px 10px 10px 0;
     border-radius: 8px;
     color: #1f2b3c;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     line-height: 1.5;
     max-width: 220px;
 }
