@@ -829,6 +829,50 @@ select option:checked {
     color: #1e293b;
 }
 
+/* 头部右侧操作区（刷新 + 关闭） */
+.nearby-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.nearby-refresh {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.nearby-refresh:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.nearby-refresh:active {
+    background: #cbd5e1;
+}
+
+.nearby-refresh:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.nearby-refresh.spinning svg {
+    animation: nearbySpin 0.9s linear infinite;
+}
+
+@keyframes nearbySpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
 .nearby-close {
     background: transparent;
     border: none;

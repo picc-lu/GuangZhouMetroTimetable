@@ -8,29 +8,46 @@ function buildStationIndex() {
             if (!STATION_INDEX[st].includes(line)) STATION_INDEX[st].push(line);
         }
     }
+    if (typeof buildStationPinyinIndex === 'function') buildStationPinyinIndex();
 }
 
-/** 搜索站点，返回匹配列表（前缀优先） */
 function searchStations(query) {
     const q = query.trim();
     if (!q) return [];
 
-    // 懒构建：若索引为空但线路数据已就绪，立即构建
-    // （解决"首屏搜索时 LINE_STATIONS 已就绪但 populateLineFilter 尚未调用"的竞态）
+    // 懒构建
     if (Object.keys(STATION_INDEX).length === 0 && Object.keys(LINE_STATIONS).length > 0) {
         buildStationIndex();
     }
-
-    const results = [];
-    for (const [station, lines] of Object.entries(STATION_INDEX)) {
-        if (station.includes(q)) {
-            results.push({
-                station,
-                lines,
-                score: station.indexOf(q) === 0 ? 0 : 1
-            });
-        }
+    if (Object.keys(STATION_PINYIN_INDEX).length === 0 && Object.keys(STATION_INDEX).length > 0) {
+        buildStationPinyinIndex();
     }
+
+    const qLower = q.toLowerCase();
+    const isAscii = /^[a-z0-9]+$/.test(qLower);
+    const results = [];
+
+    for (const [station, lines] of Object.entries(STATION_INDEX)) {
+        let score = -1;
+
+        // 1. 中文包含（最优先）
+        if (station.includes(q)) {
+            score = station.indexOf(q) === 0 ? 0 : 1;
+        }
+        // 2. 拼音 / 首字母（仅当查询是纯字母数字）
+        else if (isAscii) {
+            const p = STATION_PINYIN_INDEX[station];
+            if (p) {
+                if (p.abbr === qLower)               score = 2;  // 首字母全匹配
+                else if (p.abbr.startsWith(qLower))  score = 3;  // 首字母前缀
+                else if (p.py.startsWith(qLower))    score = 4;  // 全拼前缀
+                else if (p.py.includes(qLower))      score = 5;  // 全拼包含
+            }
+        }
+
+        if (score >= 0) results.push({ station, lines, score });
+    }
+
     results.sort((a, b) => a.score - b.score || a.station.localeCompare(b.station, 'zh'));
     return results.slice(0, 12);
 }

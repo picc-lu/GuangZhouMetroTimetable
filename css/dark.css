@@ -509,6 +509,19 @@
     color: #e2e8f0;
 }
 
+[data-theme="dark"] .nearby-refresh {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .nearby-refresh:hover {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .nearby-refresh:active {
+    background: #3a4559;
+}
+
 [data-theme="dark"] .nearby-close {
     color: #94a3b8;
 }

@@ -116,20 +116,44 @@ function showNearbyPanel(state, data) {
         panel.innerHTML = `<div class="nearby-container">
             <div class="nearby-header">
                 <span>📍 附近站点</span>
-                <button class="nearby-close" type="button" aria-label="关闭">✕</button>
+                <div class="nearby-header-actions">
+                    <button class="nearby-refresh" type="button" aria-label="重新定位" title="重新定位">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>
+                    <button class="nearby-close" type="button" aria-label="关闭">✕</button>
+                </div>
             </div>
             <div class="nearby-body"></div>
         </div>`;
         document.body.appendChild(panel);
+
+        // 关闭
         panel.querySelector('.nearby-close').addEventListener('click', () => {
             panel.style.display = 'none';
         });
+        // 点击遮罩关闭
         panel.addEventListener('click', (e) => {
             if (e.target === panel) panel.style.display = 'none';
+        });
+        // 刷新
+        panel.querySelector('.nearby-refresh').addEventListener('click', () => {
+            findNearbyStations();
         });
     }
 
     const body = panel.querySelector('.nearby-body');
+    const refreshBtn = panel.querySelector('.nearby-refresh');
+
+    // ---- 刷新按钮：加载中禁用并旋转 ----
+    if (refreshBtn) {
+        const isLoading = (state === 'loading');
+        refreshBtn.disabled = isLoading;
+        refreshBtn.classList.toggle('spinning', isLoading);
+    }
 
     if (state === 'loading') {
         body.innerHTML = `<div class="nearby-loading">正在定位...</div>`;
