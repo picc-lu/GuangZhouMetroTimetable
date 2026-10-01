@@ -1,5 +1,5 @@
 // 版本号变更时触发缓存更新
-const CACHE_NAME = 'gz-metro-v1.0.12';
+const CACHE_NAME = 'gz-metro-v1.0.13';
 const ASSETS = [
     './',
     './index.html',
