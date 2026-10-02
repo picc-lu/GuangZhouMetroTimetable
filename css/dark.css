@@ -2,9 +2,8 @@
    夜间模式
    ========================================== */
 
-/* ---------- 基础 ---------- */
 [data-theme="dark"] body {
-    background: #0f1419;
+    background: #16161a;
     color: #e2e8f0;
 }
 
@@ -30,7 +29,7 @@
 }
 
 [data-theme="dark"] .author-footer {
-    background: #0f1419;
+    background: #1a1a1a;
 }
 
 [data-theme="dark"] .yesterday-data-notice {
@@ -174,15 +173,6 @@
 [data-theme="dark"] .line-container:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
-
-/*[data-theme="dark"] .line-container:nth-child(odd) {*/
-/*    background: #161d2b;*/
-/*}*/
-
-/*[data-theme="dark"] .line-meta {*/
-/*    border-color: #2d3748;*/
-/*    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);*/
-/*}*/
 
 [data-theme="dark"] .col-station {
     color: #ffffff;
@@ -352,10 +342,6 @@
 }
 
 [data-theme="dark"] .inactive-segment {
-    color: #48484a !important;
-}
-
-[data-theme="dark"] .inactive-dot .dot-symbol {
     color: #48484a !important;
 }
 

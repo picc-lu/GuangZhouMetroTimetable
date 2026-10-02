@@ -3,11 +3,18 @@
 function getFontSizes() {
     let timeMetaFontSize = '12px';
     let stationFontSize = 16;
-    if (rowHeight === 65) { timeMetaFontSize = '14px'; stationFontSize = 18; }
-    else if (rowHeight === 55) { timeMetaFontSize = '13px'; stationFontSize = 17; }
-    else if (rowHeight === 35) { stationFontSize = 15; }
-    else if (rowHeight === 25) { stationFontSize = 14; }
-    return { timeMetaFontSize, stationFontSize };
+    if (rowHeight === 65) {
+        timeMetaFontSize = '14px';
+        stationFontSize = 18;
+    } else if (rowHeight === 55) {
+        timeMetaFontSize = '13px';
+        stationFontSize = 17;
+    } else if (rowHeight === 35) {
+        stationFontSize = 15;
+    } else if (rowHeight === 25) {
+        stationFontSize = 14;
+    }
+    return {timeMetaFontSize, stationFontSize};
 }
 
 /**
@@ -24,19 +31,19 @@ function computeLineActivity(line, stations, currentMin) {
         const st = stations[i];
         if (line === '11号线') {
             const d = lineDirectionTime[line]?.[st] || {};
-            upActiveCache[i]   = !!(d.upFull     && currentMin >= d.upFull.first     && currentMin <= d.upFull.last)
+            upActiveCache[i] = !!(d.upFull && currentMin >= d.upFull.first && currentMin <= d.upFull.last)
                 || !!(d.upTerminal && currentMin >= d.upTerminal.first && currentMin <= d.upTerminal.last);
-            downActiveCache[i] = !!(d.downFull     && currentMin >= d.downFull.first     && currentMin <= d.downFull.last)
+            downActiveCache[i] = !!(d.downFull && currentMin >= d.downFull.first && currentMin <= d.downFull.last)
                 || !!(d.downTerminal && currentMin >= d.downTerminal.first && currentMin <= d.downTerminal.last);
         } else {
             const up = lineDirectionTime[line]?.[st]?.up || [];
             const down = lineDirectionTime[line]?.[st]?.down || [];
-            upActiveCache[i]   = up.some(t => currentMin >= t.first && currentMin <= t.last);
+            upActiveCache[i] = up.some(t => currentMin >= t.first && currentMin <= t.last);
             downActiveCache[i] = down.some(t => currentMin >= t.first && currentMin <= t.last);
         }
         if (upActiveCache[i] || downActiveCache[i]) hasActiveStation = true;
     }
-    return { upActiveCache, downActiveCache, hasActiveStation };
+    return {upActiveCache, downActiveCache, hasActiveStation};
 }
 
 /** 构建 3 号线「乘坐提示」徽章（嵌入 tab 内，点击弹出说明） */
@@ -93,45 +100,9 @@ function buildLineNote() {
     return tip;
 }
 
-/** 构建线路名卡片的内部 HTML（含主名 + 副名排版） */
-function buildLineNameHtml(line) {
-    // let mainPart = line;
-    // let extraPart = '';
-    // const lineIndex = line.lastIndexOf('线');
-    // if (lineIndex !== -1 && lineIndex < line.length - 1) {
-    //     mainPart = line.substring(0, lineIndex + 1);
-    //     extraPart = line.substring(lineIndex + 1);
-    // }
-    // const extraFontSize = getExtraFontSize(extraPart);
-    // let nameHtml = '';
-    // const numMatch = mainPart.match(/^(\d+)(.*)/);
-    // if (numMatch) {
-    //     nameHtml = `<div class="line-num" style="writing-mode: horizontal-tb; font-size: 18px; letter-spacing: 1px;">${numMatch[1]}</div>
-    //         <div class="line-str" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px; margin-top: 2px;">${numMatch[2]}</div>`;
-    // } else {
-    //     nameHtml = `<div class="line-main" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px;">${mainPart}</div>`;
-    // }
-    // if (extraPart) {
-    //     let extraHtml = extraPart;
-    //     let extraCls = 'line-extra';
-    //     if (extraPart.includes('（') || extraPart.includes('(')) {
-    //         extraHtml = extraPart.replace(/[（(]|[)）]/g, '');
-    //         extraCls += ' extra-long';
-    //     }
-    //     nameHtml += `<div class="${extraCls}" style="font-size: ${extraFontSize}px; line-height: 1.4; writing-mode: vertical-lr; text-orientation: upright;">${extraHtml}</div>`;
-    // }
-
-    // 卡片 tab 只需一行纯文本，形如 "2号线" / "3号线北"
-    const tabText = document.createElement('span');
-    tabText.className = 'line-tab-text';
-    tabText.textContent = line;
-    meta.appendChild(tabText);
-    return nameHtml;
-}
-
 function renderAllLines() {
     const currentMin = getCurrentMinutes();
-    const { timeMetaFontSize, stationFontSize } = getFontSizes();
+    const {timeMetaFontSize, stationFontSize} = getFontSizes();
 
     // 保存滚动位置
     document.querySelectorAll('.scroll-area').forEach((area) => {
@@ -148,7 +119,7 @@ function renderAllLines() {
         if (!selectedLines.has(line)) return;
 
         const originalColor = LINE_COLORS[line] || '#888';
-        const { upActiveCache, downActiveCache, hasActiveStation } =
+        const {upActiveCache, downActiveCache, hasActiveStation} =
             computeLineActivity(line, stations, currentMin);
         const color = hasActiveStation ? originalColor : getGrayscaleColor(originalColor);
 
@@ -226,6 +197,8 @@ function renderAllLines() {
 
             diagram.appendChild(col);
 
+            const arrowColor = isDarkMode() ? brightenForDarkMode(color) : color;
+
             if (i < n - 1) {
                 const arrowCol = document.createElement('div');
                 arrowCol.className = 'arrow-column';
@@ -233,7 +206,8 @@ function renderAllLines() {
                 const arrowUp = document.createElement('div');
                 arrowUp.className = 'arrow-up';
                 arrowUp.style.height = rowHeight + 'px';
-                arrowUp.innerHTML = `<span class="segment-cell ${upActiveCache[i] ? 'active-segment' : 'inactive-segment'}" style="color: ${upActiveCache[i] ? color : '#b3c3d9'};">➔</span>`;
+                arrowUp.innerHTML = `<span class="segment-cell ${upActiveCache[i] ? 'active-segment' : 'inactive-segment'}"
+    style="color: ${upActiveCache[i] ? arrowColor : '#b3c3d9'};">➜</span>`;
                 arrowCol.appendChild(arrowUp);
 
                 const blank = document.createElement('div');
@@ -244,7 +218,8 @@ function renderAllLines() {
                 arrowDown.className = 'arrow-down down-arrow';
                 arrowDown.style.height = rowHeight + 'px';
                 const nextDownActive = downActiveCache[i + 1];
-                arrowDown.innerHTML = `<span class="segment-cell ${nextDownActive ? 'active-segment' : 'inactive-segment'}" style="color: ${nextDownActive ? color : '#b3c3d9'};">➔</span>`;
+                arrowDown.innerHTML = `<span class="segment-cell ${nextDownActive ? 'active-segment' : 'inactive-segment'}"
+    style="color: ${nextDownActive ? arrowColor : '#b3c3d9'};">➜</span>`;
                 arrowCol.appendChild(arrowDown);
 
                 diagram.appendChild(arrowCol);
@@ -282,7 +257,7 @@ function updateLinesTime() {
     }
 
     const currentMin = getCurrentMinutes();
-    const { timeMetaFontSize, stationFontSize } = getFontSizes();
+    const {timeMetaFontSize, stationFontSize} = getFontSizes();
 
     wrapper.querySelectorAll('.line-container').forEach(lineDiv => {
         const line = lineDiv.dataset.line;
@@ -293,7 +268,7 @@ function updateLinesTime() {
         const n = stations.length;
 
         // 一次性算出该线路的所有活动状态（复用共享函数）
-        const { upActiveCache, downActiveCache, hasActiveStation } =
+        const {upActiveCache, downActiveCache, hasActiveStation} =
             computeLineActivity(line, stations, currentMin);
 
         const color = hasActiveStation ? originalColor : getGrayscaleColor(originalColor);
@@ -342,17 +317,19 @@ function updateLinesTime() {
             const upArrow = arrowCol.querySelector('.arrow-up .segment-cell');
             const downArrow = arrowCol.querySelector('.arrow-down .segment-cell');
 
+            const arrowColor = isDarkMode() ? brightenForDarkMode(color) : color;
+
             if (upArrow) {
                 const isActive = upActiveCache[i];
                 upArrow.classList.toggle('active-segment', isActive);
                 upArrow.classList.toggle('inactive-segment', !isActive);
-                upArrow.style.color = isActive ? color : '#b3c3d9';
+                upArrow.style.color = isActive ? arrowColor : '#b3c3d9';
             }
             if (downArrow) {
                 const isActive = downActiveCache[i + 1];
                 downArrow.classList.toggle('active-segment', isActive);
                 downArrow.classList.toggle('inactive-segment', !isActive);
-                downArrow.style.color = isActive ? color : '#b3c3d9';
+                downArrow.style.color = isActive ? arrowColor : '#b3c3d9';
             }
         });
     });

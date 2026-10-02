@@ -139,3 +139,42 @@ function highlightActiveMode() {
         customPanel.classList.remove('active-mode');
     }
 }
+
+/** 把任意颜色转成深色背景下可读的版本：保留色相，提高亮度到至少 65% */
+function brightenForDarkMode(hexColor) {
+    // 复用已有的 hex → HSL 逻辑
+    const hsl = hexToHslObj(hexColor);          // 需要新增一个小工具
+    const l = Math.max(hsl.l, 65);
+    const s = Math.min(Math.max(hsl.s, 50), 90);
+    return `hsl(${hsl.h}, ${s}%, ${l}%)`;
+}
+
+function hexToHslObj(hex) {
+    let r, g, b;
+    const hh = hex.replace('#', '');
+    if (hh.length === 3) {
+        r = parseInt(hh[0] + hh[0], 16) / 255;
+        g = parseInt(hh[1] + hh[1], 16) / 255;
+        b = parseInt(hh[2] + hh[2], 16) / 255;
+    } else {
+        r = parseInt(hh.slice(0, 2), 16) / 255;
+        g = parseInt(hh.slice(2, 4), 16) / 255;
+        b = parseInt(hh.slice(4, 6), 16) / 255;
+    }
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+/** 当前主题是否夜间 */
+function isDarkMode() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+}

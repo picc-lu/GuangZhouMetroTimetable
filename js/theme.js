@@ -15,9 +15,9 @@
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         const btn = document.getElementById('theme-toggle');
-        if (btn) {
-            btn.title = theme === 'dark' ? '切换到日间模式' : '切换到夜间模式';
-        }
+        if (btn) btn.title = theme === 'dark' ? '切换到日间模式' : '切换到夜间模式';
+        // 主题变了，箭头颜色需要跟着变
+        if (typeof scheduleRender === 'function') scheduleRender();
     }
 
     function toggleTheme() {
