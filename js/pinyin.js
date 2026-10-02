@@ -4,8 +4,6 @@
 
 const PINYIN_DICT = {
     // ===== 多音字 / 易错字（必须收录） =====
-    '区': 'ou',      // 区庄 → ōu zhuāng（非 qū）
-    '员': 'yuan',    // 员村、员岗 → yuán（非 yùn）
     '长': 'chang',   // 长湴、长寿路 → cháng（非 zhǎng）
     '湴': 'ban',     // 长湴 → bàn
     '塱': 'lang',    // 柯木塱、西塱 → lǎng
@@ -49,7 +47,7 @@ const PINYIN_DICT = {
     '大': 'da', '学': 'xue', '赤': 'chi', '鹭': 'lu', '江': 'jiang',
     '新': 'xin', '港': 'gang', '磨': 'mo', '碟': 'die', '万': 'wan', '胜': 'sheng',
     '围': 'wei', '琶': 'pa', '车': 'che', '陂': 'bei', '双': 'shuang',
-    '海': 'hai', '神': 'shen', '庙': 'miao', '头': 'tou', '夏': 'xia', '园': 'yuan',
+    '海': 'hai', '神': 'shen', '区': 'qu', '庙': 'miao', '头': 'tou', '夏': 'xia', '园': 'yuan',
     '白': 'bai', '江': 'jiang', '官': 'guan', '湖': 'hu', '坦': 'tan', '尾': 'wei',
     '贝': 'bei', '横': 'heng', '浔': 'xun', '峰': 'feng', '小': 'xiao',
     '羊': 'yang', '邨': 'cun', '科': 'ke', '韵': 'yun', '石': 'shi', '壁': 'bi',
@@ -118,15 +116,8 @@ const PINYIN_DICT = {
 // 格式：词组 → 每个字的读音数组（长度必须等于词组汉字数）
 // 注意：只写汉字，不含括号/数字/字母
 const PINYIN_PHRASE_DICT = {
-    // 「区」：区庄读 ōu，其余读 qū
     '区庄': ['ou', 'zhuang'],
-    '区少年宫': ['qu', 'shao', 'nian', 'gong'],
-    '金融高新区': ['jin', 'rong', 'gao', 'xin', 'qu'],
     '虫雷': ['lei'],
-
-    // 以后遇到类似情况，一行一个词
-    // 例：'番禺': ['pan', 'yu'],
-    // 例：'长湴': ['chang', 'ban'],
 };
 
 // 站名 → { py: 'quanzhuang', abbr: 'qz' }

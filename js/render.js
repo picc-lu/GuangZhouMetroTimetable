@@ -206,8 +206,7 @@ function renderAllLines() {
                 const arrowUp = document.createElement('div');
                 arrowUp.className = 'arrow-up';
                 arrowUp.style.height = rowHeight + 'px';
-                arrowUp.innerHTML = `<span class="segment-cell ${upActiveCache[i] ? 'active-segment' : 'inactive-segment'}"
-    style="color: ${upActiveCache[i] ? arrowColor : '#b3c3d9'};">➜</span>`;
+                arrowUp.innerHTML = `<span class="segment-cell ${upActiveCache[i] ? 'active-segment' : 'inactive-segment'}" style="color: ${upActiveCache[i] ? color : '#b3c3d9'};">${arrowSvg()}</span>`;
                 arrowCol.appendChild(arrowUp);
 
                 const blank = document.createElement('div');
@@ -218,8 +217,7 @@ function renderAllLines() {
                 arrowDown.className = 'arrow-down down-arrow';
                 arrowDown.style.height = rowHeight + 'px';
                 const nextDownActive = downActiveCache[i + 1];
-                arrowDown.innerHTML = `<span class="segment-cell ${nextDownActive ? 'active-segment' : 'inactive-segment'}"
-    style="color: ${nextDownActive ? arrowColor : '#b3c3d9'};">➜</span>`;
+                arrowDown.innerHTML = `<span class="segment-cell ${nextDownActive ? 'active-segment' : 'inactive-segment'}" style="color: ${nextDownActive ? color : '#b3c3d9'};">${arrowSvg()}</span>`;
                 arrowCol.appendChild(arrowDown);
 
                 diagram.appendChild(arrowCol);
@@ -323,13 +321,13 @@ function updateLinesTime() {
                 const isActive = upActiveCache[i];
                 upArrow.classList.toggle('active-segment', isActive);
                 upArrow.classList.toggle('inactive-segment', !isActive);
-                upArrow.style.color = isActive ? arrowColor : '#b3c3d9';
+                upArrow.innerHTML = arrowSvg('right', isActive ? color : '#b3c3d9');
             }
             if (downArrow) {
                 const isActive = downActiveCache[i + 1];
                 downArrow.classList.toggle('active-segment', isActive);
                 downArrow.classList.toggle('inactive-segment', !isActive);
-                downArrow.style.color = isActive ? arrowColor : '#b3c3d9';
+                downArrow.innerHTML = arrowSvg('right', isActive ? color : '#b3c3d9');
             }
         });
     });
@@ -370,6 +368,16 @@ function renderCellContent(line, station, stations, idx, isUp, currentMin, hasAc
         if (toName.includes('（') && toName.includes('）')) toName = toName.split('（')[0];
         return buildOneTime(t, currentMin, hasActiveStation, timeMetaFontSize, toName);
     }).join('');
+}
+
+/** 生成向右箭头 SVG（源自用户提供的图标，fill 跟随 currentColor） */
+function arrowSvg() {
+    return `<svg viewBox="0 0 1024 1024" width="18" height="18"
+                 xmlns="http://www.w3.org/2000/svg"
+                 style="display:block; flex-shrink:0;">
+        <path d="M941.34 466.656a63.508 63.508 0 0 0-2.914-2.719L685.134 210.656c-24.882-24.881-65.599-24.881-90.482 0-24.885 24.883-24.885 65.602 0 90.485l146.861 146.855H127.996c-35.2 0-64 28.8-64 64s28.8 64 64 64h613.517l-146.86 146.855c-24.885 24.883-24.885 65.602 0 90.485 24.882 24.881 65.599 24.881 90.482 0l253.292-253.281a64.641 64.641 0 0 0 2.914-2.719c12.467-12.466 18.686-28.907 18.661-45.34 0.024-16.433-6.195-32.873-18.662-45.34z"
+              fill="currentColor"></path>
+    </svg>`;
 }
 
 function buildOneTime(time, currentMin, hasActiveStation, timeMetaFontSize, prefix) {

@@ -218,6 +218,12 @@
         font-size: 20px !important;
     }
 
+    .arrow-up svg,
+    .arrow-down svg {
+        width: 16px;
+        height: 16px;
+    }
+
     .dot-symbol {
         font-size: 12px !important;
     }
