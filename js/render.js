@@ -39,24 +39,22 @@ function computeLineActivity(line, stations, currentMin) {
     return { upActiveCache, downActiveCache, hasActiveStation };
 }
 
-/** 构建 3 号线"乘坐提示"卡片（点击弹出长文本说明） */
+/** 构建 3 号线「乘坐提示」徽章（嵌入 tab 内，点击弹出说明） */
 function buildLineNote() {
-    const note = document.createElement('div');
-    note.className = 'line-note';
-    note.style.cursor = 'pointer';
-    note.innerHTML = '乘<br>坐<br>提<br>示';
+    const tip = document.createElement('span');
+    tip.className = 'line-meta-tip';
+    tip.textContent = '乘坐提示';
+    tip.title = '点击查看 3 号线乘坐提示';
 
-    note.addEventListener('click', (e) => {
+    tip.addEventListener('click', (e) => {
         e.stopPropagation();
         if (typeof ensureModal !== 'function') return;
 
         ensureModal();
         modalHistory.length = 0;
 
-        // 1. 停止所有定时器（防止后台刷新干扰）
         if (typeof stopModalTimers === 'function') stopModalTimers();
 
-        // 2. 设置抬头颜色为 3 号线主题色
         const modalHeader = document.querySelector('.modal-header');
         const lineColor = LINE_COLORS['3号线'] || '#eca154';
         modalHeader.style.background = lineColor;
@@ -67,7 +65,6 @@ function buildLineNote() {
             h3El.style.color = getContrastColor(lineColor);
         }
 
-        // 3. 注入提示内容
         const modalContent = document.querySelector('.modal-content');
         if (modalContent) {
             modalContent.innerHTML = `<div style="padding: 20px; font-size: 16px; line-height: 1.8; color: #333;">
@@ -75,7 +72,6 @@ function buildLineNote() {
             </div>`;
         }
 
-        // 4. 隐藏倒计时进度条和刷新按钮
         const refreshBar = document.querySelector('.modal-refresh-bar');
         if (refreshBar) {
             refreshBar.classList.remove('animating');
@@ -84,44 +80,52 @@ function buildLineNote() {
         const refreshBtn = document.querySelector('.v-refresh-btn');
         if (refreshBtn) refreshBtn.style.display = 'none';
 
-        // 5. 隐藏返回按钮（提示不属于线路详情历史）
         const prevBtn = document.querySelector('.v-prev-btn');
         if (prevBtn) prevBtn.classList.remove('show');
 
-        // 6. 显示弹窗
+        // 6. 锁定 body 滚动并保存位置
+        lockBodyScroll();
+
+        // 7. 显示弹窗
         document.querySelector('.modal-overlay').style.display = 'flex';
     });
 
-    return note;
+    return tip;
 }
 
 /** 构建线路名卡片的内部 HTML（含主名 + 副名排版） */
 function buildLineNameHtml(line) {
-    let mainPart = line;
-    let extraPart = '';
-    const lineIndex = line.lastIndexOf('线');
-    if (lineIndex !== -1 && lineIndex < line.length - 1) {
-        mainPart = line.substring(0, lineIndex + 1);
-        extraPart = line.substring(lineIndex + 1);
-    }
-    const extraFontSize = getExtraFontSize(extraPart);
-    let nameHtml = '';
-    const numMatch = mainPart.match(/^(\d+)(.*)/);
-    if (numMatch) {
-        nameHtml = `<div class="line-num" style="writing-mode: horizontal-tb; font-size: 18px; letter-spacing: 1px;">${numMatch[1]}</div>
-            <div class="line-str" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px; margin-top: 2px;">${numMatch[2]}</div>`;
-    } else {
-        nameHtml = `<div class="line-main" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px;">${mainPart}</div>`;
-    }
-    if (extraPart) {
-        let extraHtml = extraPart;
-        let extraCls = 'line-extra';
-        if (extraPart.includes('（') || extraPart.includes('(')) {
-            extraHtml = extraPart.replace(/[（(]|[)）]/g, '');
-            extraCls += ' extra-long';
-        }
-        nameHtml += `<div class="${extraCls}" style="font-size: ${extraFontSize}px; line-height: 1.4; writing-mode: vertical-lr; text-orientation: upright;">${extraHtml}</div>`;
-    }
+    // let mainPart = line;
+    // let extraPart = '';
+    // const lineIndex = line.lastIndexOf('线');
+    // if (lineIndex !== -1 && lineIndex < line.length - 1) {
+    //     mainPart = line.substring(0, lineIndex + 1);
+    //     extraPart = line.substring(lineIndex + 1);
+    // }
+    // const extraFontSize = getExtraFontSize(extraPart);
+    // let nameHtml = '';
+    // const numMatch = mainPart.match(/^(\d+)(.*)/);
+    // if (numMatch) {
+    //     nameHtml = `<div class="line-num" style="writing-mode: horizontal-tb; font-size: 18px; letter-spacing: 1px;">${numMatch[1]}</div>
+    //         <div class="line-str" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px; margin-top: 2px;">${numMatch[2]}</div>`;
+    // } else {
+    //     nameHtml = `<div class="line-main" style="writing-mode: vertical-lr; text-orientation: upright; font-size: 18px; letter-spacing: 2px;">${mainPart}</div>`;
+    // }
+    // if (extraPart) {
+    //     let extraHtml = extraPart;
+    //     let extraCls = 'line-extra';
+    //     if (extraPart.includes('（') || extraPart.includes('(')) {
+    //         extraHtml = extraPart.replace(/[（(]|[)）]/g, '');
+    //         extraCls += ' extra-long';
+    //     }
+    //     nameHtml += `<div class="${extraCls}" style="font-size: ${extraFontSize}px; line-height: 1.4; writing-mode: vertical-lr; text-orientation: upright;">${extraHtml}</div>`;
+    // }
+
+    // 卡片 tab 只需一行纯文本，形如 "2号线" / "3号线北"
+    const tabText = document.createElement('span');
+    tabText.className = 'line-tab-text';
+    tabText.textContent = line;
+    meta.appendChild(tabText);
     return nameHtml;
 }
 
@@ -151,13 +155,24 @@ function renderAllLines() {
         const lineDiv = document.createElement('div');
         lineDiv.className = 'line-container';
         lineDiv.dataset.line = line;
+        lineDiv.style.setProperty('--line-color', color);   // 新增：卡片边框用线路色
 
         // 线路名卡片
         const meta = document.createElement('div');
         meta.className = 'line-meta';
         meta.style.backgroundColor = color;
         meta.style.color = getContrastColor(color);
-        meta.innerHTML = `<div class="line-name">${buildLineNameHtml(line)}</div>`;
+
+        const tabText = document.createElement('span');
+        tabText.className = 'line-tab-text';
+        tabText.textContent = line;
+        meta.appendChild(tabText);
+
+        if (line === '3号线') {
+            meta.appendChild(buildLineNote());
+        }
+
+        // meta.innerHTML = `<div class="line-name">${buildLineNameHtml(line)}</div>`;
         meta.style.cursor = 'pointer';
         meta.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -239,8 +254,6 @@ function renderAllLines() {
         scrollArea.appendChild(diagram);
         lineDiv.appendChild(scrollArea);
 
-        if (line === '3号线') lineDiv.appendChild(buildLineNote());
-
         wrapper.appendChild(lineDiv);
     });
 
@@ -286,6 +299,7 @@ function updateLinesTime() {
         const color = hasActiveStation ? originalColor : getGrayscaleColor(originalColor);
 
         // ---- 更新线路名卡片颜色 ----
+        lineDiv.style.setProperty('--line-color', color);
         const meta = lineDiv.querySelector('.line-meta');
         if (meta) {
             meta.style.backgroundColor = color;

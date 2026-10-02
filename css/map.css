@@ -1,64 +1,95 @@
 /* ==========================================
-   线路图主体布局
+   线路图主体布局 · 卡片式
    ========================================== */
 .map-wrapper {
-    background: white;
-    padding: 0;
-    border: 1px solid #e3eaf3;
-    border-bottom: none;
-    border-radius: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    background: transparent; /* 让卡片浮在页面底色上 */
+    padding: 8px 0;
+    border: none;
+    box-shadow: none;
     flex: 1;
 }
 
 .line-container {
-    display: flex;
-    align-items: center; /* 改为 center */
-    min-height: 135px; /* 新增：固定最小高度，让线路图有上下居中的空间 */
-    margin-bottom: 0;
-    padding: 0;
-    border-bottom: 7px dashed #e9eef5;
-    background: #ffffff;
-}
-
-.line-container:nth-child(odd) {
-    background: #f9f9fc;
-}
-
-.line-container:last-child {
-    border-bottom: none;
-}
-
-.line-meta {
-    flex: 0 0 180px;
-    padding: 20px;
-    margin-right: 16px;
-    background: transparent;
-    border-radius: 0 40px 40px 0;
-    border: 1px solid #ccd9ec;
-    border-left: none;
-    box-shadow: 0 2px 6px rgba(0, 20, 40, 0.04);
-    display: flex !important;
-    align-items: center !important;
-    transition: background 0.1s;
     position: relative;
-    align-self: stretch; /* 新增：让线路名卡片依然撑满整行高度，作为视觉分隔 */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid var(--line-color, #d1d1d6);
+    border-radius: 14px;
+    margin: 40px 12px 8px;
+    padding: 8px 0 12px;
+    overflow: visible; /* 关键：允许 tab 凸出卡片 */
+    min-height: 110px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s;
 }
 
-.line-name {
-    font-weight: 700;
-    display: flex;
-    flex-direction: column;
+.line-container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ---- 卡片顶部 tab（凸出在卡片外侧） ---- */
+.line-meta {
+    position: absolute;
+    top: -32px; /* 向上凸出 32px（字体变大后同步加高） */
+    left: -2px; /* 与卡片边框外沿对齐 */
+    height: 32px;
+    margin: 0 !important;
+    padding: 0 28px; /* 配合放大后的字，左右留白加大 */
+    background: var(--line-color, #d1d1d6);
+    color: #ffffff;
+    border-radius: 15px 15px 0 0; /* 左上角直角，右上角 14px 圆角 */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    white-space: normal;
-    gap: 4px;
+    font-size: 17px; /* ← 从 14px 放大到 17px */
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    line-height: 1;
+    cursor: pointer;
+    border: none;
+    flex: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition: filter 0.15s;
+    box-shadow: none;
+    z-index: 2; /* 保证盖在卡片边框之上 */
 }
 
-.line-main {
-    font-size: 30px;
-    line-height: 1.2;
+/* 关键：用伪元素填满 tab 左下角与卡片左上角圆弧之间的缺口 */
+.line-meta::after {
+    content: '';
+    position: absolute;
+    left: 0; /* 与 tab 左边缘对齐 */
+    top: 100%; /* 紧贴 tab 底部 */
+    width: 14px;
+    height: 14px;
+    background: inherit; /* 继承 tab 颜色 */
+    /* 遮罩：圆心在 (14,14)、半径 14px 的圆内部隐藏，圆外（缺口区域）显示 */
+    -webkit-mask-image: radial-gradient(circle 14px at 14px 14px, transparent 13.5px, #000 14px);
+    mask-image: radial-gradient(circle 14px at 14px 14px, transparent 13.5px, #000 14px);
+    pointer-events: none;
+}
+
+.line-meta:hover {
+    filter: brightness(1.06);
+}
+
+.line-meta:active {
+    filter: brightness(0.94);
+}
+
+/* tab 内文字 */
+.line-tab-text {
+    display: inline-block;
+    writing-mode: horizontal-tb;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
 }
 
 .scroll-area {
@@ -70,12 +101,13 @@
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
     transition: scrollbar-color 0.2s;
-    display: flex; /* 新增 */
-    align-items: center; /* 新增：垂直居中 */
+    display: flex;
+    align-items: center;
+    padding: 4px 0 4px 24px; /* 左内边距 24px：让站名/时间离卡片左边缘更远 */
 }
 
 .scroll-area:hover {
-    scrollbar-color: #aaa #f0f0f0;
+    scrollbar-color: #c7c7cc #f2f2f7;
 }
 
 .scroll-area::-webkit-scrollbar {
@@ -91,7 +123,7 @@
 }
 
 .scroll-area:hover::-webkit-scrollbar-thumb {
-    background: rgba(160, 180, 200, 0.5);
+    background: rgba(120, 120, 128, 0.35);
 }
 
 .scroll-area::-webkit-scrollbar-track {
@@ -101,7 +133,7 @@
 .line-diagram {
     display: flex;
     flex-direction: row;
-    align-items: center; /* 由 stretch 改为 center */
+    align-items: center;
     min-width: max-content;
     pointer-events: none;
     padding-right: 20px;
@@ -116,17 +148,6 @@
     align-self: center;
     pointer-events: auto;
     cursor: pointer;
-    transition: background 0.12s;
-}
-
-/* 悬停时给一点视觉反馈 */
-.station-column:hover {
-    background: rgba(43, 125, 233, 0.06);
-    border-radius: 8px;
-}
-
-.station-column:hover .col-station {
-    color: #2b7de9;
 }
 
 .col-up, .col-down {
@@ -145,9 +166,10 @@
     width: 100%;
     height: 25px;
     font-weight: 600;
-    color: #10273f;
+    color: #1c1c1e;
     font-size: 14px;
     white-space: nowrap;
+    letter-spacing: 0.3px;
 }
 
 .arrow-column {
@@ -156,7 +178,7 @@
     align-items: center;
     justify-content: stretch;
     min-width: 30px;
-    align-self: center; /* 新增 */
+    align-self: center;
 }
 
 .arrow-up, .arrow-down {
@@ -165,7 +187,7 @@
     justify-content: center;
     width: 100%;
     height: 45px;
-    font-size: 28px;
+    font-size: 16px;
     line-height: 1;
     transition: color 0.1s;
 }
@@ -179,15 +201,19 @@
     transform: scaleX(-1);
 }
 
+/* ---- 时间胶囊 ---- */
 .time-meta {
     font-size: 12px;
-    background: #f0f4fc;
-    padding: 2px 6px;
-    border-radius: 20px;
+    background: #f2f2f7;
+    padding: 3px 9px;
+    border-radius: 8px;
     white-space: nowrap;
-    color: #1f3a60;
-    border: 1px solid #cfddee;
+    color: #1c1c1e;
+    border: 1px solid transparent;
     display: inline-block;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 .time-meta.ended {
@@ -219,16 +245,31 @@
     color: #b3c3d9 !important;
 }
 
-.line-note {
-    background: #f0f4fc;
-    border-left: 4px solid #eca154;
-    font-size: 14px;
-    font-weight: bold;
-    padding: 8px 16px;
-    margin: 10px 10px 10px 0;
+/* tab 内的「乘坐提示」小徽章 */
+.line-meta-tip {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    padding: 3px 9px;
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 8px;
-    color: #1f2b3c;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    line-height: 1.5;
-    max-width: 220px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    color: #000;
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+    user-select: none;
+}
+
+.line-meta-tip:hover {
+    background: rgba(255, 255, 255, 0.42);
+}
+
+.line-meta-tip:active {
+    transform: scale(0.96);
 }

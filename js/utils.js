@@ -34,14 +34,16 @@ function initDragScroll() {
     const scrollAreas = document.querySelectorAll('.scroll-area');
     scrollAreas.forEach(area => {
         let isDown = false;
-        let startX;
+        let startX, startY;
         let scrollLeft;
+        let hasMoved = false;
 
         area.addEventListener('mousedown', (e) => {
             isDown = true;
-            area.dataset.dragged = '';
+            hasMoved = false;
             area.classList.add('active');
             startX = e.pageX - area.offsetLeft;
+            startY = e.pageY;
             scrollLeft = area.scrollLeft;
             e.preventDefault();
         });
@@ -54,18 +56,19 @@ function initDragScroll() {
         area.addEventListener('mouseup', () => {
             isDown = false;
             area.classList.remove('active');
-            // 延迟清除，让紧随其后的 click 先读到 dragged 标记
-            setTimeout(() => { delete area.dataset.dragged; }, 0);
+            // 拖拽后短暂标记，避免紧随的 click 被当成点击
+            if (hasMoved) {
+                area.dataset.dragged = '1';
+                setTimeout(() => { delete area.dataset.dragged; }, 50);
+            }
         });
 
         area.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - area.offsetLeft;
-            // 位移超过 5px 才认定为“拖拽”，避免手抖误判
-            if (Math.abs(x - startX) > 5) {
-                area.dataset.dragged = '1';
-            }
+            const y = e.pageY;
+            if (Math.abs(x - startX) > 5 || Math.abs(y - startY) > 5) hasMoved = true;
             const walk = (x - startX) * 1.5;
             area.scrollLeft = scrollLeft - walk;
         });

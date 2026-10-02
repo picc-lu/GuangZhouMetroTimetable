@@ -121,6 +121,7 @@ const PINYIN_PHRASE_DICT = {
     // 「区」：区庄读 ōu，其余读 qū
     '区庄': ['ou', 'zhuang'],
     '区少年宫': ['qu', 'shao', 'nian', 'gong'],
+    '金融高新区': ['jin', 'rong', 'gao', 'xin', 'qu'],
     '虫雷': ['lei'],
 
     // 以后遇到类似情况，一行一个词

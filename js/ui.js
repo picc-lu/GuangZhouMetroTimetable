@@ -150,6 +150,26 @@ function updateLoadingMessage(text) {
     }
 }
 
+/** 打开弹窗前锁定 body 滚动，并记录当前位置 */
+function lockBodyScroll() {
+    if (document.body.style.position === 'fixed') return;
+    bodyScrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${bodyScrollY}px`;
+}
+
+/** 关闭弹窗后恢复 body 滚动（仅在锁定过时才恢复） */
+function unlockBodyScroll() {
+    if (document.body.style.position !== 'fixed') return;
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, bodyScrollY);
+}
+
 function ensureModal() {
     if (!modalOverlay) {
         modalOverlay = document.createElement('div');
@@ -198,12 +218,8 @@ function ensureModal() {
                 modalOverlay.classList.remove('closing');
                 modalOverlay.style.display = 'none';
 
-                // 恢复 body 滚动
-                document.body.style.overflow = '';
-                document.body.style.position = '';
-                document.body.style.width = '';
-                document.body.style.top = '';
-                window.scrollTo(0, bodyScrollY);
+                // 恢复 body 滚动（内部会自动判断是否锁定过）
+                unlockBodyScroll();
             };
 
             // 监听动画结束事件，只执行一次
@@ -770,13 +786,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
     modalOverlay.style.display = 'flex';
 
     // 只在首次打开时记录页面位置，刷新时不覆盖
-    if (document.body.style.position !== 'fixed') {
-        bodyScrollY = window.scrollY;
-        document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.top = `-${bodyScrollY}px`;
-    }
+    lockBodyScroll();
 
     // 恢复该线路上次的滚动位置（默认 0）
     if (!keepScroll) {

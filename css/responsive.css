@@ -14,7 +14,7 @@
 
     .controls-row-1 {
         display: flex;
-        flex-wrap: nowrap !important;   /* 强制不换行 */
+        flex-wrap: nowrap !important; /* 强制不换行 */
         flex-direction: row !important;
         align-items: center;
         gap: 8px !important;
@@ -28,7 +28,7 @@
         padding: 4px 8px !important;
         justify-content: space-between;
         gap: 0 !important;
-        min-height: 58px;                    /* 与系统时间面板等高 */
+        min-height: 58px; /* 与系统时间面板等高 */
         align-items: center;
     }
 
@@ -160,66 +160,49 @@
         gap: 8px !important;
     }
 
-    /* ---------- 线路名卡片 ---------- */
+    .line-container {
+        margin: 34px 8px 6px;
+        padding: 6px 0 10px;
+        border-radius: 12px;
+        min-height: 100px;
+    }
+
     .line-meta {
-        flex: 0 0 35px !important;
-        width: 35px !important;
-        min-width: 35px !important;
-        padding: 8px 0 !important;
-        margin-right: 5px !important;
-        border-radius: 0 10px 10px 0 !important;
+        top: -28px;
+        height: 28px;
+        padding: 0 20px !important;
+        font-size: 15px !important; /* ← 移动端从 13px 提到 15px */
+        letter-spacing: 1.2px !important;
+        border-radius: 12px 12px 0 0 !important;
+        flex: none !important;
+        width: auto !important;
+        min-width: 0 !important;
+        margin: 0 !important;
     }
 
-    .line-name {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
+    /* 移动端缺口伪元素（半径随卡片圆角变小） */
+    .line-meta::after {
+        width: 12px;
+        height: 12px;
+        -webkit-mask-image: radial-gradient(circle 12px at 12px 12px, transparent 11.5px, #000 12px);
+        mask-image: radial-gradient(circle 12px at 12px 12px, transparent 11.5px, #000 12px);
     }
 
-    .line-main,
-    .line-num,
-    .line-str {
-        font-size: 15px !important;
-        writing-mode: vertical-lr;
-        text-orientation: upright;
-        letter-spacing: 0.5px;
-        line-height: 1.1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+    .line-tab-text {
+        font-size: 15px;
+        letter-spacing: 1.2px;
     }
 
-    .line-extra {
-        font-size: 10px !important;
-        writing-mode: vertical-lr;
-        text-orientation: upright;
-        letter-spacing: 0px;
-        margin-top: 2px;
-        display: inline-block;
-        word-break: keep-all;
-        line-height: 1.1;
+    .line-meta-tip {
+        margin-left: 8px;
+        padding: 2px 7px;
+        font-size: 10px;
+        letter-spacing: 0.3px;
+        border-radius: 6px;
     }
 
-    /* ---------- 3号线乘坐提示卡片 ---------- */
-    .line-note {
-        width: 50px !important;
-        padding: 8px 2px !important;
-        margin: 10px 6px 10px 0 !important;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        font-size: 13px !important;
-        font-weight: bold;
-        color: #1f2b3c;
-        background: #fff3e0;
-        border-left: 4px solid #eca154;
-        border-radius: 0 12px 12px 0 !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        text-align: center;
-        line-height: 1.4;
+    .scroll-area {
+        padding-left: 10px;
     }
 
     /* ---------- 站点列、箭头列与箭头 ---------- */
@@ -431,6 +414,7 @@
         font-size: 13px;
         border-radius: 20px;
     }
+
     /* 第二行：筛选（移动端隐藏） + 图标按钮右对齐 */
     .controls-row-1b {
         display: flex;
@@ -459,6 +443,7 @@
         font-size: 16px;
         margin-left: 6px;
     }
+
     /* 搜索框移动端：展开时占满剩余宽度 */
     .search-toggle {
         width: 40px;
@@ -483,17 +468,21 @@
         width: 40px;
         height: 36px;
     }
+
     .nearby-btn svg {
         width: 18px;
         height: 18px;
     }
+
     .nearby-container {
         width: 92%;
         max-width: none;
     }
+
     .nearby-item {
         padding: 10px 16px;
     }
+
     .nearby-name {
         font-size: 15px;
     }

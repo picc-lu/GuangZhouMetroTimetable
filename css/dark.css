@@ -161,27 +161,31 @@
 
 /* ---------- 线路图 ---------- */
 [data-theme="dark"] .map-wrapper {
-    background: #131a26;
-    border-color: #2d3748;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: transparent;
+    box-shadow: none;
 }
 
 [data-theme="dark"] .line-container {
-    background: #131a26;
-    border-bottom-color: #1e2638;
+    background: #1c1c1e;
+    /* border-color 由 --line-color 控制，保留线路色边框 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-[data-theme="dark"] .line-container:nth-child(odd) {
-    background: #161d2b;
+[data-theme="dark"] .line-container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-[data-theme="dark"] .line-meta {
-    border-color: #2d3748;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
+/*[data-theme="dark"] .line-container:nth-child(odd) {*/
+/*    background: #161d2b;*/
+/*}*/
+
+/*[data-theme="dark"] .line-meta {*/
+/*    border-color: #2d3748;*/
+/*    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);*/
+/*}*/
 
 [data-theme="dark"] .col-station {
-    color: #cbd5e1;
+    color: #ffffff;
 }
 
 [data-theme="dark"] .col-station-clickable:hover {
@@ -193,15 +197,9 @@
 }
 
 [data-theme="dark"] .time-meta {
-    background: #232b3d;
-    color: #94a3b8;
-    border-color: #2d3748;
-}
-
-[data-theme="dark"] .line-note {
-    background: #232b3d;
-    color: #cbd5e1;
-    border-left-color: #f59e0b;
+    background: #2c2c2e;
+    color: #ffffff;
+    border-color: transparent;
 }
 
 /* ---------- 弹窗 ---------- */
@@ -346,19 +344,19 @@
 }
 
 /* 弹窗里的“终”字和箭头 */
-[data-theme="dark"] .dot-symbol,
+[data-theme="dark"] .dot-symbol {
+    color: #8e8e93;
+}
 [data-theme="dark"] .segment-cell {
     color: #94a3b8;
 }
 
-/* 未激活的箭头颜色 */
 [data-theme="dark"] .inactive-segment {
-    color: #475569 !important;
+    color: #48484a !important;
 }
 
-/* 未激活圆点 */
 [data-theme="dark"] .inactive-dot .dot-symbol {
-    color: #475569 !important;
+    color: #48484a !important;
 }
 
 /* 时间卡片的默认未激活颜色（lineActive=false 时的字体） */
