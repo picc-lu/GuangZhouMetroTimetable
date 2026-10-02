@@ -561,3 +561,7 @@
 [data-theme="dark"] .sw-update-toast {
     background: rgba(35, 43, 61, 0.96);
 }
+
+[data-theme="dark"] .sw-update-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}

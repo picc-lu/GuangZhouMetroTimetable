@@ -161,11 +161,8 @@
             });
 
             // SW 激活切换后，自动刷新页面一次
-            let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                refreshing = true;
-                window.location.reload();
+                safeReload();
             });
         });
     }
@@ -177,20 +174,76 @@
         toast.id = 'sw-update-toast';
         toast.className = 'sw-update-toast';
         toast.innerHTML = `
-            <span>🎉 新版本已就绪</span>
-            <button type="button" class="sw-update-btn">立即刷新</button>
-            <button type="button" class="sw-update-close" aria-label="关闭">✕</button>
-        `;
+        <span>🎉 新版本已就绪</span>
+        <button type="button" class="sw-update-btn">立即刷新</button>
+        <button type="button" class="sw-update-close" aria-label="关闭">✕</button>
+    `;
         document.body.appendChild(toast);
 
         toast.querySelector('.sw-update-close').addEventListener('click', () => toast.remove());
         toast.querySelector('.sw-update-btn').addEventListener('click', () => {
-            if (reg.waiting) {
-                reg.waiting.postMessage({type: 'SKIP_WAITING'});
-            } else {
-                window.location.reload();
-            }
+            startSwUpdateAnimation(reg);
         });
+    }
+
+    /** 点击「立即刷新」后的过渡动画：Toast 淡出 → 全屏遮罩 + spinner → 触发更新 */
+    let _swUpdating = false;
+    let _swDidReload = false;
+
+    function safeReload() {
+        if (_swDidReload) return;
+        _swDidReload = true;
+        window.location.reload();
+    }
+
+    function startSwUpdateAnimation(reg) {
+        if (_swUpdating) return;
+        _swUpdating = true;
+
+        const toast = document.getElementById('sw-update-toast');
+        const btn = toast ? toast.querySelector('.sw-update-btn') : null;
+        const closeBtn = toast ? toast.querySelector('.sw-update-close') : null;
+
+        // 禁用按钮，防止重复触发
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '更新中…';
+        }
+        if (closeBtn) closeBtn.disabled = true;
+
+        // ---- 阶段 1：Toast 淡出（200ms）----
+        if (toast) toast.classList.add('sw-toast-fading');
+
+        setTimeout(() => {
+            if (toast) toast.remove();
+
+            // ---- 阶段 2：插入全屏遮罩 + spinner ----
+            const overlay = document.createElement('div');
+            overlay.id = 'sw-update-overlay';
+            overlay.className = 'sw-update-overlay';
+            overlay.innerHTML = `
+            <div class="sw-update-spinner"></div>
+            <div class="sw-update-text">正在更新…</div>
+        `;
+            document.body.appendChild(overlay);
+
+            // 下一帧加 show，触发淡入 transition
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => overlay.classList.add('show'));
+            });
+
+            // ---- 阶段 3：停留 500ms，再发更新指令 ----
+            setTimeout(() => {
+                if (reg && reg.waiting) {
+                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    // 兜底：若 3 秒内没触发 controllerchange，强制 reload
+                    setTimeout(safeReload, 3000);
+                } else {
+                    safeReload();
+                }
+            }, 500);
+
+        }, 200);
     }
 </script>
 </body>
