@@ -1,5 +1,8 @@
-// 版本号变更时触发缓存更新
-const CACHE_NAME = 'gz-metro-v1.0.17';
+// 从 constants.js 引入 APP_VERSION，避免缓存名两处维护
+importScripts('./js/constants.js');
+
+// 版本号变更时触发缓存更新（改 constants.js 里的 APP_VERSION 即可）
+const CACHE_NAME = `gz-metro-v${APP_VERSION}`;
 const ASSETS = [
     './',
     './index.html',

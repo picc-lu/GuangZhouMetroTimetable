@@ -93,7 +93,7 @@ async function fetchLineStations() {
     renderAllLines();
 }
 
-/** 第二步：获取各站运营时间（可选传入要抓取的站点子集，用于重试） */
+/** 第二步：获取各站运营时间 */
 async function fetchServiceTimes(stationsToFetch = null) {
     const allStationsSet = new Set();
     Object.values(LINE_STATIONS).forEach(stations => stations.forEach(s => allStationsSet.add(s)));
@@ -111,7 +111,6 @@ async function fetchServiceTimes(stationsToFetch = null) {
         rawServiceRecords = [];
         failedStations = [];
     } else {
-        // 从失败列表中移除本次要重试的站点（重试失败会重新加回来）
         failedStations = failedStations.filter(s => !uniqueStations.includes(s));
     }
 
@@ -122,11 +121,9 @@ async function fetchServiceTimes(stationsToFetch = null) {
     const concurrency = 5;
     const progressThreshold = 30;
 
-    // 记录已完成站点（跨重试保留）& 已恢复的线路
     const completedStations = _gzCompletedStations;
     const restoredLines = new Set();
 
-    // 检查是否有线路的全部站点已获取，若有则恢复按钮颜色
     function checkAndRestoreLines() {
         for (const [line, stations] of Object.entries(LINE_STATIONS)) {
             if (restoredLines.has(line)) continue;
@@ -137,11 +134,27 @@ async function fetchServiceTimes(stationsToFetch = null) {
         }
     }
 
-    // 首次进入时，先把已完成站点的线路恢复颜色（覆盖重试场景）
     for (const [line, stations] of Object.entries(LINE_STATIONS)) {
         if (stations.every(s => completedStations.has(s))) {
             setLineButtonState(line, true);
         }
+    }
+
+    // ====== 增量解析缓冲 ======
+    // 每个批次只解析"新到达"的记录，避免每次全量重新解析 O(n²)
+    const batchRecords = [];
+    // 是否是本次 fetchServiceTimes 第一次解析
+    // 重试模式：lineDirectionTime 已有数据，直接从"增量模式"开始
+    let hasParsedOnce = isRetry;
+
+    function flushBatch() {
+        if (batchRecords.length === 0) return;
+        parseTimeRecords(batchRecords, {
+            skipRender: true,
+            append: hasParsedOnce
+        });
+        hasParsedOnce = true;
+        batchRecords.length = 0;
     }
 
     const tasks = uniqueStations.map(station => async () => {
@@ -160,6 +173,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
                     }
                 }
                 rawServiceRecords.push(normalized);
+                batchRecords.push(normalized);   // 只把这批记录交给解析器
             });
         } catch (err) {
             console.warn(`获取站点 ${station} 失败:`, err);
@@ -170,7 +184,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
             checkAndRestoreLines();
             updateLoadingMessage(`正在获取最新运营首末时间... ${completed}/${total}`);
             if (completed % progressThreshold === 0 || completed === total) {
-                parseTimeRecords(rawServiceRecords, { skipRender: true });
+                flushBatch();
                 scheduleRender();
             }
         }
@@ -190,16 +204,16 @@ async function fetchServiceTimes(stationsToFetch = null) {
 
     await runTasks(tasks, concurrency);
 
-    parseTimeRecords(rawServiceRecords, { skipRender: true });
+    // 处理最后不足一个批次的残留记录
+    flushBatch();
     scheduleRender();
 
-    // 失败站点比例 <= 5% 才保存缓存，否则下次打开可能读到残缺数据
-    const totalAll = allStationsSet.size;
-    const failureRatio = failedStations.length / Math.max(totalAll, 1);
-    if (failureRatio <= 0.05) {
-        saveDataToCache(LINE_STATIONS, rawServiceRecords);
+    // ====== 缓存保存策略：保存成功部分 + 失败站点列表 ======
+    // 下次启动时优先用部分数据渲染，再后台重试失败站点
+    if (rawServiceRecords.length > 0) {
+        await saveDataToCache(LINE_STATIONS, rawServiceRecords, failedStations);
     } else {
-        console.warn(`[缓存] 失败站点过多 (${failedStations.length}/${totalAll} = ${(failureRatio * 100).toFixed(1)}%)，跳过保存`);
+        console.warn('[缓存] 无任何成功记录，跳过保存');
     }
 
     // 更新失败徽章

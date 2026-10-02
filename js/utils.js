@@ -1,5 +1,16 @@
 // ========== 通用工具函数 ==========
 
+// ========== HTML 转义（防止 XSS / 属性注入） ==========
+function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function getContrastColor(hexColor) {
     if (!hexColor || typeof hexColor !== 'string') return '#000000';
     let r, g, b;

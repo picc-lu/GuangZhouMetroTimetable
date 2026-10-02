@@ -4,7 +4,7 @@ const DB_NAME = 'gz_metro_db';
 const DB_VERSION = 1;
 const STORE_NAME = 'cache';
 const CACHE_KEY = 'latest';
-const CACHE_VERSION = 4; // 从 localStorage 切到 IndexedDB，版本 +1
+const CACHE_VERSION = 5; // 结构变化：新增 failedStations 字段
 
 let _dbPromise = null;
 function openDB() {
@@ -25,7 +25,6 @@ function openDB() {
 
 /**
  * 计算"运营日"（凌晨 5:00 为分界点）。
- * 例如 2026-10-01 03:00 → 2026-09-30
  */
 function getServiceDate(date = new Date()) {
     const d = new Date(date);
@@ -35,9 +34,9 @@ function getServiceDate(date = new Date()) {
     }).replace(/\//g, '-');
 }
 
-async function saveDataToCache(lineStations, serviceRecords) {
+async function saveDataToCache(lineStations, serviceRecords, failedStations = []) {
     const serviceDate = getServiceDate();
-    console.log('[缓存] 正在保存数据到 IndexedDB...');
+    console.log(`[缓存] 正在保存数据到 IndexedDB...（失败站点 ${failedStations.length} 个）`);
     try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -45,6 +44,7 @@ async function saveDataToCache(lineStations, serviceRecords) {
             version: CACHE_VERSION,
             lineStations,
             serviceRecords,
+            failedStations,      // 新增
             serviceDate,
             savedAt: Date.now()
         }, CACHE_KEY);
@@ -53,7 +53,7 @@ async function saveDataToCache(lineStations, serviceRecords) {
             tx.onerror = () => reject(tx.error);
             tx.onabort = () => reject(tx.error);
         });
-        console.log(`[缓存] 保存成功，运营日：${serviceDate}`);
+        console.log(`[缓存] 保存成功，运营日：${serviceDate}，失败站点：${failedStations.length}`);
     } catch (e) {
         console.error('[缓存] 保存失败：', e);
     }

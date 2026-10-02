@@ -84,17 +84,22 @@ function renderSearchResults(results) {
     box.innerHTML = results.map(r => {
         const isTransfer = r.lines.length > 1;
         const cls = isTransfer ? 'is-transfer' : 'is-single';
+        const safeStation = escapeHtml(r.station);
         const badges = r.lines.map(l => {
             const color = LINE_COLORS[l] || '#888';
             const textColor = getContrastColor(color);
-            return `<button class="search-line-badge" data-line="${l}" data-station="${r.station}" style="background:${color}; color:${textColor};">${shortLineName(l)}</button>`;
+            return `<button class="search-line-badge"
+                        data-line="${escapeHtml(l)}"
+                        data-station="${safeStation}"
+                        style="background:${color}; color:${textColor};">${escapeHtml(shortLineName(l))}</button>`;
         }).join('');
 
-        // 单线路站整行可点，所以把 data 放在行上
-        const rowAttrs = isTransfer ? '' : `data-line="${r.lines[0]}" data-station="${r.station}"`;
+        const rowAttrs = isTransfer
+            ? ''
+            : `data-line="${escapeHtml(r.lines[0])}" data-station="${safeStation}"`;
 
         return `<div class="search-result ${cls}" ${rowAttrs}>
-            <div class="search-station">${r.station}</div>
+            <div class="search-station">${safeStation}</div>
             <div class="search-line-badges">${badges}</div>
         </div>`;
     }).join('');

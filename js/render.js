@@ -206,7 +206,7 @@ function renderAllLines() {
                 const arrowUp = document.createElement('div');
                 arrowUp.className = 'arrow-up';
                 arrowUp.style.height = rowHeight + 'px';
-                arrowUp.innerHTML = `<span class="segment-cell ${upActiveCache[i] ? 'active-segment' : 'inactive-segment'}" style="color: ${upActiveCache[i] ? color : '#b3c3d9'};">${arrowSvg()}</span>`;
+                arrowUp.innerHTML = `<span class="segment-cell ${upActiveCache[i] ? 'active-segment' : 'inactive-segment'}" style="color: ${upActiveCache[i] ? arrowColor : '#b3c3d9'};">${arrowSvg()}</span>`;
                 arrowCol.appendChild(arrowUp);
 
                 const blank = document.createElement('div');
@@ -217,7 +217,7 @@ function renderAllLines() {
                 arrowDown.className = 'arrow-down down-arrow';
                 arrowDown.style.height = rowHeight + 'px';
                 const nextDownActive = downActiveCache[i + 1];
-                arrowDown.innerHTML = `<span class="segment-cell ${nextDownActive ? 'active-segment' : 'inactive-segment'}" style="color: ${nextDownActive ? color : '#b3c3d9'};">${arrowSvg()}</span>`;
+                arrowDown.innerHTML = `<span class="segment-cell ${nextDownActive ? 'active-segment' : 'inactive-segment'}" style="color: ${nextDownActive ? arrowColor : '#b3c3d9'};">${arrowSvg()}</span>`;
                 arrowCol.appendChild(arrowDown);
 
                 diagram.appendChild(arrowCol);
@@ -311,23 +311,25 @@ function updateLinesTime() {
         });
 
         // ---- 更新箭头（上箭头用本站状态，下箭头用下一站状态） ----
+        const arrowColor = isDarkMode() ? brightenForDarkMode(color) : color;
+
         lineDiv.querySelectorAll('.arrow-column').forEach((arrowCol, i) => {
             const upArrow = arrowCol.querySelector('.arrow-up .segment-cell');
             const downArrow = arrowCol.querySelector('.arrow-down .segment-cell');
-
-            const arrowColor = isDarkMode() ? brightenForDarkMode(color) : color;
 
             if (upArrow) {
                 const isActive = upActiveCache[i];
                 upArrow.classList.toggle('active-segment', isActive);
                 upArrow.classList.toggle('inactive-segment', !isActive);
-                upArrow.innerHTML = arrowSvg('right', isActive ? color : '#b3c3d9');
+                upArrow.style.color = isActive ? arrowColor : '#b3c3d9';
+                upArrow.innerHTML = arrowSvg();
             }
             if (downArrow) {
                 const isActive = downActiveCache[i + 1];
                 downArrow.classList.toggle('active-segment', isActive);
                 downArrow.classList.toggle('inactive-segment', !isActive);
-                downArrow.innerHTML = arrowSvg('right', isActive ? color : '#b3c3d9');
+                downArrow.style.color = isActive ? arrowColor : '#b3c3d9';
+                downArrow.innerHTML = arrowSvg();
             }
         });
     });
@@ -407,7 +409,8 @@ function buildOneTime(time, currentMin, hasActiveStation, timeMetaFontSize, pref
     }
 
     const displayInline = prefix ? 'display: inline-block;' : '';
-    const fullText = prefix ? `${prefix} ${boldText}` : boldText;
+    const safePrefix = prefix ? escapeHtml(prefix) : '';
+    const fullText = prefix ? `${safePrefix} ${boldText}` : boldText;
 
     return `<span class="${metaClass}" style="font-size: ${timeMetaFontSize}; ${displayInline} ${extra}">${fullText}</span>`;
 }

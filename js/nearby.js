@@ -184,16 +184,20 @@ function showNearbyPanel(state, data) {
                     ? `${Math.round(r.dist)} m`
                     : `${(r.dist / 1000).toFixed(2)} km`;
                 const isTransfer = lines.length > 1;
+                const safeName = escapeHtml(r.name);
                 const badges = lines.map(l => {
                     const color = LINE_COLORS[l] || '#888';
                     const textColor = getContrastColor(color);
-                    return `<span class="nearby-badge" data-line="${l}" data-station="${r.name}" style="background:${color}; color:${textColor};">${shortLineName(l)}</span>`;
+                    return `<span class="nearby-badge"
+                                  data-line="${escapeHtml(l)}"
+                                  data-station="${safeName}"
+                                  style="background:${color}; color:${textColor};">${escapeHtml(shortLineName(l))}</span>`;
                 }).join('');
                 return `<div class="nearby-item${isTransfer ? ' is-transfer' : ''}"
-                             data-station="${r.name}"
-                             data-lines='${JSON.stringify(lines)}'>
+                             data-station="${safeName}"
+                             data-lines='${escapeHtml(JSON.stringify(lines))}'>
                     <div class="nearby-info">
-                        <div class="nearby-name">${r.name}</div>
+                        <div class="nearby-name">${safeName}</div>
                         <div class="nearby-dist">直线距离约 ${distStr}</div>
                     </div>
                     <div class="nearby-badges">${badges}</div>
@@ -248,10 +252,10 @@ function toggleNearbyLinePicker(item, station, lines) {
         const color = LINE_COLORS[l] || '#888';
         const textColor = getContrastColor(color);
         return `<button class="nearby-picker-btn"
-                        data-line="${l}"
-                        data-station="${station}"
+                        data-line="${escapeHtml(l)}"
+                        data-station="${escapeHtml(station)}"
                         style="background:${color}; color:${textColor};">
-            <span class="nearby-picker-name">${l}</span>
+            <span class="nearby-picker-name">${escapeHtml(l)}</span>
             <span class="nearby-picker-arrow">→</span>
         </button>`;
     }).join('') + `</div>`;

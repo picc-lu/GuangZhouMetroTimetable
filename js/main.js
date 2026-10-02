@@ -80,7 +80,7 @@ document.getElementById('real-time-clock').textContent = (() => {
     return `${h}:${m}`;
 })();
 
-// ========== 凌晨时段（2:00~4:59）提示昨日数据 ==========
+// ========== 凌晨时段（2:00~3:59）提示昨日数据 ==========
 function showYesterdayDataNotice() {
     // 避免重复插入
     if (document.querySelector('.yesterday-data-notice')) return;
@@ -161,6 +161,14 @@ const now = new Date();
         console.log('[初始化] 命中当日缓存，使用缓存数据');
         LINE_STATIONS = cached.lineStations;
         rawServiceRecords = cached.serviceRecords;
+
+        // 缓存中已包含所有站点数据（含失败站点占位），先把它们标记为已完成，
+        // 避免后台重试时线路按钮颜色回退
+        _gzCompletedStations = new Set();
+        Object.values(LINE_STATIONS).forEach(stations => {
+            stations.forEach(s => _gzCompletedStations.add(s));
+        });
+
         populateLineFilter();
         populateLineButtons();
         parseTimeRecords(rawServiceRecords);
@@ -168,8 +176,21 @@ const now = new Date();
         currentCustomTime = null;
 
         const hour = now.getHours();
-        if (hour >= 2 && hour < 5) showYesterdayDataNotice();
+        if (hour >= 2 && hour < 4) showYesterdayDataNotice();   // 注释修正为 2:00~3:59
+
+        // ====== 后台重试上次失败的站点 ======
+        const cachedFailed = Array.isArray(cached.failedStations) ? cached.failedStations : [];
+        if (cachedFailed.length > 0) {
+            console.log(`[初始化] 缓存中有 ${cachedFailed.length} 个站点上次获取失败，后台重试中...`);
+            // 延迟一点，先让页面渲染完首屏
+            setTimeout(() => {
+                fetchServiceTimes(cachedFailed).catch(err => {
+                    console.warn('[初始化] 后台重试失败：', err);
+                });
+            }, 200);
+        }
     } else {
+        // ...原逻辑不变，注释修正为 2:00~3:59
         console.log('[初始化] 无当日缓存，拉取最新数据');
         try {
             _gzCompletedStations = new Set();

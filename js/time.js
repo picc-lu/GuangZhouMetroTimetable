@@ -1,5 +1,10 @@
 // ========== 11 号线解析相关常量 ==========
 const LINE11_NAME = '11号线';
+
+// 11 号线"全程"记录跨批次累计计数器，用于区分 up/down
+// 必须挂在模块级，否则增量解析时会丢状态
+let _line11FullCounter = {};
+
 // 11 号线的两种数据格式：
 //   格式 A（新）：带 remark 字段，如 "外环全程"、"内环终点"，
 //                或 toStationName 中带括号说明如 "XX(外环全程)"。
@@ -326,10 +331,14 @@ function parseLine11Record(rec, fullCounter) {
 }
 
 function parseTimeRecords(records, options = {}) {
-    const { skipRender = false } = options;
-    console.log('[解析] 开始解析运营时间记录，总数：', records.length);
-    lineDirectionTime = {};
-    const fullCounter = {}; // 用于11号线全程计数器
+    const { skipRender = false, append = false } = options;
+    console.log(`[解析] 开始解析运营时间记录，总数：${records.length}（${append ? '增量' : '全量'}）`);
+
+    if (!append) {
+        lineDirectionTime = {};
+        _line11FullCounter = {};
+    }
+    const fullCounter = _line11FullCounter;
 
     records.forEach((rec) => {
         const line = rec.lineCn;
@@ -387,10 +396,8 @@ function parseTimeRecords(records, options = {}) {
             if (!lineDirectionTime[line][st]) {
                 if (line === LINE11_NAME) {
                     lineDirectionTime[line][st] = {
-                        upFull: null,
-                        upTerminal: null,
-                        downFull: null,
-                        downTerminal: null
+                        upFull: null, upTerminal: null,
+                        downFull: null, downTerminal: null
                     };
                 } else {
                     lineDirectionTime[line][st] = { up: [], down: [] };
@@ -398,8 +405,8 @@ function parseTimeRecords(records, options = {}) {
             }
         });
     }
-    renderAllLines();
 
+    // 修复：原来无条件先调一次 renderAllLines()，即使 skipRender=true 也会全量重绘
     if (!skipRender) {
         renderAllLines();
     }

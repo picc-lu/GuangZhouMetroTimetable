@@ -447,8 +447,8 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         // 只要该线路有终点站数据，就使用顶部图例
         if (upSet.size > 0 || downSet.size > 0) {
             useTopLegend = true;
-            upTargetName = [...upSet].join(' ｜ '); // 修改这里：使用全角竖线作为分割线
-            downTargetName = [...downSet].join(' ｜ '); // 修改这里：使用全角竖线作为分割线
+            upTargetName = [...upSet].join(' ｜ ');
+            downTargetName = [...downSet].join(' ｜ ');
         }
     }
 
@@ -518,12 +518,12 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         html += `<div class="v-legend" style="--up-color-light: ${upColorLight}; --up-color-dark: ${upColorDark}; --down-color-light: ${downColorLight}; --down-color-dark: ${downColorDark};">
             <div class="v-legend-up">
                 <span class="v-legend-arrow">↓</span>
-                <span>往 ${upTargetName || '--'}</span>
+                <span>往 ${escapeHtml(upTargetName || '--')}</span>
             </div>
             <div class="v-legend-divider">|</div>
             <div class="v-legend-down">
                 <span class="v-legend-arrow">↑</span>
-                <span>往 ${downTargetName || '--'}</span>
+                <span>往 ${escapeHtml(downTargetName || '--')}</span>
             </div>
         </div>`;
     }
@@ -598,7 +598,6 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
                         downActive = (transferData.down || []).some(t => currentMin >= t.first && currentMin <= t.last);
                         isTransferActive = upActive || downActive;
 
-                        // 提取当前运营方向的终点站
                         if (upActive) {
                             const upTime = (transferData.up || []).find(t => currentMin >= t.first && currentMin <= t.last);
                             if (upTime) activeToStation = upTime.to;
@@ -627,34 +626,29 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
 
                 let displayName = tLine.replace(/号线/g, '');
                 if (displayName.includes('佛山')) displayName = displayName.replace(/佛山/g, '佛');
+                displayName = escapeHtml(displayName);
 
-                // 单方向判断，并修改分割线样式
                 if (isTransferActive && tLine !== '11号线' && upActive !== downActive && activeToStation) {
-                    // 检查该站点是否为换乘线路的起点或终点站
                     const transferStations = LINE_STATIONS[tLine] || [];
                     const isTerminal = transferStations.length > 0 &&
                         (realStation === transferStations[0] || realStation === transferStations[transferStations.length - 1]);
 
-                    // 只有非终点站才显示“仅xx方向”
                     if (!isTerminal) {
                         let toName = activeToStation;
                         if (toName.includes('（') && toName.includes('）')) toName = toName.split('（')[0];
                         if (toName.includes('(') && toName.includes(')')) toName = toName.split('(')[0];
 
-                        // 去掉“往”字，只保留“仅xx方向”
-                        displayName = `${displayName} <span class="v-transfer-icon direction">仅${toName}方向</span>`;
+                        displayName = `${displayName} <span class="v-transfer-icon direction">仅${escapeHtml(toName)}方向</span>`;
                     }
                 }
 
                 const titleAttr = isManual ? 'title="需出闸换乘"' : '';
 
-                // 目标站点名做 HTML/JS 字符串双重转义，防止站名含引号时破坏内联 onclick
-                const safeStation = String(realStation)
-                    .replace(/\\/g, '\\\\')
-                    .replace(/'/g, "\\'");
-
-                // 添加点击跳转事件（第 4 个参数 scrollToStation：跳转后自动滚到该站并高亮）
-                transferHtml += `<span class="${badgeClass}" ${titleAttr} style="background-color: ${color}; color: ${textColor};" onclick="event.stopPropagation(); showLineDetails('${tLine}', false, true, '${safeStation}');">${iconHtml}${displayName}</span>`;
+                transferHtml += `<span class="${badgeClass}"
+                                       ${titleAttr}
+                                       data-transfer-line="${escapeHtml(tLine)}"
+                                       data-transfer-station="${escapeHtml(realStation)}"
+                                       style="background-color: ${color}; color: ${textColor};">${iconHtml}${displayName}</span>`;
             });
             transferHtml += `</div>`;
         }
@@ -720,7 +714,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         html += `
             <div class="v-station-row ${hasTransferClass}">
                 <div class="${nameClass}">
-                    <span>${station}</span>
+                    <span>${escapeHtml(station)}</span>
                     ${transferHtml}
                 </div>
                 <div class="v-up-col">${upCard}</div>
@@ -759,6 +753,19 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
     }
 
     contentDiv.innerHTML = html;
+
+    // 换乘徽章点击：用事件委托绑定，替代内联 onclick，避免转义问题
+    contentDiv.querySelectorAll('.v-transfer-badge[data-transfer-line]').forEach(badge => {
+        badge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showLineDetails(
+                badge.dataset.transferLine,
+                false,
+                true,
+                badge.dataset.transferStation
+            );
+        });
+    });
 
     // 动态调整站点行的上内边距，防止换乘标签遮挡下方时间卡片
     requestAnimationFrame(() => {
