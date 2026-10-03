@@ -29,7 +29,18 @@ const ASSETS = [
     './js/theme.js',
     './js/main.js',
     './icons/icon.svg',
-    './icons/icon-384.png'
+    './icons/icon-384.png',
+
+    './data/metro-graph.json',
+    './css/route.css',
+    './js/route/heap.js',
+    './js/route/graph.js',
+    './js/route/dijkstra.js',
+    './js/route/yen.js',
+    './js/route/parser.js',
+    './js/route/planner.js',
+    './js/route/ui.js',
+
 ];
 
 self.addEventListener('install', (event) => {

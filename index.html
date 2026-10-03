@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/dark.css">
+    <link rel="stylesheet" href="css/route.css">
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#c5192d">
@@ -69,6 +70,16 @@
                 <circle cx="12" cy="10" r="3"></circle>
             </svg>
         </button>
+
+        <button id="route-plan-btn" class="route-plan-btn" type="button" title="路径规划" aria-label="路径规划">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="19" r="3"></circle>
+                <circle cx="18" cy="5" r="3"></circle>
+                <path d="M9 19h5a4 4 0 0 0 4-4V8"></path>
+            </svg>
+        </button>
+
         <button id="theme-toggle" class="theme-toggle" type="button" title="切换到夜间模式">
             <svg class="theme-icon icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,6 +149,16 @@
 <script src="js/ui.js"></script>
 <script src="js/render.js"></script>
 <script src="js/time.js"></script>
+
+<!-- 路径规划模块 -->
+<script src="js/route/heap.js"></script>
+<script src="js/route/graph.js"></script>
+<script src="js/route/dijkstra.js"></script>
+<script src="js/route/yen.js"></script>
+<script src="js/route/parser.js"></script>
+<script src="js/route/planner.js"></script>
+<script src="js/route/ui.js"></script>
+
 <script src="js/theme.js"></script>
 <script src="js/main.js"></script>
 <script>
