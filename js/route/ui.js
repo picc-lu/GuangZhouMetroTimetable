@@ -280,8 +280,16 @@ function getRealCurrentMinutes() {
 }
 
 function getRouteDepartMin() {
-    if (_routeDepartMin !== null) return _routeDepartMin;
-    return getRealCurrentMinutes();
+    let min;
+    if (_routeDepartMin !== null) {
+        min = _routeDepartMin;
+    } else {
+        const d = new Date();
+        min = d.getHours() * 60 + d.getMinutes();
+    }
+    // 0:00~1:59 归入次日凌晨（+1440），与 timeStrToMinutes 的解析规则保持一致
+    if (min < 120) min += 1440;
+    return min;
 }
 
 /* ==========================================
