@@ -12,9 +12,9 @@ const LINE_NAME_ALIASES = {
     '12号线西': ['12号线西', '12号线东'],
     '12号线东': ['12号线西', '12号线东'],
     '12号线': ['12号线西', '12号线东'],
-    '14号线': ['14号线', '14号线支线','14号线(知识城)'],
-    '14号线支线': ['14号线', '14号线支线','14号线(知识城)'],
-    '14号线(知识城)': ['14号线', '14号线支线','14号线(知识城)']
+    '14号线': ['14号线', '14号线支线', '14号线(知识城)'],
+    '14号线支线': ['14号线', '14号线支线', '14号线(知识城)'],
+    '14号线(知识城)': ['14号线', '14号线支线', '14号线(知识城)']
 };
 
 function getLineAliases(line) {
@@ -137,14 +137,14 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {number} departMin
  * @param {'fastest'|'conservative'} sortMode
  */
-async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest') {
+async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null) {
     await loadRouteGraph();
 
     const startNode = resolveGraphStationNode(startStation, 'start');
     const endNode = resolveGraphStationNode(endStation, 'end');
 
-    if (!startNode) return { error: `起点「${startStation}」不在线路图中` };
-    if (!endNode)   return { error: `终点「${endStation}」不在线路图中` };
+    if (!startNode) return {error: `起点「${startStation}」不在线路图中`};
+    if (!endNode) return {error: `终点「${endStation}」不在线路图中`};
 
     const paths = yenKShortestPaths(startNode, endNode, PLAN_MAX_K);
 
@@ -174,21 +174,43 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             continue;
         }
 
+        // ====== 新增：检测是否多次经过同一线路 ======
+        const repeatedLine = checkLineRepeat(p);
+        if (repeatedLine) {
+            rejected.push({
+                reason: `路径多次经过「${repeatedLine}」，已排除`,
+                totalCost: p.totalCost,
+            });
+            continue;
+        }
+        // =========================================
+
         const check = checkReachability(p, departMin);
         if (!check.feasible) {
             rejected.push({reason: check.reason, totalCost: p.totalCost});
             continue;
         }
 
-        // urgentCount 只统计换乘站 boarding（起点不计入，起点余量交给用户自主判断）
-        // boardings[0] 是起点，boardings[1..] 是换乘站
         const urgentCount = (check.boardingMargins || [])
             .filter(m => m != null && m !== 'unknown' && m < 15)
             .length;
 
-        // 起点自身的余量单独存，UI 里显示提示
         const startMargin = (check.boardingMargins && check.boardingMargins.length > 0)
             ? check.boardingMargins[0] : null;
+
+        // ====== 新增：单次换乘步行时长过滤 ======
+        const interchanges = parseInterchangeKeys(p, departMin);
+        if (maxTransferMin != null && maxTransferMin > 0 && interchanges.length > 0) {
+            const longTransfer = interchanges.find(o => o.walkMin > maxTransferMin);
+            if (longTransfer) {
+                rejected.push({
+                    reason: `换乘步行约 ${Math.round(longTransfer.walkMin)} 分钟，超过设定上限 ${maxTransferMin} 分钟`,
+                    totalCost: p.totalCost,
+                });
+                continue;
+            }
+        }
+        // ======================================
 
         results.push({
             path: p,
@@ -197,11 +219,11 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             stationRoute,
             route: parseInterchangeRoute(p, true),
             interchangeCost: parseInterchangeTimeCost(p),
-            interchanges: parseInterchangeKeys(p, departMin),
+            interchanges,                                     // ← 复用上面已算好的
             warnings: checkThreeLineCrossSegment(p, departMin),
             urgentCount,
             boardingMargins: check.boardingMargins,
-            startMargin,                                       // ← 新增
+            startMargin,
         });
 
         checkedCount++;
@@ -231,6 +253,51 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     return {results: finalResults, rejected, totalPaths: paths.length};
 }
 
+/* ==========================================
+   线路重复检查：过滤掉多次经过同一线路的路径
+   跳过：3号线、11号线（环线）
+   ========================================== */
+const REPEAT_CHECK_SKIP_LINES = new Set([
+    '3号线',
+    '11号线',
+]);
+
+/**
+ * 检查路径中是否多次经过同一线路（按"连续段"计数，避免同站多节点重复统计）。
+ * @returns {string|null} 重复的线路名；无重复返回 null
+ */
+function checkLineRepeat(path) {
+    const segments = [];
+    let lastLine = null;
+
+    for (const node of path.nodes) {
+        const parts = node.split('|');
+        if (parts.length < 2) continue;
+        if (parts[1] === '开始' || parts[1] === '结束') continue;
+
+        let lineName = parts[0];
+        // 与 parseRouteSegments 保持一致：3号线北归并到 3号线
+        if (lineName === '3号线北') lineName = '3号线';
+        if (lineName === '佛山3号线北') lineName = '佛山3号线';
+
+        if (lineName === lastLine) continue;   // 同一段连续线路只计一次
+        lastLine = lineName;
+        segments.push(lineName);
+    }
+
+    const counts = {};
+    for (const line of segments) {
+        counts[line] = (counts[line] || 0) + 1;
+    }
+
+    for (const [line, count] of Object.entries(counts)) {
+        if (count > 1 && !REPEAT_CHECK_SKIP_LINES.has(line)) {
+            return line;
+        }
+    }
+    return null;
+}
+
 function checkReachability(path, departMin) {
     let t = departMin;
     const boardings = [];
@@ -238,7 +305,7 @@ function checkReachability(path, departMin) {
     for (let i = 0; i < path.nodes.length - 1; i++) {
         const u = path.nodes[i], v = path.nodes[i + 1];
         const w = routeGetEdgeWeight(u, v);
-        if (w === null) return { feasible: false, reason: '路径边缺失' };
+        if (w === null) return {feasible: false, reason: '路径边缺失'};
 
         const uParts = u.split('|');
         const vParts = v.split('|');
@@ -287,7 +354,7 @@ function checkReachability(path, departMin) {
         }
         boardingMargins.push(margin);
     }
-    return { feasible: true, arriveMin: t, boardingMargins };
+    return {feasible: true, arriveMin: t, boardingMargins};
 }
 
 /**
@@ -307,31 +374,67 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
         return getLine11BoardingMargin(station, webDir, timeMin, downstreamStations);
     }
 
-    // 其它线路
+    // 收集该站该线路所有方向的记录
     const aliases = getLineAliases(webLine);
     const allRecords = [];
     for (const l of aliases) {
         const d = lineDirectionTime[l]?.[station];
         if (!d) continue;
-        for (const t of (d.up   || [])) allRecords.push(t);
+        for (const t of (d.up || [])) allRecords.push(t);
         for (const t of (d.down || [])) allRecords.push(t);
     }
     if (allRecords.length === 0) return 'unknown';
 
-    const targetName = webDir.replace(/方向$/, '');
-    const exactMatches = allRecords.filter(t => {
-        const toName = t.to.split(/[（(]/)[0];
-        return toName === targetName
-            || t.to.includes(targetName)
-            || targetName.includes(toName);
-    });
-    if (exactMatches.length > 0) {
-        const matched = exactMatches.find(t => timeMin >= t.first && timeMin <= t.last);
-        if (!matched) return null;
-        return matched.last - timeMin;
+    // =====================================================
+    // 第一层：用 downstream 筛选"能覆盖路径后续所有站"的记录
+    //  - to 落在 downstream 内 → 覆盖
+    //  - to 沿运行方向更远（超过 downstream 最后一站） → 也覆盖
+    // 应对多终点线路：Java 图只有一个方向名，Web 数据拆成多个终点
+    // =====================================================
+    let candidates = [];
+    if (downstreamStations && downstreamStations.length > 0) {
+        const lineStations = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS[webLine]) || [];
+        const lastDownstream = downstreamStations[downstreamStations.length - 1];
+        const idxStart = lineStations.indexOf(station);
+        const idxLast = lineStations.indexOf(lastDownstream);
+
+        candidates = allRecords.filter(t => {
+            const toName = t.to.split(/[（(]/)[0];
+            if (downstreamStations.includes(toName)) return true;
+            if (idxStart >= 0 && idxLast >= 0) {
+                const idxTo = lineStations.indexOf(toName);
+                if (idxTo < 0) return false;
+                if (idxLast > idxStart) return idxTo >= idxLast;   // 正向
+                if (idxLast < idxStart) return idxTo <= idxLast;   // 反向
+            }
+            return false;
+        });
     }
 
-    // 兜底
+    // =====================================================
+    // 第二层：downstream 筛选没结果时，退回方向精确匹配
+    // =====================================================
+    if (candidates.length === 0) {
+        const targetName = webDir.replace(/方向$/, '');
+        candidates = allRecords.filter(t => {
+            const toName = t.to.split(/[（(]/)[0];
+            return toName === targetName
+                || t.to.includes(targetName)
+                || targetName.includes(toName);
+        });
+    }
+
+    if (candidates.length > 0) {
+        // 时间上可行的记录里，取 last 最大的（最晚发车）
+        const matched = candidates.filter(t => timeMin >= t.first && timeMin <= t.last);
+        if (matched.length === 0) return null;
+        matched.sort((a, b) => b.last - a.last);
+        return matched[0].last - timeMin;
+    }
+
+    // =====================================================
+    // 第三层：兜底，用该站该线路最晚末班车
+    // =====================================================
     const latestLast = Math.max(...allRecords.map(t => t.last));
     if (timeMin > latestLast) return null;
     return latestLast - timeMin;
@@ -352,7 +455,7 @@ function getLine11BoardingMargin(station, dirStr, timeMin, downstreamStations) {
     const isInner = dirStr.includes('内环');
     if (!isOuter && !isInner) return 'unknown';
 
-    const full     = isOuter ? d.upFull     : d.downFull;
+    const full = isOuter ? d.upFull : d.downFull;
     const terminal = isOuter ? d.upTerminal : d.downTerminal;
 
     // 硬编码区间车终点（广州地铁 11 号线的固定设计）
@@ -499,9 +602,9 @@ function checkThreeLineCrossSegment(path, departMin) {
 
         warnings.push({
             type: 'south_to_north_no_through',
-            message: `现时，3 号线可能已无机场北方向。如需前往机场北方向，可乘坐天河客运站方向的列车，在体育西路换乘。`
+            message: `到达 3 号线可能已无机场北方向。如需前往林和西~机场北，可乘坐天河客运站方向的列车，在体育西路换乘。`
                 + (northLast !== null ? `体育西路往机场北方向末班车为 ${fmtHM(northLast)}。` : ''),
-            messageHtml: `现时，3 号线可能已无机场北方向。<br>如需前往机场北方向，可乘坐<b>天河客运站方向</b>的列车，在<strong class="route-warning-emphasis">体育西路</strong>换乘。${metaLine}`,
+            messageHtml: `到达 3 号线可能已无机场北方向。<br>如需前往林和西~机场北，可乘坐<b>天河客运站方向</b>的列车，在<strong class="route-warning-emphasis">体育西路</strong>换乘。${metaLine}`,
             enterTyxMin: tiyuxiluTime,
             northLastTrain: northLast,
         });

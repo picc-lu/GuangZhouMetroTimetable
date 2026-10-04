@@ -34,29 +34,29 @@ function ensureRouteOverlay() {
                     </div>
                    <div class="route-stops">
     <div class="route-field">
-        <label>起点</label>
+        <label>起</label>
         <div class="route-autocomplete">
             <input id="route-start" class="route-input"
-                   placeholder="输入站名，如 体育西路" autocomplete="off">
+                   placeholder="出发站" autocomplete="off">
             <div class="route-suggestions" id="route-start-suggestions"></div>
         </div>
     </div>
-    <div class="route-field">
-        <label>终点</label>
+    <div class="route-field route-field-end">
+        <label>终</label>
         <div class="route-autocomplete">
             <input id="route-end" class="route-input"
-                   placeholder="输入站名，如 广州南站" autocomplete="off">
+                   placeholder="到达站" autocomplete="off">
             <div class="route-suggestions" id="route-end-suggestions"></div>
         </div>
     </div>
     <button id="route-swap" class="route-swap-btn" type="button"
             title="交换起点和终点" aria-label="交换起点和终点">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="7 4 7 20"></polyline>
-            <polyline points="3 8 7 4 11 8"></polyline>
-            <polyline points="17 20 17 4"></polyline>
-            <polyline points="13 16 17 20 21 16"></polyline>
+            <polyline points="4 7 20 7"></polyline>
+            <polyline points="16 3 20 7 16 11"></polyline>
+            <polyline points="20 17 4 17"></polyline>
+            <polyline points="8 13 4 17 8 21"></polyline>
         </svg>
     </button>
 </div>
@@ -70,6 +70,19 @@ function ensureRouteOverlay() {
         <input type="radio" name="route-sort" value="conservative">
         <span class="route-sort-label">保守优先</span>
         <span class="route-sort-hint">末班车时间充裕优先</span>
+    </label>
+</div>
+<div class="route-extra-options">
+    <label class="route-extra-option route-extra-option-switch">
+        <span class="route-switch">
+            <input type="checkbox" id="route-max-transfer-check">
+            <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
+        </span>
+        <span>单次换乘时间不超过</span>
+        <input type="number" id="route-max-transfer-min"
+               class="route-max-transfer-input"
+               min="1" max="60" step="1" value="5" disabled>
+        <span>分钟</span>
     </label>
 </div>
                     <button id="route-go" class="route-go" type="button">规划</button>
@@ -86,7 +99,7 @@ function ensureRouteOverlay() {
           stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
     <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
 </svg>
-                    <span>带此标志的线路代表换乘到该线路时，距离末班车小于 5 分钟，请慎重选择</span>
+                    <span>此标志表示到达该线路时，距离末班车小于 5 分钟，请慎重选择</span>
                 </div>
                 <div class="route-results" id="route-results">
                     <div class="route-empty">填写起点和终点，点击「规划」查看前 ${PLAN_TARGET} 条推荐路径</div>
@@ -121,6 +134,19 @@ function ensureRouteOverlay() {
 
         // 不聚焦，避免触发 iOS 缩放和键盘弹出
     });
+
+    // 最大换乘时长复选框
+    const maxTransferCheck = ov.querySelector('#route-max-transfer-check');
+    const maxTransferInput = ov.querySelector('#route-max-transfer-min');
+    if (maxTransferCheck && maxTransferInput) {
+        maxTransferCheck.addEventListener('change', () => {
+            maxTransferInput.disabled = !maxTransferCheck.checked;
+            if (maxTransferCheck.checked) {
+                maxTransferInput.focus();
+                maxTransferInput.select();
+            }
+        });
+    }
 
     ov.querySelector('#route-go').addEventListener('click', runRoutePlanning);
     ov.querySelector('.route-close').addEventListener('click', closeRoutePlanner);
@@ -477,12 +503,21 @@ async function runRoutePlanning() {
     const sortMode = sortRadio ? sortRadio.value : 'fastest';
     const departMin = getRouteDepartMin();
 
+    // 读取"单次换乘时间不超过 n 分钟"
+    let maxTransferMin = null;
+    const maxTransferCheck = _routeOverlay.querySelector('#route-max-transfer-check');
+    const maxTransferInput = _routeOverlay.querySelector('#route-max-transfer-min');
+    if (maxTransferCheck && maxTransferCheck.checked && maxTransferInput) {
+        const v = parseInt(maxTransferInput.value, 10);
+        if (!isNaN(v) && v > 0) maxTransferMin = v;
+    }
+
     goBtn.disabled = true;
     goBtn.textContent = '规划中…';
     resultsEl.innerHTML = `<div class="route-loading">正在计算前 ${PLAN_TARGET} 条路径…</div>`;
 
     try {
-        const r = await planRoutes(start, end, departMin, sortMode);
+        const r = await planRoutes(start, end, departMin, sortMode, maxTransferMin);
 
         if (r.error) {
             resultsEl.innerHTML = `<div class="route-error">${escapeHtml(r.error)}</div>`;
@@ -520,6 +555,34 @@ async function runRoutePlanning() {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.route-guide')) return;
                 card.classList.toggle('expanded');
+            });
+        });
+
+        // 站点列表展开 / 收起
+        resultsEl.querySelectorAll('.route-stations-toggle').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();  // 避免触发卡片的展开/收起
+                const card = btn.closest('.route-card');
+                if (!card) return;
+                const collapsedEl = card.querySelector('.route-stations-collapsed');
+                const fullEl = card.querySelector('.route-stations-full');
+                if (!collapsedEl || !fullEl) return;
+
+                const expanded = btn.dataset.expanded === '1';
+                const total = btn.dataset.total;
+                const textEl = btn.querySelector('.route-stations-toggle-text');
+
+                if (expanded) {
+                    collapsedEl.style.display = '';
+                    fullEl.style.display = 'none';
+                    btn.dataset.expanded = '0';
+                    if (textEl) textEl.textContent = `展开全部 ${total} 站`;
+                } else {
+                    collapsedEl.style.display = 'none';
+                    fullEl.style.display = '';
+                    btn.dataset.expanded = '1';
+                    if (textEl) textEl.textContent = '收起站点列表';
+                }
             });
         });
     } catch (e) {
@@ -576,6 +639,63 @@ function renderRouteSegmentsHtml(path, boardingMargins) {
                        </span>`;
         return i === 0 ? badge : `<span class="route-seg-arrow">→</span>${badge}`;
     }).join('') + `</span>`;
+}
+
+/* ==========================================
+   站点列表：默认折叠，超过阈值才显示切换按钮
+   ========================================== */
+const STATION_LIST_COLLAPSE_THRESHOLD = 12;   // 含首尾站点，超过即折叠
+const STATION_LIST_HEAD = 4;                  // 折叠时头部保留站数（不含起点）
+const STATION_LIST_TAIL = 4;                  // 折叠时尾部保留站数（不含终点）
+
+function buildStationListHtml(startName, endName, stationRoute) {
+    const totalStations = stationRoute.length + 2;
+
+    const fullHtml = `
+        <span class="route-station">${escapeHtml(startName)}</span>
+        ${stationRoute.map(s =>
+        `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
+    ).join('')}
+        <span class="route-arrow">→</span><span class="route-station">${escapeHtml(endName)}</span>
+    `;
+
+    // 短路径：直接铺开，不显示切换按钮
+    if (totalStations <= STATION_LIST_COLLAPSE_THRESHOLD) {
+        return `<div class="route-stations">${fullHtml}</div>`;
+    }
+
+    // 长路径：默认折叠
+    const head = stationRoute.slice(0, STATION_LIST_HEAD);
+    const tail = stationRoute.slice(-STATION_LIST_TAIL);
+    const hiddenCount = stationRoute.length - STATION_LIST_HEAD - STATION_LIST_TAIL;
+
+    const collapsedHtml = `
+        <span class="route-station">${escapeHtml(startName)}</span>
+        ${head.map(s =>
+        `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
+    ).join('')}
+        <span class="route-arrow">→</span><span class="route-station-more">… 中间 ${hiddenCount} 站 …</span>
+        ${tail.map(s =>
+        `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
+    ).join('')}
+        <span class="route-arrow">→</span><span class="route-station">${escapeHtml(endName)}</span>
+    `;
+
+    return `
+        <div class="route-stations route-stations-collapsed">${collapsedHtml}</div>
+        <div class="route-stations route-stations-full" style="display:none">${fullHtml}</div>
+        <div class="route-stations-toggle-wrap">
+            <button class="route-stations-toggle" type="button"
+                    data-expanded="0" data-total="${totalStations}">
+                <span class="route-stations-toggle-text">展开全部 ${totalStations} 站</span>
+                <svg class="route-stations-toggle-icon" viewBox="0 0 24 24" width="14" height="14"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+        </div>
+    `;
 }
 
 function renderRouteCard(item, idx, startName, endName) {
@@ -745,16 +865,10 @@ function renderRouteCard(item, idx, startName, endName) {
                 </div>
             </div>
             ${warningHtml}
-            <div class="route-detail">
-                <div class="route-stations">
-                    <span class="route-station">${escapeHtml(startName)}</span>
-                    ${item.stationRoute.map(s =>
-        `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
-    ).join('')}
-                    <span class="route-arrow">→</span><span class="route-station">${escapeHtml(endName)}</span>
-                </div>
-                ${guideHtml}
-            </div>
+<div class="route-detail">
+    ${buildStationListHtml(startName, endName, item.stationRoute)}
+    ${guideHtml}
+</div>
         </div>
     `;
 }
