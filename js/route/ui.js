@@ -591,7 +591,23 @@ function renderRouteCard(item, idx, startName, endName) {
     // ---- 换乘指引 ----
     let guideHtml;
     if (item.interchanges.length === 0) {
-        guideHtml = `<div class="route-guide"><div class="route-guide-empty">✓ 直达，无需换乘</div></div>`;
+        // 直达路径：起点 boarding 余量 ≤15 分钟时提示"剩 x 分"
+        const startMargin = (item.boardingMargins && item.boardingMargins.length > 0
+            && item.boardingMargins[0] != null
+            && item.boardingMargins[0] !== 'unknown')
+            ? Math.round(item.boardingMargins[0]) : null;
+
+        let marginHtml = '';
+        if (startMargin !== null && startMargin >= 0 && startMargin <= 15) {
+            marginHtml = `<span class="route-guide-margin urgent">剩${startMargin}分</span>`;
+        }
+
+        guideHtml = `<div class="route-guide">
+            <div class="route-guide-empty">
+                <span>✓ 直达，无需换乘</span>
+                ${marginHtml}
+            </div>
+        </div>`;
     } else {
         // ---- 组装"上车点列表"：起点 + 每个换乘站 ----
         const boardingPoints = [];
