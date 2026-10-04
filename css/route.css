@@ -114,7 +114,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 15px;
+    font-size: 16px;      /* iOS 上 <16px 会触发自动缩放 */
     font-family: inherit;
     color: #1f2b3c;
     padding: 6px 4px;
@@ -202,6 +202,37 @@
     margin: 4px 0 12px;
     text-align: center;
 }
+
+/* ==========================================
+   末班车紧急徽章图例
+   ========================================== */
+.route-legend {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin: 0 0 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+.route-legend-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: #1f2b3c;
+}
+
+[data-theme="dark"] .route-legend {
+    background: #3a1010;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+[data-theme="dark"] .route-legend-icon { color: #e2e8f0; }
 
 /* ==========================================
    时间选择器
@@ -421,6 +452,26 @@
 }
 .route-error { color: #dc2626; }
 
+/* 无路径时：标题强调 */
+.route-empty-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2b3c;
+    margin-bottom: 6px;
+}
+
+/* "n 条路径被过滤" 变灰 */
+.route-reject-hint {
+    display: inline-block;
+    margin-top: 8px;
+    color: #94a3b8;    /* 从 #b45309 改成灰色 */
+    font-weight: 600;
+    font-size: 13px;
+}
+
+[data-theme="dark"] .route-empty-title { color: #e2e8f0; }
+[data-theme="dark"] .route-reject-hint { color: #64748b; }
+
 .route-reject-hint {
     display: inline-block;
     margin-top: 8px;
@@ -529,6 +580,7 @@
     gap: 6px;
 }
 .route-segment-badge {
+    position: relative;          /* 新增 */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -540,6 +592,28 @@
     letter-spacing: 0.3px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
     white-space: nowrap;
+}
+/* 徽章右下角的警告角标 */
+.route-segment-warn {
+    position: absolute;
+    right: -7px;
+    bottom: -7px;
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
+}
+
+.route-segment-badge.urgent {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18)
+}
+
+[data-theme="dark"] .route-segment-warn {
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6));
+}
+[data-theme="dark"] .route-segment-badge.urgent {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)
 }
 .route-seg-arrow {
     color: #94a3b8;
@@ -910,6 +984,9 @@
     border-color: #5da0ff;
     box-shadow: 0 4px 16px rgba(93, 160, 255, 0.2);
 }
+[data-theme="dark"] .route-card:has(.route-urgent-banner) {
+    border-color: #7f1d1d;
+}
 [data-theme="dark"] .route-line-path { color: #e2e8f0; }
 [data-theme="dark"] .route-sub { color: #94a3b8; }
 [data-theme="dark"] .route-arrive-time { color: #e2e8f0; }
@@ -994,6 +1071,13 @@
 
     .route-plan-btn { width: 40px; height: 36px; }
     .route-plan-btn svg { width: 18px; height: 18px; }
+
+    .route-segment-warn {
+        width: 16px;
+        height: 16px;
+        right: -6px;
+        bottom: -6px;
+    }
 }
 
 @media (max-width: 480px) {

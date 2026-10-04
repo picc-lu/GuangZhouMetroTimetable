@@ -180,8 +180,15 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             continue;
         }
 
+        // urgentCount 只统计换乘站 boarding（起点不计入，起点余量交给用户自主判断）
+        // boardings[0] 是起点，boardings[1..] 是换乘站
         const urgentCount = (check.boardingMargins || [])
-            .filter(m => m !== null && m !== 'unknown' && m < 15).length;
+            .filter(m => m != null && m !== 'unknown' && m < 15)
+            .length;
+
+        // 起点自身的余量单独存，UI 里显示提示
+        const startMargin = (check.boardingMargins && check.boardingMargins.length > 0)
+            ? check.boardingMargins[0] : null;
 
         results.push({
             path: p,
@@ -194,6 +201,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             warnings: checkThreeLineCrossSegment(p, departMin),
             urgentCount,
             boardingMargins: check.boardingMargins,
+            startMargin,                                       // ← 新增
         });
 
         checkedCount++;
@@ -470,8 +478,8 @@ function checkThreeLineCrossSegment(path, departMin) {
             if (southDown && tiyuxiluTime > southDown.last) {
                 warnings.push({
                     type: 'miss_south_train',
-                    message: `约 ${fmtHM(tiyuxiluTime)} 到达体育西路时，南段往海傍方向末班车已于 ${fmtHM(southDown.last)} 发出。若乘坐体育西路方向的列车，可能赶不上南段末班车。`,
-                    messageHtml: `约 <b>${fmtHM(tiyuxiluTime)}</b> 到达体育西路时，南段往海傍方向末班车已于 <b>${fmtHM(southDown.last)}</b> 发出。<br>若乘坐<strong class="route-warning-emphasis">体育西路方向</strong>的列车，可能赶不上南段末班车。`,
+                    message: `约 ${fmtHM(tiyuxiluTime)} 到达体育西路时，天河客运站→海傍的末班车已于 ${fmtHM(southDown.last)} 发出。若乘坐体育西路方向的列车，可能赶不上南段末班车。`,
+                    messageHtml: `约 <b>${fmtHM(tiyuxiluTime)}</b> 到达体育西路时，天河客运站→海傍的末班车已于 <b>${fmtHM(southDown.last)}</b> 发出。<br>若乘坐<strong class="route-warning-emphasis">体育西路方向</strong>的列车，可能赶不上南段末班车。`,
                     enterTyxTime: tiyuxiluTime,
                     southLastTrain: southDown.last,
                 });

@@ -74,7 +74,20 @@ function ensureRouteOverlay() {
 </div>
                     <button id="route-go" class="route-go" type="button">规划</button>
                 </div>
-                <div class="route-meta" id="route-meta">正在加载线路图…</div>
+                                <div class="route-meta" id="route-meta">正在加载线路图…</div>
+                <div class="route-legend" id="route-legend" style="display:none">
+                    <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+    <path d="M12 2 L22 20 L2 20 Z"
+          fill="#f59e0b"
+          stroke="#1f2b3c"
+          stroke-width="1.8"
+          stroke-linejoin="round"/>
+    <line x1="12" y1="9" x2="12" y2="14"
+          stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
+</svg>
+                    <span>带此标志的线路代表换乘到该线路时，距离末班车小于 5 分钟，请慎重选择</span>
+                </div>
                 <div class="route-results" id="route-results">
                     <div class="route-empty">填写起点和终点，点击「规划」查看前 ${PLAN_TARGET} 条推荐路径</div>
                 </div>
@@ -106,13 +119,7 @@ function ensureRouteOverlay() {
         ov.querySelector('#route-start-suggestions').style.display = 'none';
         ov.querySelector('#route-end-suggestions').style.display = 'none';
 
-        // 光标放到起点末尾，方便继续编辑
-        startInput.focus();
-        const len = startInput.value.length;
-        try {
-            startInput.setSelectionRange(len, len);
-        } catch (_) {
-        }
+        // 不聚焦，避免触发 iOS 缩放和键盘弹出
     });
 
     ov.querySelector('#route-go').addEventListener('click', runRoutePlanning);
@@ -263,9 +270,18 @@ function refreshRouteTimeTriggers() {
     _routeOverlay.querySelector('#route-minute-trigger').textContent = String(m).padStart(2, '0');
 }
 
+/** 真实系统时间（分钟），不受主界面自定义时间影响 */
+function getRealCurrentMinutes() {
+    const d = new Date();
+    let h = d.getHours();
+    let m = d.getMinutes();
+    if (h >= 0 && h <= 1) return (24 + h) * 60 + m;
+    return h * 60 + m;
+}
+
 function getRouteDepartMin() {
     if (_routeDepartMin !== null) return _routeDepartMin;
-    return getCurrentMinutes();
+    return getRealCurrentMinutes();
 }
 
 /* ==========================================
@@ -465,16 +481,28 @@ async function runRoutePlanning() {
             return;
         }
         if (r.results.length === 0) {
-            let html = `<div class="route-empty">当前时刻没有可用的路径`;
+            let html = `<div class="route-empty">`;
+            html += `<div class="route-empty-title">当前时刻没有可用的路径</div>`;
             if (r.rejected.length > 0) {
-                html += `<br><span class="route-reject-hint">${r.rejected.length} 条路径因末班车已停运被过滤</span>`;
+                html += `<div class="route-reject-hint">${r.rejected.length} 条路径因末班车已停运被过滤</div>`;
                 const reasons = [...new Set(r.rejected.map(x => x.reason))].slice(0, 3);
                 html += `<ul class="route-reject-list">${reasons.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
             }
             html += `</div>`;
+            const legendEl = _routeOverlay.querySelector('#route-legend');
+            if (legendEl) legendEl.style.display = 'none';
             resultsEl.innerHTML = html;
             return;
         }
+
+        // 有任一结果里带紧急徽章 → 显示图例
+        const hasUrgent = r.results.some(item =>
+            (item.boardingMargins || []).some(m =>
+                m != null && m !== 'unknown' && m >= 0 && m <= 5
+            )
+        );
+        const legendEl = _routeOverlay.querySelector('#route-legend');
+        if (legendEl) legendEl.style.display = hasUrgent ? 'flex' : 'none';
 
         resultsEl.innerHTML = r.results.map((item, idx) =>
             renderRouteCard(item, idx, start, end)
@@ -512,12 +540,32 @@ function formatDuration(seconds) {
     return `${r}秒`;
 }
 
-function renderRouteSegmentsHtml(path) {
+function renderRouteSegmentsHtml(path, boardingMargins) {
     const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(path) : [];
     if (segs.length === 0) return '';
+    const margins = boardingMargins || [];
+
     return `<span class="route-segments">` + segs.map((s, i) => {
-        const badge = `<span class="route-segment-badge"
-                            style="background:${s.color}; color:${s.textColor};">${escapeHtml(s.shortName)}</span>`;
+        const m = margins[i];
+        const isUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 5);
+
+        const warnSvg = isUrgent
+            ? `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
+                   <path d="M12 2 L22 20 L2 20 Z"
+                         fill="#f59e0b"
+                         stroke="#1f2b3c"
+                         stroke-width="1.8"
+                         stroke-linejoin="round"/>
+                   <line x1="12" y1="9" x2="12" y2="14"
+                         stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
+                   <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
+               </svg>`
+            : '';
+
+        const badge = `<span class="route-segment-badge${isUrgent ? ' urgent' : ''}"
+                            style="background:${s.color}; color:${s.textColor};">
+                            ${escapeHtml(s.shortName)}${warnSvg}
+                       </span>`;
         return i === 0 ? badge : `<span class="route-seg-arrow">→</span>${badge}`;
     }).join('') + `</span>`;
 }
@@ -556,7 +604,7 @@ function renderRouteCard(item, idx, startName, endName) {
             timeMin: null,
             walkMin: null,
             boardingTime: null,
-            marginMin: null,
+            marginMin: item.startMargin,                      // ← 改成这个
         });
 
         for (let i = 0; i < item.interchanges.length; i++) {
@@ -599,11 +647,17 @@ function renderRouteCard(item, idx, startName, endName) {
                 ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>`
                 : '';
 
-            // 右侧时间信息（两行：到+走 / 候+剩）
+            // 右侧时间信息
             const arriveStr  = (bp.timeMin      != null && !isNaN(bp.timeMin))      ? fmtHM(bp.timeMin)      : '';
             const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
-            const walkMin = (bp.walkMin != null) ? Math.round(bp.walkMin) : 0;
-            const walkStr = walkMin > 0 ? `走${walkMin}分` : '';
+            let walkStr = '';
+            if (bp.walkMin != null && bp.walkMin > 0) {
+                if (bp.walkMin < 1) {
+                    walkStr = `走${Math.max(1, Math.round(bp.walkMin * 60))}秒`;
+                } else {
+                    walkStr = `走${Math.round(bp.walkMin)}分`;
+                }
+            }
 
             let marginStr = '';
             if (bp.marginMin != null && !isNaN(bp.marginMin)) {
@@ -614,19 +668,24 @@ function renderRouteCard(item, idx, startName, endName) {
             }
 
             let timeHtml = '';
-            if (arriveStr) {
-                // 第一行：到 + 走
-                const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
-                if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
-                const row1 = `<span class="route-guide-time-row">${row1Parts.join('<span class="route-guide-dot">·</span>')}</span>`;
+            if (arriveStr || marginStr) {
+                let row1 = '';
+                let row2 = '';
 
-                // 第二行：候 + 剩
-                const row2Parts = [];
-                if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
-                if (marginStr) row2Parts.push(marginStr);
-                const row2 = row2Parts.length > 0
-                    ? `<span class="route-guide-time-row">${row2Parts.join('<span class="route-guide-dot">·</span>')}</span>`
-                    : '';
+                if (arriveStr) {
+                    const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
+                    if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
+                    row1 = `<span class="route-guide-time-row">${row1Parts.join('<span class="route-guide-dot">·</span>')}</span>`;
+                }
+
+                if (boardingStr || marginStr) {
+                    const row2Parts = [];
+                    if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
+                    if (marginStr) row2Parts.push(marginStr);
+                    row2 = row2Parts.length > 0
+                        ? `<span class="route-guide-time-row">${row2Parts.join('<span class="route-guide-dot">·</span>')}</span>`
+                        : '';
+                }
 
                 timeHtml = `<span class="route-guide-time-wrap">${row1}${row2}</span>`;
             }
@@ -648,7 +707,7 @@ function renderRouteCard(item, idx, startName, endName) {
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                    <div class="route-line-path">${renderRouteSegmentsHtml(item.path)}</div>
+                                        <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins)}</div>
                     <div class="route-sub">
                         <span>⏱ ${formatDuration(item.totalCost)}</span>
                         <span>换 ${item.interchanges.length} 次</span>

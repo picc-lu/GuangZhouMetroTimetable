@@ -430,8 +430,9 @@
 
     /* 搜索框（移动端） */
     .search-wrapper {
-        flex: 1 1 auto;
+        flex: 1 1 0;
         min-width: 0;
+        max-width: 220px;   /* 限宽，让右侧三个按钮能同行 */
     }
 
     .search-input {

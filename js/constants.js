@@ -1,6 +1,6 @@
 // 统一版本号：页面展示、SW 缓存名都从这一个常量读取
 // 发版时只改这里一处即可
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 
 // 硬编码线路颜色（与原有 广州地铁线路各站.js 中的颜色一致）
 const HARDCODED_COLORS = {
