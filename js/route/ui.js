@@ -51,14 +51,15 @@ function ensureRouteOverlay() {
                         </div>
                         <button id="route-swap" class="route-swap-btn" type="button"
                                 title="交换起点和终点" aria-label="交换起点和终点">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            <svg class="swap-icon" viewBox="0 0 24 24" width="16" height="16"
+                                 fill="none" stroke="currentColor"
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="4 7 20 7"></polyline>
                                 <polyline points="16 3 20 7 16 11"></polyline>
                                 <polyline points="20 17 4 17"></polyline>
                                 <polyline points="8 13 4 17 8 21"></polyline>
                             </svg>
-                        </button>
+                         </button>
                     </div>
                     <div class="route-sort-row">
                         <label class="route-sort-option">
@@ -150,16 +151,41 @@ function ensureRouteOverlay() {
 
     ov.querySelector('#route-swap').addEventListener('click', () => {
         const startInput = ov.querySelector('#route-start');
-        const endInput = ov.querySelector('#route-end');
-        const tmp = startInput.value;
-        startInput.value = endInput.value;
-        endInput.value = tmp;
+        const endInput   = ov.querySelector('#route-end');
+        const stops      = ov.querySelector('.route-stops');
+        const btn        = ov.querySelector('#route-swap');
+        if (!startInput || !endInput || !stops) return;
 
-        // 清掉两边的候选
-        ov.querySelector('#route-start-suggestions').style.display = 'none';
-        ov.querySelector('#route-end-suggestions').style.display = 'none';
+        // 防止连点导致动画/数据错乱
+        if (stops.classList.contains('swap-out') ||
+            stops.classList.contains('swap-in')) return;
 
-        // 不聚焦，避免触发 iOS 缩放和键盘弹出
+        // 按钮自身的旋转（沿用之前的 spinning class）
+        btn.classList.toggle('spinning');
+
+        // ---- 阶段 1：文字向外滑出 ----
+        stops.classList.add('swap-out');
+
+        setTimeout(() => {
+            // ---- 交换数据 ----
+            const tmp = startInput.value;
+            startInput.value = endInput.value;
+            endInput.value = tmp;
+
+            // 关闭候选框
+            const s1 = ov.querySelector('#route-start-suggestions');
+            const s2 = ov.querySelector('#route-end-suggestions');
+            if (s1) { s1.style.display = 'none'; s1.innerHTML = ''; }
+            if (s2) { s2.style.display = 'none'; s2.innerHTML = ''; }
+
+            // ---- 阶段 2：文字从反方向滑入 ----
+            stops.classList.remove('swap-out');
+            stops.classList.add('swap-in');
+
+            setTimeout(() => {
+                stops.classList.remove('swap-in');
+            }, 240);
+        }, 220);
     });
 
     // 最大换乘时长复选框：勾选时启用数字输入框（不自动聚焦，避免 iOS 弹出键盘）
@@ -511,6 +537,8 @@ async function openRoutePlanner() {
     _routeOverlay.style.display = 'flex';
     lockBodyScroll();
 
+    hideAllRouteLegends();       // ← 新增：确保两个图例初始都隐藏
+
     refreshRouteTimeTriggers();
     setRouteMeta('正在加载线路图…');
 
@@ -543,6 +571,15 @@ function routeMetaText() {
 function setRouteMeta(text) {
     const el = _routeOverlay && _routeOverlay.querySelector('#route-meta');
     if (el) el.textContent = text;
+}
+
+/** 隐藏所有图例（5 分钟紧急 + 3 号线跨段） */
+function hideAllRouteLegends() {
+    if (!_routeOverlay) return;
+    const l1 = _routeOverlay.querySelector('#route-legend');
+    const l2 = _routeOverlay.querySelector('#route-legend-3line');
+    if (l1) l1.style.display = 'none';
+    if (l2) l2.style.display = 'none';
 }
 
 /* ==========================================
@@ -606,6 +643,7 @@ async function runRoutePlanning() {
 
         if (r.error) {
             resultsEl.innerHTML = `<div class="route-error">${escapeHtml(r.error)}</div>`;
+            hideAllRouteLegends();
             return;
         }
         if (r.results.length === 0) {
@@ -617,8 +655,7 @@ async function runRoutePlanning() {
                 html += `<ul class="route-reject-list">${reasons.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
             }
             html += `</div>`;
-            const legendEl = _routeOverlay.querySelector('#route-legend');
-            if (legendEl) legendEl.style.display = 'none';
+            hideAllRouteLegends();
             resultsEl.innerHTML = html;
             return;
         }
@@ -631,9 +668,8 @@ async function runRoutePlanning() {
         const legendEl = _routeOverlay.querySelector('#route-legend');
         if (legendEl) legendEl.style.display = hasUrgent ? 'flex' : 'none';
 
-        // ★ 新增：3 号线跨段警告图例
         const has3LineWarning = r.results.some(item =>
-            item.warnings && item.warnings.length > 0
+            item.warnings && item.warnings.some(w => w.risky3LineFrom && w.risky3LineTo)
         );
         const legend3LineEl = _routeOverlay.querySelector('#route-legend-3line');
         if (legend3LineEl) legend3LineEl.style.display = has3LineWarning ? 'flex' : 'none';

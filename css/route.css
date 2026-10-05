@@ -208,25 +208,74 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     transition: background 0.15s, color 0.15s, border-color 0.15s,
     box-shadow 0.15s, transform 0.15s;
+    will-change: transform;
 }
 
 .route-swap-btn:hover {
-    background: #eef2f8;
-    color: #1f2b3c;
-    border-color: #8fa8c9;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    /*background: #eef2f8;*/
+    /*color: #1f2b3c;*/
+    /*border-color: #8fa8c9;*/
+    /*box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);*/
     transform: translate(-50%, -50%) scale(1.08);
 }
 
 .route-swap-btn:active {
-    background: #e0ebf7;
-    transform: translate(-50%, -50%) scale(0.94);
+    /*background: #e0ebf7;*/
+    transform: translate(-50%, -50%) scale(0.9);
+}
+
+.route-swap-btn .swap-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 点击时旋转 180°，视觉上就像"翻过来" */
+.route-swap-btn.spinning .swap-icon {
+    transform: rotate(180deg);
 }
 
 .route-swap-btn svg {
     display: block;
     width: 16px;
     height: 16px;
+}
+
+/* ==========================================
+   交换按钮：左右文字滑动动画
+   ========================================== */
+@keyframes route-swap-left-out {
+    0%   { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(24px); }
+}
+@keyframes route-swap-left-in {
+    0%   { opacity: 0; transform: translateX(-24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes route-swap-right-out {
+    0%   { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(-24px); }
+}
+@keyframes route-swap-right-in {
+    0%   { opacity: 0; transform: translateX(24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+/* 阶段 1：文字向中间滑出并淡出 */
+.route-stops.swap-out .route-field:not(.route-field-end) .route-input {
+    animation: route-swap-left-out 0.22s ease forwards;
+}
+.route-stops.swap-out .route-field-end .route-input {
+    animation: route-swap-right-out 0.22s ease forwards;
+}
+
+/* 阶段 2：文字从另一侧滑入并淡入 */
+.route-stops.swap-in .route-field:not(.route-field-end) .route-input {
+    animation: route-swap-left-in 0.22s ease forwards;
+}
+.route-stops.swap-in .route-field-end .route-input {
+    animation: route-swap-right-in 0.22s ease forwards;
 }
 
 /* ==========================================
