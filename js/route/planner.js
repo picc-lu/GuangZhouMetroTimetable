@@ -137,16 +137,21 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {number} departMin
  * @param {'fastest'|'conservative'} sortMode
  */
-async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null) {
+async function planRoutes(startStation, endStation, departMin,
+                          sortMode = 'fastest',
+                          maxTransferMin = null,
+                          avoidOutOfStation = false) {
     await loadRouteGraph();
 
     const startNode = resolveGraphStationNode(startStation, 'start');
-    const endNode = resolveGraphStationNode(endStation, 'end');
+    const endNode   = resolveGraphStationNode(endStation,   'end');
+    if (!startNode) return { error: `起点「${startStation}」不在线路图中` };
+    if (!endNode)   return { error: `终点「${endStation}」不在线路图中` };
 
-    if (!startNode) return {error: `起点「${startStation}」不在线路图中`};
-    if (!endNode) return {error: `终点「${endStation}」不在线路图中`};
+    // 站外换乘禁边
+    const globalBannedEdges = avoidOutOfStation ? getOutOfStationBannedEdges() : null;
 
-    const paths = yenKShortestPaths(startNode, endNode, PLAN_MAX_K);
+    const paths = yenKShortestPaths(startNode, endNode, PLAN_MAX_K, globalBannedEdges);
 
     const results = [];
     const rejected = [];
@@ -296,6 +301,48 @@ function checkLineRepeat(path) {
         }
     }
     return null;
+}
+
+/* ==========================================
+   站外换乘（需出闸）：琶洲 8↔11、五羊邨 5↔10
+   ========================================== */
+const OUT_OF_STATION_TRANSFER_RULES = [
+    { station: '琶洲',   lines: new Set(['8号线',  '11号线']) },
+    { station: '五羊邨', lines: new Set(['5号线',  '10号线']) },
+];
+
+let _outOfStationBannedEdges = null;
+
+/** 扫描图边，找出所有站外换乘边（同站的「到站 → 站台」且跨线路） */
+function getOutOfStationBannedEdges() {
+    if (_outOfStationBannedEdges) return _outOfStationBannedEdges;
+
+    const banned = new Set();
+    for (const [from, toMap] of ROUTE_GRAPH.edges.entries()) {
+        const fp = from.split('|');
+        if (fp.length < 4 || fp[3] !== '到站') continue;
+        const fromStation = fp[1];
+        const fromLine    = fp[0];
+
+        for (const to of toMap.keys()) {
+            const tp = to.split('|');
+            if (tp.length < 4 || tp[3] !== '站台') continue;
+            if (tp[1] !== fromStation) continue;   // 必须同站
+            if (tp[0] === fromLine)    continue;   // 必须跨线路
+
+            for (const rule of OUT_OF_STATION_TRANSFER_RULES) {
+                if (rule.station !== fromStation) continue;
+                if (rule.lines.has(fromLine) && rule.lines.has(tp[0])) {
+                    banned.add(routeEdgeKey(from, to));
+                    break;
+                }
+            }
+        }
+    }
+
+    console.log(`[站外换乘] 已禁用 ${banned.size} 条站外换乘边`);
+    _outOfStationBannedEdges = banned;
+    return banned;
 }
 
 function checkReachability(path, departMin) {

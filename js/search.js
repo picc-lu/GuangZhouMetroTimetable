@@ -16,11 +16,15 @@ function normalizeForSearch(s) {
     return String(s).replace(/\s+/g, '').toLowerCase();
 }
 
-function searchStations(query) {
+function searchStations(query, options = {}) {
     const q = normalizeForSearch(query);
     if (!q) return [];
 
-    // 懒构建（沿用之前逻辑）
+    const filterFn = typeof options.filter === 'function' ? options.filter : null;
+    const limit = (typeof options.limit === 'number' && options.limit > 0)
+        ? options.limit : 12;
+
+    // 懒构建（沿用原逻辑）
     if (Object.keys(STATION_INDEX).length === 0 && Object.keys(LINE_STATIONS).length > 0) {
         buildStationIndex();
     }
@@ -32,14 +36,17 @@ function searchStations(query) {
     const results = [];
 
     for (const [station, lines] of Object.entries(STATION_INDEX)) {
+        // 先过滤，避免被排除的站占用返回名额
+        if (filterFn && !filterFn(station, lines)) continue;
+
         const stationNorm = normalizeForSearch(station);
         let score = -1;
 
-        // 1. 中文包含（站名和查询都去掉空白后再比）
+        // 1. 中文包含
         if (stationNorm.includes(q)) {
             score = stationNorm.indexOf(q) === 0 ? 0 : 1;
         }
-        // 2. 拼音 / 首字母（仅纯字母数字查询）
+        // 2. 拼音 / 首字母
         else if (isAscii) {
             const p = STATION_PINYIN_INDEX[station];
             if (p) {
@@ -54,7 +61,7 @@ function searchStations(query) {
     }
 
     results.sort((a, b) => a.score - b.score || a.station.localeCompare(b.station, 'zh'));
-    return results.slice(0, 12);
+    return results.slice(0, limit);
 }
 
 /** 简化线路名显示 */

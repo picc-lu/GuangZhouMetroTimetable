@@ -3,11 +3,11 @@
 const YEN_MAX_K = 50;
 const YEN_TARGET = 10;
 
-function yenKShortestPaths(startNode, endNode, K) {
+function yenKShortestPaths(startNode, endNode, K, globalBannedEdges = null) {
     const result = [];
     if (K <= 0) return result;
 
-    const first = dijkstraPath(startNode, endNode, null, null);
+    const first = dijkstraPath(startNode, endNode, globalBannedEdges, null);
     if (!first) return result;
     result.push(first);
 
@@ -16,13 +16,13 @@ function yenKShortestPaths(startNode, endNode, K) {
     seenKeys.add(first.nodes.join('\u0001'));
 
     for (let k = 1; k < K; k++) {
-        const prevPath = result[k - 1];
+        const prevPath  = result[k - 1];
         const prevNodes = prevPath.nodes;
 
         for (let i = 0; i < prevNodes.length - 1; i++) {
             const spurNode = prevNodes[i];
             const rootPath = prevNodes.slice(0, i + 1);
-            const rootKey = rootPath.join('\u0001');
+            const rootKey  = rootPath.join('\u0001');
 
             const bannedEdges = new Set();
             const bannedNodes = new Set();
@@ -36,11 +36,16 @@ function yenKShortestPaths(startNode, endNode, K) {
             }
             for (let j = 0; j < i; j++) bannedNodes.add(rootPath[j]);
 
-            const spurPath = dijkstraPath(spurNode, endNode, bannedEdges, bannedNodes);
+            // 合并全局禁边（站外换乘）
+            const mergedBannedEdges = globalBannedEdges
+                ? new Set([...bannedEdges, ...globalBannedEdges])
+                : bannedEdges;
+
+            const spurPath = dijkstraPath(spurNode, endNode, mergedBannedEdges, bannedNodes);
             if (!spurPath) continue;
 
             const totalNodes = rootPath.concat(spurPath.nodes.slice(1));
-            const totalPath = buildPathFromNodes(totalNodes);
+            const totalPath  = buildPathFromNodes(totalNodes);
             if (!totalPath) continue;
 
             const key = totalPath.nodes.join('\u0001');

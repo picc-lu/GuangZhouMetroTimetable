@@ -27,14 +27,8 @@
 }
 
 @keyframes routeFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
 }
 
 .route-header {
@@ -150,7 +144,6 @@
     gap: 8px;
 }
 
-/* 每个字段独立定位上下文，供下拉列表撑满整格宽度 */
 .route-stops .route-field {
     position: relative;
     flex: 0 1 auto;
@@ -161,10 +154,9 @@
 /* 终点字段：标签放右边（视觉顺序反转） */
 .route-stops .route-field-end {
     flex-direction: row-reverse;
-    padding: 4px 4px 4px 10px;   /* 镜像默认内边距 */
+    padding: 4px 4px 4px 10px;
 }
 
-/* 输入框自身可以无限压缩 */
 .route-stops .route-input {
     width: 100%;
     min-width: 0;
@@ -175,77 +167,19 @@
     text-align: center;
 }
 
-/* autocomplete 容器占满字段剩余宽度 */
 .route-stops .route-autocomplete {
     flex: 1 1 0;
     min-width: 0;
-    position: static;         /* 让下拉列表相对 .route-field 定位 */
+    position: static;
 }
 
-/* 下拉列表横跨整个字段宽度，宽度翻倍 */
 .route-stops .route-suggestions {
     left: 0;
     right: 0;
     min-width: 0;
 }
 
-.route-switch {
-    position: relative;
-    display: inline-block;
-    width: 34px;
-    height: 20px;
-    flex-shrink: 0;
-}
-
-.route-switch input {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    cursor: pointer;
-    z-index: 2;
-}
-
-.route-switch-track {
-    position: absolute;
-    inset: 0;
-    background: #cbd5e1;
-    border-radius: 999px;
-    transition: background 0.2s;
-}
-
-.route-switch-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
-    background: #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s;
-}
-
-.route-switch input:checked + .route-switch-track {
-    background: #2b7de9;
-}
-
-.route-switch input:checked + .route-switch-track .route-switch-thumb {
-    transform: translateX(14px);
-}
-
-[data-theme="dark"] .route-switch-track {
-    background: #3a4559;
-}
-
-[data-theme="dark"] .route-switch input:checked + .route-switch-track {
-    background: #2b7de9;
-}
-
-/* ==========================================
-   交换按钮：左右箭头，悬浮在起点/终点之间
-   ========================================== */
+/* ---- 交换按钮：左右箭头，悬浮在起点/终点之间 ---- */
 .route-swap-btn {
     position: absolute;
     left: 50%;
@@ -287,270 +221,6 @@
     display: block;
     width: 16px;
     height: 16px;
-}
-
-.route-stops .route-field-end label {
-    border-radius: 8px;
-}
-
-[data-theme="dark"] .route-swap-btn {
-    background: #232b3d;
-    border-color: #3a4559;
-    color: #94a3b8;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .route-swap-btn:hover {
-    background: #2d3748;
-    color: #e2e8f0;
-    border-color: #4a5568;
-}
-
-[data-theme="dark"] .route-swap-btn:active {
-    background: #3a4559;
-}
-
-.route-go {
-    background: #1f2b3c;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 0 24px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    min-width: 88px;
-    transition: background 0.15s;
-    white-space: nowrap;
-}
-
-.route-go:hover {
-    background: #2f405a;
-}
-
-.route-go:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.route-meta {
-    font-size: 12px;
-    color: #64748b;
-    margin: 4px 0 12px;
-    text-align: center;
-}
-
-/* ==========================================
-   末班车紧急徽章图例
-   ========================================== */
-.route-legend {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
-    padding: 8px 12px;
-    border-radius: 10px;
-    margin: 0 0 12px;
-    font-size: 12.5px;
-    font-weight: 600;
-    line-height: 1.5;
-}
-
-.route-legend-icon {
-    flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    color: #1f2b3c;
-}
-
-[data-theme="dark"] .route-legend {
-    background: #3a1010;
-    border-color: #7f1d1d;
-    color: #fca5a5;
-}
-
-[data-theme="dark"] .route-legend-icon {
-    color: #e2e8f0;
-}
-
-/* ==========================================
-   时间选择器
-   ========================================== */
-.route-time-field {
-    flex: 1 1 100%;
-    gap: 6px;
-    position: relative;
-}
-
-.route-time-trigger {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #1f2b3c;
-    font-family: 'SF Mono', Consolas, Menlo, monospace;
-    font-variant-numeric: tabular-nums;
-    cursor: pointer;
-    text-align: center;
-    min-width: 62px;
-    user-select: none;
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.route-time-trigger:hover {
-    background: #e6ecf5;
-    border-color: #a3b6cd;
-}
-
-.route-time-sep {
-    font-weight: 700;
-    color: #64748b;
-    font-size: 15px;
-}
-
-.route-now-btn {
-    background: #eef2f8;
-    color: #1f2b3c;
-    border: none;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    flex-shrink: 0;
-    transition: background 0.15s;
-    letter-spacing: 0.3px;
-    margin-left: auto;
-}
-
-.route-now-btn:hover {
-    background: #dde5f0;
-}
-
-.route-now-btn:active {
-    background: #cfd9e8;
-}
-
-.route-time-panel {
-    position: fixed;
-    z-index: 3000;
-    background: #ffffff;
-    border: 1px solid #cbe0f5;
-    border-radius: 14px;
-    box-shadow: 0 10px 28px rgba(31, 43, 60, 0.18);
-    padding: 10px;
-    display: none;
-    max-width: 96vw;
-    overflow: hidden;
-    box-sizing: border-box;
-}
-
-.route-time-panel.rows-3 {
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-}
-
-.route-time-panel.rows-2 {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 4px;
-}
-
-.route-time-cell {
-    padding: 8px 4px;
-    text-align: center;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: 'SF Mono', Consolas, Menlo, monospace;
-    font-variant-numeric: tabular-nums;
-    color: #1f2b3c;
-    background: #f8fafc;
-    border-radius: 7px;
-    cursor: pointer;
-    user-select: none;
-    min-width: 42px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.1s, color 0.1s;
-}
-
-.route-time-cell:hover {
-    background: #e0efff;
-    color: #1a6bd5;
-}
-
-.route-time-cell:active {
-    background: #2b7de9;
-    color: #fff;
-}
-
-/* ==========================================
-   起点/终点自动完成
-   ========================================== */
-.route-autocomplete {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-}
-
-.route-suggestions {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    background: #ffffff;
-    border: 1px solid #dbe6f2;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(31, 43, 60, 0.15);
-    max-height: 340px;
-    overflow-y: auto;
-    z-index: 30;
-    display: none;
-    scrollbar-width: thin;
-    scrollbar-color: #c2cfde #f1f5f9;
-}
-
-.route-suggestions::-webkit-scrollbar {
-    width: 8px;
-}
-
-.route-suggestions::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-}
-
-.route-suggestions::-webkit-scrollbar-thumb {
-    background: #c2cfde;
-    border-radius: 4px;
-    border: 1.5px solid #f1f5f9;
-}
-
-.route-suggestion {
-    padding: 10px 14px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #1f2b3c;
-    border-bottom: 1px solid #f1f5f9;
-    transition: background 0.1s;
-    user-select: none;
-}
-
-.route-suggestion:last-child {
-    border-bottom: none;
-}
-
-.route-suggestion:hover,
-.route-suggestion.active {
-    background: #eef6ff;
-    color: #1a6bd5;
-    font-weight: 600;
 }
 
 /* ==========================================
@@ -610,12 +280,391 @@
 }
 
 /* ==========================================
+   额外选项（开关 + 输入）
+   ========================================== */
+.route-extra-options {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: -2px;
+}
+
+.route-extra-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.2;
+    min-height: 32px;
+}
+
+.route-extra-option:hover {
+    border-color: #a3b6cd;
+    background: #f1f6ff;
+}
+
+.route-extra-option input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+    accent-color: #2b7de9;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+/* 「不走站外换乘」两行文案 */
+.route-extra-option-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.2;
+}
+
+.route-extra-option-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.route-extra-option-sub {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #94a3b8;
+    letter-spacing: 0.2px;
+}
+
+/* ---- Switch 开关 ---- */
+.route-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.route-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.route-switch-track {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 999px;
+    transition: background 0.2s;
+}
+
+.route-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+.route-switch input:checked + .route-switch-track {
+    background: #2b7de9;
+}
+
+.route-switch input:checked + .route-switch-track .route-switch-thumb {
+    transform: translateX(14px);
+}
+
+/* ---- 数字输入框 ---- */
+.route-max-transfer-input {
+    width: 46px;
+    padding: 3px 6px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #1f2b3c;
+    text-align: center;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    -moz-appearance: textfield;
+}
+
+.route-max-transfer-input:focus {
+    border-color: #2b7de9;
+    box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15);
+}
+
+.route-max-transfer-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f5f9;
+}
+
+.route-max-transfer-input::-webkit-outer-spin-button,
+.route-max-transfer-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ==========================================
+   规划按钮
+   ========================================== */
+.route-go {
+    background: #1f2b3c;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0 24px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    min-width: 88px;
+    white-space: nowrap;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.route-go:hover {
+    background: #2f405a;
+}
+
+.route-go:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* loading：文字隐身 + 伪元素 spinner */
+.route-go.loading {
+    color: transparent !important;
+    cursor: wait;
+    pointer-events: none;
+}
+
+.route-go.loading::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2.5px solid rgba(255, 255, 255, 0.28);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    box-sizing: border-box;
+    animation: routeGoSpin 0.7s linear infinite;
+}
+
+@keyframes routeGoSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================
+   时间选择
+   ========================================== */
+.route-time-field {
+    flex: 1 1 100%;
+    gap: 6px;
+    position: relative;
+}
+
+.route-time-trigger {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2b3c;
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    text-align: center;
+    min-width: 62px;
+    user-select: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.route-time-trigger:hover {
+    background: #e6ecf5;
+    border-color: #a3b6cd;
+}
+
+.route-time-sep {
+    font-weight: 700;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.route-now-btn {
+    background: #eef2f8;
+    color: #1f2b3c;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    letter-spacing: 0.3px;
+    margin-left: auto;
+}
+
+.route-now-btn:hover  { background: #dde5f0; }
+.route-now-btn:active { background: #cfd9e8; }
+
+.route-time-panel {
+    position: fixed;
+    z-index: 3000;
+    background: #ffffff;
+    border: 1px solid #cbe0f5;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(31, 43, 60, 0.18);
+    padding: 10px;
+    display: none;
+    max-width: 96vw;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.route-time-panel.rows-3 {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.route-time-panel.rows-2 {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+}
+
+.route-time-cell {
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    color: #1f2b3c;
+    background: #f8fafc;
+    border-radius: 7px;
+    cursor: pointer;
+    user-select: none;
+    min-width: 42px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s, color 0.1s;
+}
+
+.route-time-cell:hover  { background: #e0efff; color: #1a6bd5; }
+.route-time-cell:active { background: #2b7de9; color: #fff; }
+
+/* ==========================================
+   起点/终点自动完成
+   ========================================== */
+.route-autocomplete {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.route-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #dbe6f2;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(31, 43, 60, 0.15);
+    max-height: 340px;
+    overflow-y: auto;
+    z-index: 30;
+    display: none;
+    scrollbar-width: thin;
+    scrollbar-color: #c2cfde #f1f5f9;
+}
+
+.route-suggestions::-webkit-scrollbar { width: 8px; }
+.route-suggestions::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+.route-suggestions::-webkit-scrollbar-thumb {
+    background: #c2cfde;
+    border-radius: 4px;
+    border: 1.5px solid #f1f5f9;
+}
+
+.route-suggestion {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #1f2b3c;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s;
+    user-select: none;
+}
+
+.route-suggestion:last-child { border-bottom: none; }
+
+.route-suggestion:hover,
+.route-suggestion.active {
+    background: #eef6ff;
+    color: #1a6bd5;
+    font-weight: 600;
+}
+
+/* ==========================================
    结果区
    ========================================== */
+.route-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin: 4px 0 12px;
+    text-align: center;
+}
+
 .route-results {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    transition: opacity 0.18s ease, filter 0.18s ease;
+}
+
+.route-results.is-loading {
+    opacity: 0.55;
+    filter: saturate(0.6);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* 空态兜底高度，避免从空态切到结果列表时跳动 */
+.route-results:empty,
+.route-results > .route-empty:only-child {
+    min-height: 160px;
 }
 
 .route-empty,
@@ -628,11 +677,8 @@
     line-height: 1.7;
 }
 
-.route-error {
-    color: #dc2626;
-}
+.route-error { color: #dc2626; }
 
-/* 无路径时：标题强调 */
 .route-empty-title {
     font-size: 15px;
     font-weight: 700;
@@ -640,28 +686,12 @@
     margin-bottom: 6px;
 }
 
-/* "n 条路径被过滤" 变灰 */
-.route-reject-hint {
-    display: inline-block;
-    margin-top: 8px;
-    color: #94a3b8; /* 从 #b45309 改成灰色 */
-    font-weight: 600;
-    font-size: 13px;
-}
-
-[data-theme="dark"] .route-empty-title {
-    color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-reject-hint {
-    color: #64748b;
-}
-
 .route-reject-hint {
     display: inline-block;
     margin-top: 8px;
     color: #b45309;
     font-weight: 600;
+    font-size: 13px;
 }
 
 .route-reject-list {
@@ -674,6 +704,31 @@
 
 .route-reject-list li {
     margin-bottom: 4px;
+}
+
+/* ==========================================
+   末班车紧急徽章图例
+   ========================================== */
+.route-legend {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin: 0 0 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.route-legend-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: #1f2b3c;
 }
 
 /* ==========================================
@@ -722,20 +777,9 @@
     pointer-events: none;
 }
 
-.route-card[data-rank="1"] .route-rank {
-    background: #d4af37;
-    color: #fff;
-}
-
-.route-card[data-rank="2"] .route-rank {
-    background: #9ca3af;
-    color: #fff;
-}
-
-.route-card[data-rank="3"] .route-rank {
-    background: #b45309;
-    color: #fff;
-}
+.route-card[data-rank="1"] .route-rank { background: #d4af37; color: #fff; }
+.route-card[data-rank="2"] .route-rank { background: #9ca3af; color: #fff; }
+.route-card[data-rank="3"] .route-rank { background: #b45309; color: #fff; }
 
 .route-card-head {
     display: flex;
@@ -792,7 +836,7 @@
 }
 
 .route-segment-badge {
-    position: relative; /* 新增 */
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -806,7 +850,6 @@
     white-space: nowrap;
 }
 
-/* 徽章右下角的警告角标 */
 .route-segment-warn {
     position: absolute;
     right: -7px;
@@ -819,15 +862,7 @@
 }
 
 .route-segment-badge.urgent {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18)
-}
-
-[data-theme="dark"] .route-segment-warn {
-    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6));
-}
-
-[data-theme="dark"] .route-segment-badge.urgent {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 .route-seg-arrow {
@@ -865,6 +900,12 @@
     white-space: nowrap;
     display: inline-block;
     margin: 2px 0;
+}
+
+.route-arrow {
+    color: #94a3b8;
+    margin: 0 4px;
+    font-weight: 600;
 }
 
 /* ==========================================
@@ -905,15 +946,8 @@
     line-height: 1.2;
 }
 
-.route-stations-toggle:hover {
-    background: #e2e8f0;
-    border-color: #cbd5e1;
-    color: #1f2b3c;
-}
-
-.route-stations-toggle:active {
-    background: #cbd5e1;
-}
+.route-stations-toggle:hover  { background: #e2e8f0; border-color: #cbd5e1; color: #1f2b3c; }
+.route-stations-toggle:active { background: #cbd5e1; }
 
 .route-stations-toggle-icon {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -922,45 +956,6 @@
 
 .route-stations-toggle[data-expanded="1"] .route-stations-toggle-icon {
     transform: rotate(180deg);
-}
-
-/* 夜间模式 */
-[data-theme="dark"] .route-station-more {
-    background: #2d3748;
-    color: #94a3b8;
-}
-
-[data-theme="dark"] .route-stations-toggle {
-    background: #232b3d;
-    color: #cbd5e1;
-    border-color: #3a4559;
-}
-
-[data-theme="dark"] .route-stations-toggle:hover {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-stations-toggle:active {
-    background: #3a4559;
-}
-
-/* 移动端微调 */
-@media (max-width: 768px) {
-    .route-stations-toggle-wrap {
-        padding: 0 12px 10px;
-    }
-    .route-stations-toggle {
-        padding: 4px 10px;
-        font-size: 11.5px;
-    }
-}
-
-.route-arrow {
-    color: #94a3b8;
-    margin: 0 4px;
-    font-weight: 600;
 }
 
 /* ==========================================
@@ -985,14 +980,12 @@
 .route-guide-item {
     position: relative;
     padding: 10px 14px;
-    min-height: 62px; /* 保证两行时间有空间，不溢出分割线 */
+    min-height: 62px;
     box-sizing: border-box;
     border-bottom: 1px dashed #e2e8f0;
 }
 
-.route-guide-item:last-child {
-    border-bottom: none;
-}
+.route-guide-item:last-child { border-bottom: none; }
 
 .route-guide-head {
     display: flex;
@@ -1000,7 +993,7 @@
     gap: 8px;
     flex-wrap: wrap;
     font-size: 13px;
-    padding-right: 118px; /* 给右侧两行时间留空间 */
+    padding-right: 118px;
     row-gap: 4px;
     min-height: 22px;
 }
@@ -1041,7 +1034,7 @@
     flex-shrink: 0;
 }
 
-/* 右侧：两行时间信息（到+走 / 候+剩），高度紧凑 */
+/* 右侧：两行时间信息 */
 .route-guide-time-wrap {
     position: absolute;
     top: 10px;
@@ -1062,7 +1055,7 @@
     gap: 5px;
     white-space: nowrap;
     line-height: 1.2;
-    height: 15px; /* 固定每行高度，两行合计 32px */
+    height: 15px;
 }
 
 .route-guide-dot {
@@ -1101,60 +1094,7 @@
     flex-shrink: 0;
 }
 
-.route-guide-margin.urgent {
-    color: #d97706;
-}
-
-/* 暗色 */
-[data-theme="dark"] .route-guide {
-    background: #131a26;
-}
-
-[data-theme="dark"] .route-guide-item {
-    border-bottom-color: #2d3748;
-}
-
-[data-theme="dark"] .route-guide-station {
-    color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-guide-change {
-    background: #1e3a5f;
-    color: #93c5fd;
-}
-
-[data-theme="dark"] .route-guide-note {
-    color: #94a3b8;
-}
-
-[data-theme="dark"] .route-guide-doors {
-    background: #422c00;
-    color: #fbbf24;
-}
-
-[data-theme="dark"] .route-guide-time {
-    color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-guide-walk {
-    color: #94a3b8;
-}
-
-[data-theme="dark"] .route-guide-dot {
-    color: #475569;
-}
-
-[data-theme="dark"] .route-guide-margin {
-    color: #94a3b8;
-}
-
-[data-theme="dark"] .route-guide-margin.urgent {
-    color: #fbbf24;
-}
-
-[data-theme="dark"] .route-guide-empty {
-    color: #4ade80;
-}
+.route-guide-margin.urgent { color: #d97706; }
 
 /* ==========================================
    跨段警告
@@ -1235,7 +1175,7 @@
 }
 
 /* ==========================================
-   夜间模式（全局）
+   夜间模式
    ========================================== */
 [data-theme="dark"] .route-container {
     background: #131a26;
@@ -1247,21 +1187,11 @@
     border-bottom-color: #2d3748;
 }
 
-[data-theme="dark"] .route-header h3 {
-    color: #e2e8f0;
-}
+[data-theme="dark"] .route-header h3 { color: #e2e8f0; }
+[data-theme="dark"] .route-header-note { color: #64748b; }
 
-[data-theme="dark"] .route-header-note {
-    color: #64748b;
-}
-
-[data-theme="dark"] .route-close {
-    color: #94a3b8;
-}
-
-[data-theme="dark"] .route-close:hover {
-    background: #2d3748;
-}
+[data-theme="dark"] .route-close { color: #94a3b8; }
+[data-theme="dark"] .route-close:hover { background: #2d3748; }
 
 [data-theme="dark"] .route-field {
     background: #232b3d;
@@ -1278,17 +1208,27 @@
     color: #cbd5e1;
 }
 
-[data-theme="dark"] .route-input {
-    color: #e2e8f0;
-}
+[data-theme="dark"] .route-input { color: #e2e8f0; }
+[data-theme="dark"] .route-input::placeholder { color: #64748b; }
 
-[data-theme="dark"] .route-input::placeholder {
-    color: #64748b;
-}
-
-[data-theme="dark"] .route-meta {
+[data-theme="dark"] .route-swap-btn {
+    background: #232b3d;
+    border-color: #3a4559;
     color: #94a3b8;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
+
+[data-theme="dark"] .route-swap-btn:hover {
+    background: #2d3748;
+    color: #e2e8f0;
+    border-color: #4a5568;
+}
+
+[data-theme="dark"] .route-swap-btn:active {
+    background: #3a4559;
+}
+
+[data-theme="dark"] .route-meta { color: #94a3b8; }
 
 [data-theme="dark"] .route-time-trigger {
     background: #2d3748;
@@ -1301,22 +1241,11 @@
     border-color: #4a5568;
 }
 
-[data-theme="dark"] .route-time-sep {
-    color: #94a3b8;
-}
+[data-theme="dark"] .route-time-sep { color: #94a3b8; }
 
-[data-theme="dark"] .route-now-btn {
-    background: #2d3748;
-    color: #cbd5e1;
-}
-
-[data-theme="dark"] .route-now-btn:hover {
-    background: #3a4559;
-}
-
-[data-theme="dark"] .route-now-btn:active {
-    background: #4a5568;
-}
+[data-theme="dark"] .route-now-btn { background: #2d3748; color: #cbd5e1; }
+[data-theme="dark"] .route-now-btn:hover { background: #3a4559; }
+[data-theme="dark"] .route-now-btn:active { background: #4a5568; }
 
 [data-theme="dark"] .route-time-panel {
     background: #1a2030;
@@ -1329,15 +1258,8 @@
     color: #e2e8f0;
 }
 
-[data-theme="dark"] .route-time-cell:hover {
-    background: #2d3a52;
-    color: #5da0ff;
-}
-
-[data-theme="dark"] .route-time-cell:active {
-    background: #2b7de9;
-    color: #fff;
-}
+[data-theme="dark"] .route-time-cell:hover { background: #2d3a52; color: #5da0ff; }
+[data-theme="dark"] .route-time-cell:active { background: #2b7de9; color: #fff; }
 
 [data-theme="dark"] .route-suggestions {
     background: #1a2030;
@@ -1346,10 +1268,7 @@
     scrollbar-color: #3a4559 #1a2030;
 }
 
-[data-theme="dark"] .route-suggestions::-webkit-scrollbar-track {
-    background: #1a2030;
-}
-
+[data-theme="dark"] .route-suggestions::-webkit-scrollbar-track { background: #1a2030; }
 [data-theme="dark"] .route-suggestions::-webkit-scrollbar-thumb {
     background: #3a4559;
     border-color: #1a2030;
@@ -1371,17 +1290,9 @@
     border-color: #3a4559;
 }
 
-[data-theme="dark"] .route-sort-label {
-    color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-sort-hint {
-    color: #64748b;
-}
-
-[data-theme="dark"] .route-sort-option:hover {
-    border-color: #4a5568;
-}
+[data-theme="dark"] .route-sort-label { color: #e2e8f0; }
+[data-theme="dark"] .route-sort-hint  { color: #64748b; }
+[data-theme="dark"] .route-sort-option:hover { border-color: #4a5568; }
 
 [data-theme="dark"] .route-sort-option:has(input:checked) {
     border-color: #5da0ff;
@@ -1392,6 +1303,50 @@
 [data-theme="dark"] .route-sort-option:has(input:checked) .route-sort-label {
     color: #93c5fd;
 }
+
+/* 额外选项 */
+[data-theme="dark"] .route-extra-option {
+    background: #232b3d;
+    border-color: #3a4559;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .route-extra-option:hover {
+    background: #2a3348;
+    border-color: #4a5568;
+}
+
+[data-theme="dark"] .route-extra-option-title { color: #cbd5e1; }
+[data-theme="dark"] .route-extra-option-sub   { color: #64748b; }
+
+[data-theme="dark"] .route-switch-track { background: #3a4559; }
+[data-theme="dark"] .route-switch input:checked + .route-switch-track {
+    background: #2b7de9;
+}
+
+[data-theme="dark"] .route-max-transfer-input {
+    background: #1a2030;
+    border-color: #3a4559;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .route-max-transfer-input:focus {
+    border-color: #5da0ff;
+    box-shadow: 0 0 0 3px rgba(93, 160, 255, 0.2);
+}
+
+[data-theme="dark"] .route-max-transfer-input:disabled {
+    background: #1a2030;
+    opacity: 0.4;
+}
+
+[data-theme="dark"] .route-legend {
+    background: #3a1010;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+
+[data-theme="dark"] .route-legend-icon { color: #e2e8f0; }
 
 [data-theme="dark"] .route-card {
     background: #1a2030;
@@ -1408,70 +1363,56 @@
     box-shadow: 0 4px 16px rgba(93, 160, 255, 0.2);
 }
 
-[data-theme="dark"] .route-card:has(.route-urgent-banner) {
-    border-color: #7f1d1d;
-}
+[data-theme="dark"] .route-card:has(.route-urgent-banner) { border-color: #7f1d1d; }
 
-[data-theme="dark"] .route-line-path {
-    color: #e2e8f0;
-}
+[data-theme="dark"] .route-line-path  { color: #e2e8f0; }
+[data-theme="dark"] .route-sub        { color: #94a3b8; }
+[data-theme="dark"] .route-arrive-time  { color: #e2e8f0; }
+[data-theme="dark"] .route-arrive-label { color: #64748b; }
+[data-theme="dark"] .route-seg-arrow  { color: #64748b; }
 
-[data-theme="dark"] .route-sub {
-    color: #94a3b8;
-}
+[data-theme="dark"] .route-segment-badge { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+[data-theme="dark"] .route-segment-warn  { filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6)); }
+[data-theme="dark"] .route-segment-badge.urgent { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
 
-[data-theme="dark"] .route-arrive-time {
-    color: #e2e8f0;
-}
+[data-theme="dark"] .route-rank { background: #1e3a8a; color: #bfdbfe; }
+[data-theme="dark"] .route-card[data-rank="1"] .route-rank { background: #d4af37; color: #fff; }
+[data-theme="dark"] .route-card[data-rank="2"] .route-rank { background: #9ca3af; color: #fff; }
+[data-theme="dark"] .route-card[data-rank="3"] .route-rank { background: #b45309; color: #fff; }
 
-[data-theme="dark"] .route-arrive-label {
-    color: #64748b;
-}
+[data-theme="dark"] .route-card.expanded .route-detail { border-top-color: #2d3748; }
+[data-theme="dark"] .route-stations { color: #cbd5e1; }
+[data-theme="dark"] .route-station  { background: #2d3748; color: #e2e8f0; }
+[data-theme="dark"] .route-arrow    { color: #64748b; }
 
-[data-theme="dark"] .route-seg-arrow {
-    color: #64748b;
-}
+[data-theme="dark"] .route-station-more { background: #2d3748; color: #94a3b8; }
 
-[data-theme="dark"] .route-segment-badge {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-[data-theme="dark"] .route-rank {
-    background: #1e3a8a;
-    color: #bfdbfe;
-}
-
-[data-theme="dark"] .route-card[data-rank="1"] .route-rank {
-    background: #d4af37;
-    color: #fff;
-}
-
-[data-theme="dark"] .route-card[data-rank="2"] .route-rank {
-    background: #9ca3af;
-    color: #fff;
-}
-
-[data-theme="dark"] .route-card[data-rank="3"] .route-rank {
-    background: #b45309;
-    color: #fff;
-}
-
-[data-theme="dark"] .route-card.expanded .route-detail {
-    border-top-color: #2d3748;
-}
-
-[data-theme="dark"] .route-stations {
+[data-theme="dark"] .route-stations-toggle {
+    background: #232b3d;
     color: #cbd5e1;
+    border-color: #3a4559;
 }
 
-[data-theme="dark"] .route-station {
+[data-theme="dark"] .route-stations-toggle:hover {
     background: #2d3748;
+    border-color: #4a5568;
     color: #e2e8f0;
 }
 
-[data-theme="dark"] .route-arrow {
-    color: #64748b;
-}
+[data-theme="dark"] .route-stations-toggle:active { background: #3a4559; }
+
+[data-theme="dark"] .route-guide        { background: #131a26; }
+[data-theme="dark"] .route-guide-item   { border-bottom-color: #2d3748; }
+[data-theme="dark"] .route-guide-station { color: #e2e8f0; }
+[data-theme="dark"] .route-guide-change { background: #1e3a5f; color: #93c5fd; }
+[data-theme="dark"] .route-guide-note   { color: #94a3b8; }
+[data-theme="dark"] .route-guide-doors  { background: #422c00; color: #fbbf24; }
+[data-theme="dark"] .route-guide-time   { color: #e2e8f0; }
+[data-theme="dark"] .route-guide-walk   { color: #94a3b8; }
+[data-theme="dark"] .route-guide-dot    { color: #475569; }
+[data-theme="dark"] .route-guide-margin { color: #94a3b8; }
+[data-theme="dark"] .route-guide-margin.urgent { color: #fbbf24; }
+[data-theme="dark"] .route-guide-empty  { color: #4ade80; }
 
 [data-theme="dark"] .route-warning {
     background: #3a2a10;
@@ -1479,14 +1420,11 @@
     border-left-color: #d97706;
 }
 
-[data-theme="dark"] .route-warning-emphasis {
-    color: #fcd34d;
-}
+[data-theme="dark"] .route-warning-emphasis { color: #fcd34d; }
+[data-theme="dark"] .route-warning-meta { color: #fbbf24; opacity: 0.75; }
 
-[data-theme="dark"] .route-warning-meta {
-    color: #fbbf24;
-    opacity: 0.75;
-}
+[data-theme="dark"] .route-empty-title { color: #e2e8f0; }
+[data-theme="dark"] .route-reject-hint { color: #64748b; }
 
 [data-theme="dark"] .route-plan-btn {
     background: #232b3d;
@@ -1500,7 +1438,7 @@
 }
 
 /* ==========================================
-   移动端
+   移动端（≤ 768px）
    ========================================== */
 @media (max-width: 768px) {
     .route-container {
@@ -1514,6 +1452,21 @@
 
     .route-field {
         flex: 1 1 100%;
+    }
+
+    /* 起点/终点仍保持左右布局 */
+    .route-stops {
+        gap: 6px;
+    }
+
+    .route-swap-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .route-swap-btn svg {
+        width: 14px;
+        height: 14px;
     }
 
     .route-go {
@@ -1533,68 +1486,10 @@
         font-size: 11px;
     }
 
-    .route-line-path {
-        font-size: 14px;
-    }
-
-    .route-arrive-time {
-        font-size: 15px;
-    }
-
-    .route-segment-badge {
-        padding: 3px 10px;
-        font-size: 13px;
-    }
-
-    .route-header-note {
-        font-size: 11px;
-    }
-
-    .route-stations {
-        font-size: 12px;
-        padding: 10px 12px;
-    }
-
-    .route-guide-item {
-        padding: 8px 12px;
-        min-height: 58px;
-    }
-
-    .route-guide-head {
-        padding-right: 108px;
-        font-size: 12px;
-    }
-
-    .route-guide-station {
-        font-size: 13px;
-    }
-
-    .route-guide-time-wrap {
-        top: 8px;
-        right: 12px;
-    }
-
-    .route-guide-time {
-        font-size: 12px;
-    }
-
-    .route-guide-walk {
-        font-size: 10.5px;
-    }
-
-    .route-guide-margin {
-        font-size: 10.5px;
-    }
-
-    .route-plan-btn {
-        width: 40px;
-        height: 36px;
-    }
-
-    .route-plan-btn svg {
-        width: 18px;
-        height: 18px;
-    }
+    .route-line-path     { font-size: 14px; }
+    .route-arrive-time   { font-size: 15px; }
+    .route-segment-badge { padding: 3px 10px; font-size: 13px; }
+    .route-header-note   { font-size: 11px; }
 
     .route-segment-warn {
         width: 16px;
@@ -1602,8 +1497,39 @@
         right: -6px;
         bottom: -6px;
     }
+
+    .route-stations {
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+
+    .route-stations-toggle-wrap { padding: 0 12px 10px; }
+    .route-stations-toggle      { padding: 4px 10px; font-size: 11.5px; }
+
+    .route-guide-item {
+        padding: 8px 12px;
+        min-height: 58px;
+    }
+
+    .route-guide-head    { padding-right: 108px; font-size: 12px; }
+    .route-guide-station { font-size: 13px; }
+    .route-guide-time-wrap { top: 8px; right: 12px; }
+    .route-guide-time    { font-size: 12px; }
+    .route-guide-walk,
+    .route-guide-margin  { font-size: 10.5px; }
+
+    .route-plan-btn      { width: 40px; height: 36px; }
+    .route-plan-btn svg  { width: 18px; height: 18px; }
+
+    .route-extra-option       { padding: 5px 10px; font-size: 12px; }
+    .route-extra-option-title { font-size: 12px; }
+    .route-extra-option-sub   { font-size: 10px; }
+    .route-max-transfer-input { width: 42px; font-size: 12px; }
 }
 
+/* ==========================================
+   移动端（≤ 480px）
+   ========================================== */
 @media (max-width: 480px) {
     .route-time-cell {
         min-width: 36px;
@@ -1616,131 +1542,5 @@
     .route-time-panel.rows-2 {
         gap: 3px;
         padding: 8px;
-    }
-}
-
-/* ==========================================
-   额外选项（最大换乘时长）
-   ========================================== */
-.route-extra-options {
-    flex: 1 1 100%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: -2px;
-}
-
-.route-extra-option {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-    line-height: 1.2;
-}
-
-.route-extra-option:hover {
-    border-color: #a3b6cd;
-    background: #f1f6ff;
-}
-
-.route-extra-option input[type="checkbox"] {
-    margin: 0;
-    cursor: pointer;
-    accent-color: #2b7de9;
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-}
-
-.route-max-transfer-input {
-    width: 46px;
-    padding: 3px 6px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    color: #1f2b3c;
-    text-align: center;
-    background: #ffffff;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    -moz-appearance: textfield;
-}
-
-.route-max-transfer-input:focus {
-    border-color: #2b7de9;
-    box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15);
-}
-
-.route-max-transfer-input:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: #f1f5f9;
-}
-
-.route-max-transfer-input::-webkit-outer-spin-button,
-.route-max-transfer-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* 夜间模式 */
-[data-theme="dark"] .route-extra-option {
-    background: #232b3d;
-    border-color: #3a4559;
-    color: #cbd5e1;
-}
-
-[data-theme="dark"] .route-extra-option:hover {
-    background: #2a3348;
-    border-color: #4a5568;
-}
-
-[data-theme="dark"] .route-max-transfer-input {
-    background: #1a2030;
-    border-color: #3a4559;
-    color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-max-transfer-input:focus {
-    border-color: #5da0ff;
-    box-shadow: 0 0 0 3px rgba(93, 160, 255, 0.2);
-}
-
-[data-theme="dark"] .route-max-transfer-input:disabled {
-    background: #1a2030;
-    opacity: 0.4;
-}
-
-/* 移动端微调 */
-@media (max-width: 768px) {
-    .route-stops {
-        gap: 6px;
-    }
-    .route-swap-btn {
-        width: 28px;
-        height: 28px;
-    }
-    .route-swap-btn svg {
-        width: 14px;
-        height: 14px;
-    }
-    .route-extra-option {
-        padding: 5px 10px;
-        font-size: 12px;
-    }
-    .route-max-transfer-input {
-        width: 42px;
-        font-size: 12px;
     }
 }
