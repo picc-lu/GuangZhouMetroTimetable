@@ -116,27 +116,43 @@ function parseInterchangeKeys(path, departMin) {
     return result;
 }
 
-/** 把 path 拆成有序的线路段，附带线路色。返回 [{ fullLine, shortName, color, textColor }] */
+/** 把 path 拆成有序的线路段，附带线路色与起止站。 */
 function parseRouteSegments(path) {
     const segments = [];
     let lastLine = null;
+    let currentSeg = null;
+
     for (const node of path.nodes) {
         const parts = node.split('|');
         if (parts.length < 2) continue;
         if (parts[1] === '开始' || parts[1] === '结束') continue;
+
         let lineName = parts[0];
-        // 归并 3号线北 → 3号线；佛山3号线北 → 佛山3号线
         if (lineName === '3号线北') lineName = '3号线';
         if (lineName === '佛山3号线北') lineName = '佛山3号线';
-        if (lineName === lastLine) continue;
-        lastLine = lineName;
 
-        const shortName = lineName.replace(/号|线/g, '').replace(/佛山/g, '佛');
-        const color = (typeof LINE_COLORS !== 'undefined' && LINE_COLORS[lineName]) || '#888';
-        const textColor = (typeof getContrastColor === 'function')
-            ? getContrastColor(color)
-            : '#ffffff';
-        segments.push({ fullLine: lineName, shortName, color, textColor });
+        const station = parts[1];
+
+        if (lineName !== lastLine) {
+            currentSeg = {
+                fullLine: lineName,
+                fromStation: station,
+                toStation: station,
+            };
+            segments.push(currentSeg);
+            lastLine = lineName;
+        } else if (currentSeg) {
+            currentSeg.toStation = station;
+        }
     }
+
+    segments.forEach(s => {
+        s.shortName = s.fullLine.replace(/号|线/g, '').replace(/佛山/g, '佛');
+        s.color = (typeof LINE_COLORS !== 'undefined' && LINE_COLORS[s.fullLine]) || '#888';
+        s.textColor = (typeof getContrastColor === 'function')
+            ? getContrastColor(s.color)
+            : '#ffffff';
+    });
+
     return segments;
 }

@@ -79,9 +79,10 @@ function ensureRouteOverlay() {
                                 <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
                             </span>
                             <span>单次换乘时间不超过</span>
-                            <input type="number" id="route-max-transfer-min"
+                            <input type="text" id="route-max-transfer-min"
                                    class="route-max-transfer-input"
-                                   min="1" max="60" step="1" value="5" disabled>
+                                   inputmode="numeric" pattern="[0-9]*"
+                                   maxlength="2" value="5" disabled>
                             <span>分钟</span>
                         </label>
                         <label class="route-extra-option">
@@ -114,6 +115,15 @@ function ensureRouteOverlay() {
                     </svg>
                     <span>此标志表示到达该线路时，距离末班车小于 5 分钟，请慎重选择</span>
                 </div>
+                <div class="route-legend route-legend-3line" id="route-legend-3line" style="display:none">
+                    <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" fill="#dc2626"/>
+                        <line x1="12" y1="7" x2="12" y2="13"
+                              stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
+                    </svg>
+                    <span>3 号线出现该标志，表示该路径存在跨段风险，请展开卡片查看换乘指引</span>
+                </div>
                 <div class="route-results" id="route-results">
                     <div class="route-empty">填写起点和终点，点击「规划」查看前 ${PLAN_TARGET} 条推荐路径</div>
                 </div>
@@ -134,6 +144,10 @@ function ensureRouteOverlay() {
         ov.querySelector('#route-end-suggestions')
     );
 
+    enableSelectAllOnFocus(ov.querySelector('#route-start'));
+    enableSelectAllOnFocus(ov.querySelector('#route-end'));
+    enableSelectAllOnFocus(ov.querySelector('#route-max-transfer-min'));
+
     ov.querySelector('#route-swap').addEventListener('click', () => {
         const startInput = ov.querySelector('#route-start');
         const endInput = ov.querySelector('#route-end');
@@ -148,16 +162,28 @@ function ensureRouteOverlay() {
         // 不聚焦，避免触发 iOS 缩放和键盘弹出
     });
 
-    // 最大换乘时长复选框
+    // 最大换乘时长复选框：勾选时启用数字输入框（不自动聚焦，避免 iOS 弹出键盘）
     const maxTransferCheck = ov.querySelector('#route-max-transfer-check');
     const maxTransferInput = ov.querySelector('#route-max-transfer-min');
     if (maxTransferCheck && maxTransferInput) {
         maxTransferCheck.addEventListener('change', () => {
             maxTransferInput.disabled = !maxTransferCheck.checked;
-            if (maxTransferCheck.checked) {
-                maxTransferInput.focus();
-                maxTransferInput.select();
+        });
+
+        // 输入过滤：只允许 0-9，范围 0~60
+        maxTransferInput.addEventListener('input', () => {
+            let v = maxTransferInput.value.replace(/\D/g, '');
+            if (v === '') {
+                maxTransferInput.value = '';
+                return;
             }
+            let n = parseInt(v, 10);
+            if (isNaN(n) || n < 0) n = 0;
+            if (n > 60) n = 60;
+            maxTransferInput.value = String(n);
+        });
+        maxTransferInput.addEventListener('blur', () => {
+            if (maxTransferInput.value === '') maxTransferInput.value = '5';
         });
     }
 
@@ -362,6 +388,9 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
                 e.preventDefault();
                 inputEl.value = el.dataset.value;
                 hide();
+                try {
+                    inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+                } catch (_) {}
             });
         });
     }
@@ -448,7 +477,10 @@ function searchRouteStations(query, limit) {
         && Object.keys(STATION_INDEX).length === 0
         && typeof LINE_STATIONS !== 'undefined'
         && typeof buildStationIndex === 'function') {
-        try { buildStationIndex(); } catch (_) {}
+        try {
+            buildStationIndex();
+        } catch (_) {
+        }
     }
 
     if (typeof searchStations === 'function') {
@@ -458,7 +490,8 @@ function searchRouteStations(query, limit) {
                 limit: limit,
             });
             return arr.map(r => r.station);
-        } catch (_) {}
+        } catch (_) {
+        }
     }
 
     // 兜底（STATION_PINYIN_INDEX 不可用时）
@@ -519,14 +552,14 @@ async function runRoutePlanning() {
     if (!_routeOverlay) return;
 
     const startInput = _routeOverlay.querySelector('#route-start');
-    const endInput   = _routeOverlay.querySelector('#route-end');
-    const resultsEl  = _routeOverlay.querySelector('#route-results');
-    const goBtn      = _routeOverlay.querySelector('#route-go');
+    const endInput = _routeOverlay.querySelector('#route-end');
+    const resultsEl = _routeOverlay.querySelector('#route-results');
+    const goBtn = _routeOverlay.querySelector('#route-go');
 
     if (!startInput || !endInput || !resultsEl || !goBtn) return;
 
     const start = startInput.value.trim();
-    const end   = endInput.value.trim();
+    const end = endInput.value.trim();
 
     if (!start || !end) {
         resultsEl.innerHTML = `<div class="route-error">请填写起点和终点</div>`;
@@ -538,16 +571,21 @@ async function runRoutePlanning() {
     }
 
     const sortRadio = _routeOverlay.querySelector('input[name="route-sort"]:checked');
-    const sortMode  = sortRadio ? sortRadio.value : 'fastest';
+    const sortMode = sortRadio ? sortRadio.value : 'fastest';
     const departMin = getRouteDepartMin();
 
+    // 读取"单次换乘时间不超过 n 分钟"（允许 0）
     let maxTransferMin = null;
     const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
     const mti = _routeOverlay.querySelector('#route-max-transfer-min');
     if (mtc && mtc.checked && mti) {
         const v = parseInt(mti.value, 10);
-        if (!isNaN(v) && v > 0) maxTransferMin = v;
+        if (!isNaN(v) && v >= 0) {
+            maxTransferMin = Math.min(v, 60);
+        }
     }
+
+    // 读取"不走站外换乘"
     let avoidOutOfStation = false;
     const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
     if (aoc) avoidOutOfStation = aoc.checked;
@@ -593,6 +631,13 @@ async function runRoutePlanning() {
         const legendEl = _routeOverlay.querySelector('#route-legend');
         if (legendEl) legendEl.style.display = hasUrgent ? 'flex' : 'none';
 
+        // ★ 新增：3 号线跨段警告图例
+        const has3LineWarning = r.results.some(item =>
+            item.warnings && item.warnings.length > 0
+        );
+        const legend3LineEl = _routeOverlay.querySelector('#route-legend-3line');
+        if (legend3LineEl) legend3LineEl.style.display = has3LineWarning ? 'flex' : 'none';
+
         resultsEl.innerHTML = r.results.map((item, idx) =>
             renderRouteCard(item, idx, start, end)
         ).join('');
@@ -613,12 +658,12 @@ async function runRoutePlanning() {
                 const card = btn.closest('.route-card');
                 if (!card) return;
                 const collapsedEl = card.querySelector('.route-stations-collapsed');
-                const fullEl      = card.querySelector('.route-stations-full');
+                const fullEl = card.querySelector('.route-stations-full');
                 if (!collapsedEl || !fullEl) return;
 
                 const expanded = btn.dataset.expanded === '1';
-                const total    = btn.dataset.total;
-                const textEl   = btn.querySelector('.route-stations-toggle-text');
+                const total = btn.dataset.total;
+                const textEl = btn.querySelector('.route-stations-toggle-text');
 
                 if (expanded) {
                     collapsedEl.style.display = '';
@@ -667,7 +712,7 @@ function formatDuration(seconds) {
     return `${r}秒`;
 }
 
-function renderRouteSegmentsHtml(path, boardingMargins) {
+function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
     const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(path) : [];
     if (segs.length === 0) return '';
     const margins = boardingMargins || [];
@@ -675,8 +720,9 @@ function renderRouteSegmentsHtml(path, boardingMargins) {
     return `<span class="route-segments">` + segs.map((s, i) => {
         const m = margins[i];
         const isUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 5);
+        const is3LineWarn = has3LineWarning && s.fullLine === '3号线';
 
-        const warnSvg = isUrgent
+        const urgentSvg = isUrgent
             ? `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
                    <path d="M12 2 L22 20 L2 20 Z"
                          fill="#f59e0b"
@@ -689,9 +735,18 @@ function renderRouteSegmentsHtml(path, boardingMargins) {
                </svg>`
             : '';
 
-        const badge = `<span class="route-segment-badge${isUrgent ? ' urgent' : ''}"
+        const warn3Svg = is3LineWarn
+            ? `<svg class="route-segment-warn-3line" viewBox="0 0 24 24" aria-hidden="true">
+                   <circle cx="12" cy="12" r="10" fill="#dc2626"/>
+                   <line x1="12" y1="7" x2="12" y2="13"
+                         stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                   <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
+               </svg>`
+            : '';
+
+        const badge = `<span class="route-segment-badge${isUrgent ? ' urgent' : ''}${is3LineWarn ? ' warn-3line' : ''}"
                             style="background:${s.color}; color:${s.textColor};">
-                            ${escapeHtml(s.shortName)}${warnSvg}
+                            ${escapeHtml(s.shortName)}${urgentSvg}${warn3Svg}
                        </span>`;
         return i === 0 ? badge : `<span class="route-seg-arrow">→</span>${badge}`;
     }).join('') + `</span>`;
@@ -848,7 +903,7 @@ function renderRouteCard(item, idx, startName, endName) {
                 : '';
 
             // 右侧时间信息
-            const arriveStr  = (bp.timeMin      != null && !isNaN(bp.timeMin))      ? fmtHM(bp.timeMin)      : '';
+            const arriveStr = (bp.timeMin != null && !isNaN(bp.timeMin)) ? fmtHM(bp.timeMin) : '';
             const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
             let walkStr = '';
             if (bp.walkMin != null && bp.walkMin > 0) {
@@ -907,7 +962,7 @@ function renderRouteCard(item, idx, startName, endName) {
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                    <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins)}</div>
+                    <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0)}</div>
                     <div class="route-sub">
                         <span>⏱ ${formatDuration(item.totalCost)}</span>
                         <span>换 ${item.interchanges.length} 次</span>
@@ -920,8 +975,8 @@ function renderRouteCard(item, idx, startName, endName) {
                     <div class="route-arrive-label">到达</div>
                 </div>
             </div>
-            ${warningHtml}
             <div class="route-detail">
+                ${warningHtml}
                 ${buildStationListHtml(startName, endName, item.stationRoute)}
                 ${guideHtml}
             </div>
@@ -954,4 +1009,19 @@ function routeShortLineName(line) {
     if (name.includes('佛山')) name = name.replace(/佛山/g, '佛');
     if (name.endsWith('线')) name = name.slice(0, -1);
     return name;
+}
+
+/* ==========================================
+   输入框：点击（聚焦）时自动全选内容
+   ========================================== */
+function enableSelectAllOnFocus(inputEl) {
+    if (!inputEl) return;
+    inputEl.addEventListener('focus', () => {
+        // 延迟到下一个任务，让浏览器先完成默认的聚焦光标定位
+        setTimeout(() => {
+            // 焦点已转移则不再全选（例如用户迅速点了别处）
+            if (document.activeElement !== inputEl) return;
+            try { inputEl.select(); } catch (_) {}
+        }, 0);
+    });
 }

@@ -137,10 +137,7 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {number} departMin
  * @param {'fastest'|'conservative'} sortMode
  */
-async function planRoutes(startStation, endStation, departMin,
-                          sortMode = 'fastest',
-                          maxTransferMin = null,
-                          avoidOutOfStation = false) {
+async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false) {
     await loadRouteGraph();
 
     const startNode = resolveGraphStationNode(startStation, 'start');
@@ -157,8 +154,23 @@ async function planRoutes(startStation, endStation, departMin,
     const rejected = [];
     let checkedCount = 0;
 
+    const semanticKeys = new Set();
+
     for (const p of paths) {
         const stationRoute = parseStationRoute(p);
+
+        const segs = parseRouteSegments(p);
+        const semanticKey = segs
+            .map(s => `${s.fullLine}|${s.fromStation}→${s.toStation}`)
+            .join('>');
+        if (semanticKeys.has(semanticKey)) {
+            rejected.push({
+                reason: '等价路径（相同线路走向与站点）',
+                totalCost: p.totalCost,
+            });
+            continue;
+        }
+        semanticKeys.add(semanticKey);
 
         // 检测完整站名序列（起点+途经+终点）中是否有任何重复
         const fullStations = [startStation, ...stationRoute, endStation];
@@ -205,7 +217,7 @@ async function planRoutes(startStation, endStation, departMin,
 
         // ====== 新增：单次换乘步行时长过滤 ======
         const interchanges = parseInterchangeKeys(p, departMin);
-        if (maxTransferMin != null && maxTransferMin > 0 && interchanges.length > 0) {
+        if (maxTransferMin != null && maxTransferMin >= 0 && interchanges.length > 0) {
             const longTransfer = interchanges.find(o => o.walkMin > maxTransferMin);
             if (longTransfer) {
                 rejected.push({
@@ -571,10 +583,13 @@ function isPathWithinTerminalRange(startStation, dirStr, terminalEnd, downstream
 
 /* ==========================================
    3号线南北段跨段警告
+   仅当"同一段连续的 3 号线"里同时出现南段站与北段站时告警。
+   中途下车换乘其他线路、再从 3 号线另一段重新上车的情况不算跨段。
    ========================================== */
 function checkThreeLineCrossSegment(path, departMin) {
     const warnings = [];
 
+    // 1. 构建 timeline（站名 + 到达时间）
     const timeline = [];
     let t = departMin;
     for (let i = 0; i < path.nodes.length; i++) {
@@ -585,42 +600,62 @@ function checkThreeLineCrossSegment(path, departMin) {
         }
     }
 
-    const line3Stations = [];
+    // 2. 把 3 号线节点按"连续段"分组（其他线路出现即打断）
+    const line3Segments = [];
+    let currentSeg = null;
+
     for (const entry of timeline) {
         const parts = entry.node.split('|');
-        if (parts.length < 2) continue;
-        if (parts[0] !== '3号线') continue;
+        if (parts.length < 2) { currentSeg = null; continue; }
+        if (parts[0] !== '3号线') { currentSeg = null; continue; }
         const station = parts[1];
         if (station === '开始' || station === '结束') continue;
-        line3Stations.push({station, timeMin: entry.timeMin});
-    }
 
-    let northFirstIdx = -1;
-    let southFirstIdx = -1;
-    line3Stations.forEach((s, i) => {
-        if (northFirstIdx < 0 && LINE3_NORTH_STATIONS.has(s.station)) northFirstIdx = i;
-        if (southFirstIdx < 0 &&
-            (LINE3_MAIN_SOUTH.has(s.station) || LINE3_BRANCH.has(s.station))) {
-            southFirstIdx = i;
+        if (!currentSeg) {
+            currentSeg = [];
+            line3Segments.push(currentSeg);
         }
-    });
-
-    if (northFirstIdx < 0 || southFirstIdx < 0) return warnings;
-
-    let tiyuxiluTime = null;
-    for (const s of line3Stations) {
-        if (s.station === '体育西路') {
-            tiyuxiluTime = s.timeMin;
-            break;
+        // 相邻同名站去重
+        if (currentSeg.length === 0 ||
+            currentSeg[currentSeg.length - 1].station !== station) {
+            currentSeg.push({station, timeMin: entry.timeMin});
         }
     }
-    if (tiyuxiluTime === null) return warnings;
 
-    const isSouthToNorth = southFirstIdx < northFirstIdx;
-    const isNorthToSouth = northFirstIdx < southFirstIdx;
+    // 3. 逐段判断：只有同一段内同时含南段站 + 体育西路 + 北段站，才算跨段
+    let southToNorthInfo = null;
+    let northToSouthInfo = null;
 
-    // 北→南
-    if (isNorthToSouth) {
+    for (const seg of line3Segments) {
+        let southIdx = -1, northIdx = -1, tyxIdx = -1;
+        seg.forEach((s, i) => {
+            if (tyxIdx < 0 && s.station === '体育西路') tyxIdx = i;
+            if (southIdx < 0 &&
+                (LINE3_MAIN_SOUTH.has(s.station) || LINE3_BRANCH.has(s.station))) {
+                southIdx = i;
+            }
+            if (northIdx < 0 && LINE3_NORTH_STATIONS.has(s.station)) northIdx = i;
+        });
+
+        if (southIdx < 0 || northIdx < 0 || tyxIdx < 0) continue;
+
+        // 风险段的 from/to 用整个连续段的首尾，便于渲染时精确匹配
+        const segFrom = seg[0].station;
+        const segTo   = seg[seg.length - 1].station;
+        const tiyuxiluTime = seg[tyxIdx].timeMin;
+
+        if (southIdx < northIdx) {
+            southToNorthInfo = {segFrom, segTo, tiyuxiluTime};
+        } else {
+            northToSouthInfo = {segFrom, segTo, tiyuxiluTime};
+        }
+    }
+
+    if (!southToNorthInfo && !northToSouthInfo) return warnings;
+
+    // 4. 北 → 南风险
+    if (northToSouthInfo) {
+        const tiyuxiluTime = northToSouthInfo.tiyuxiluTime;
         const southData = lineDirectionTime['3号线']?.['体育西路'];
         if (southData) {
             const southDown = (southData.down || [])
@@ -632,29 +667,38 @@ function checkThreeLineCrossSegment(path, departMin) {
                     messageHtml: `约 <b>${fmtHM(tiyuxiluTime)}</b> 到达体育西路时，天河客运站→海傍的末班车已于 <b>${fmtHM(southDown.last)}</b> 发出。<br>若乘坐<strong class="route-warning-emphasis">体育西路方向</strong>的列车，可能赶不上南段末班车。`,
                     enterTyxTime: tiyuxiluTime,
                     southLastTrain: southDown.last,
+                    risky3LineFrom: northToSouthInfo.segFrom,
+                    risky3LineTo:   northToSouthInfo.segTo,
                 });
             }
         }
     }
 
-    // 南→北
-    if (isSouthToNorth && tiyuxiluTime >= 22 * 60) {
-        const northData = lineDirectionTime['3号线北']?.['体育西路'];
-        const northUp = northData ? (northData.up || []).find(x => x.to.includes('机场北')) : null;
-        const northLast = northUp ? northUp.last : null;
+    // 5. 南 → 北风险
+    if (southToNorthInfo) {
+        const tiyuxiluTime = southToNorthInfo.tiyuxiluTime;
+        if (tiyuxiluTime >= 22 * 60) {
+            const northData = lineDirectionTime['3号线北']?.['体育西路'];
+            const northUp = northData
+                ? (northData.up || []).find(x => x.to.includes('机场北'))
+                : null;
+            const northLast = northUp ? northUp.last : null;
 
-        const metaLine = northLast !== null
-            ? `<span class="route-warning-meta">体育西路往机场北方向末班车 ${fmtHM(northLast)}</span>`
-            : '';
+            const metaLine = northLast !== null
+                ? `<span class="route-warning-meta">体育西路往机场北方向末班车 ${fmtHM(northLast)}</span>`
+                : '';
 
-        warnings.push({
-            type: 'south_to_north_no_through',
-            message: `到达 3 号线可能已无机场北方向。如需前往林和西~机场北，可乘坐天河客运站方向的列车，在体育西路换乘。`
-                + (northLast !== null ? `体育西路往机场北方向末班车为 ${fmtHM(northLast)}。` : ''),
-            messageHtml: `到达 3 号线可能已无机场北方向。<br>如需前往林和西~机场北，可乘坐<b>天河客运站方向</b>的列车，在<strong class="route-warning-emphasis">体育西路</strong>换乘。${metaLine}`,
-            enterTyxMin: tiyuxiluTime,
-            northLastTrain: northLast,
-        });
+            warnings.push({
+                type: 'south_to_north_no_through',
+                message: `到达 3 号线可能已无机场北方向。如需前往林和西~机场北，可乘坐天河客运站方向的列车，在体育西路换乘。`
+                    + (northLast !== null ? `体育西路往机场北方向末班车为 ${fmtHM(northLast)}。` : ''),
+                messageHtml: `到达 3 号线可能已无机场北方向。<br>如需前往林和西~机场北，可乘坐<b>天河客运站方向</b>的列车，在<strong class="route-warning-emphasis">体育西路</strong>换乘。${metaLine}`,
+                enterTyxMin: tiyuxiluTime,
+                northLastTrain: northLast,
+                risky3LineFrom: southToNorthInfo.segFrom,
+                risky3LineTo:   southToNorthInfo.segTo,
+            });
+        }
     }
 
     return warnings;
