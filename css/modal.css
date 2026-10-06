@@ -734,3 +734,16 @@
 .v-card.v-down .v-time-block:only-child {
     align-items: flex-start;
 }
+
+/* 多终点时，卡片内每个块顶部的"往 XXX"小字 */
+.v-multi-terminals .v-dir {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    text-align: center;
+    justify-content: center;
+}
+
+.v-multi-terminals .v-time-block {
+    padding: 4px 6px;
+}

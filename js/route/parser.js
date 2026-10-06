@@ -103,9 +103,14 @@ function parseInterchangeKeys(path, departMin) {
                 const walkMin = (w != null) ? w / 60 : 0;
                 const boardingTime = t + walkMin;
 
+                // ★ 收集 boarding 之后、同一线路上按顺序出现的所有站
+                // 与 checkReachability 保持一致，供多终点覆盖判断使用
+                const downstream = collectDownstreamStations(i + 1, path.nodes);
+
                 let marginMin = null;
                 if (typeof getBoardingMargin === 'function') {
-                    marginMin = getBoardingMargin(vParts[0], uParts[1], vParts[2], boardingTime);
+                    marginMin = getBoardingMargin(vParts[0], uParts[1], vParts[2],
+                        boardingTime, downstream);
                 }
 
                 result.push({ key, timeMin: t, walkMin, boardingTime, marginMin });

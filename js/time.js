@@ -406,7 +406,21 @@ function parseTimeRecords(records, options = {}) {
         });
     }
 
-    // 修复：原来无条件先调一次 renderAllLines()，即使 skipRender=true 也会全量重绘
+    // ★ 新增：对多终点线路的 up/down 数组统一按终点站名称排序，
+    //   确保同一线路不同站点的显示顺序一致，且与顶部图例顺序一致
+    for (const line in lineDirectionTime) {
+        if (line === LINE11_NAME) continue;
+        for (const st in lineDirectionTime[line]) {
+            const data = lineDirectionTime[line][st];
+            if (Array.isArray(data.up) && data.up.length > 1) {
+                data.up.sort((a, b) => a.to.localeCompare(b.to, 'zh'));
+            }
+            if (Array.isArray(data.down) && data.down.length > 1) {
+                data.down.sort((a, b) => a.to.localeCompare(b.to, 'zh'));
+            }
+        }
+    }
+
     if (!skipRender) {
         renderAllLines();
     }

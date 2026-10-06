@@ -537,8 +537,6 @@ async function openRoutePlanner() {
     _routeOverlay.style.display = 'flex';
     lockBodyScroll();
 
-    hideAllRouteLegends();       // ← 新增：确保两个图例初始都隐藏
-
     refreshRouteTimeTriggers();
     setRouteMeta('正在加载线路图…');
 
@@ -683,7 +681,33 @@ async function runRoutePlanning() {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.route-guide')) return;
                 if (e.target.closest('.route-stations-toggle')) return;
+                if (e.target.closest('.route-station-more-btn')) return;   // ★ 新增
                 card.classList.toggle('expanded');
+            });
+        });
+
+        // 「展开中间 N 站」内联按钮：展开完整列表，并让底部切换按钮接管
+        resultsEl.querySelectorAll('.route-station-more-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const card = btn.closest('.route-card');
+                if (!card) return;
+
+                const collapsedEl = card.querySelector('.route-stations-collapsed');
+                const fullEl      = card.querySelector('.route-stations-full');
+                const toggleWrap  = card.querySelector('.route-stations-toggle-wrap');
+                const toggleBtn   = toggleWrap ? toggleWrap.querySelector('.route-stations-toggle') : null;
+                if (!collapsedEl || !fullEl || !toggleWrap) return;
+
+                collapsedEl.style.display = 'none';
+                fullEl.style.display = '';
+                toggleWrap.style.display = '';
+
+                if (toggleBtn) {
+                    toggleBtn.dataset.expanded = '1';
+                    const textEl = toggleBtn.querySelector('.route-stations-toggle-text');
+                    if (textEl) textEl.textContent = '收起站点列表';
+                }
             });
         });
 
@@ -702,11 +726,17 @@ async function runRoutePlanning() {
                 const textEl = btn.querySelector('.route-stations-toggle-text');
 
                 if (expanded) {
+                    // 收起：回到折叠状态，同时隐藏底部按钮
+                    // （让中间的「展开中间 N 站」按钮成为唯一入口）
                     collapsedEl.style.display = '';
                     fullEl.style.display = 'none';
                     btn.dataset.expanded = '0';
                     if (textEl) textEl.textContent = `展开全部 ${total} 站`;
+
+                    const wrap = btn.closest('.route-stations-toggle-wrap');
+                    if (wrap) wrap.style.display = 'none';
                 } else {
+                    // 展开：正常显示完整列表
                     collapsedEl.style.display = 'none';
                     fullEl.style.display = '';
                     btn.dataset.expanded = '1';
@@ -816,22 +846,28 @@ function buildStationListHtml(startName, endName, stationRoute) {
     const tail = stationRoute.slice(-STATION_LIST_TAIL);
     const hiddenCount = stationRoute.length - STATION_LIST_HEAD - STATION_LIST_TAIL;
 
+    // 折叠视图：中间的「… 中间 N 站 …」改为可点击按钮
     const collapsedHtml = `
         <span class="route-station">${escapeHtml(startName)}</span>
         ${head.map(s =>
         `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
     ).join('')}
-        <span class="route-arrow">→</span><span class="route-station-more">… 中间 ${hiddenCount} 站 …</span>
+        <span class="route-arrow">→</span><button type="button"
+                class="route-station-more-btn"
+                data-hidden-count="${hiddenCount}"
+                title="点击展开中间 ${hiddenCount} 站">展开中间 ${hiddenCount} 站</button>
         ${tail.map(s =>
         `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
     ).join('')}
         <span class="route-arrow">→</span><span class="route-station">${escapeHtml(endName)}</span>
     `;
 
+    // 底部的「展开/收起」按钮容器初始 display:none，
+    // 由中间按钮点击后接管显示（避免两个入口同时出现）
     return `
         <div class="route-stations route-stations-collapsed">${collapsedHtml}</div>
         <div class="route-stations route-stations-full" style="display:none">${fullHtml}</div>
-        <div class="route-stations-toggle-wrap">
+        <div class="route-stations-toggle-wrap" style="display:none">
             <button class="route-stations-toggle" type="button"
                     data-expanded="0" data-total="${totalStations}">
                 <span class="route-stations-toggle-text">展开全部 ${totalStations} 站</span>

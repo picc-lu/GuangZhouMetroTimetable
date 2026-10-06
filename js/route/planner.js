@@ -501,8 +501,8 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
 
 /**
  * 11 号线专用：判断 boarding 是否可以搭乘。
- *  - 全程车优先：命中 upFull/downFull → 直接放行
- *  - 区间车：命中 upTerminal/downTerminal 时，还要检查下游站是否都在区间车覆盖范围内
+ *  - 全程车与区间车都可行时，取余量更大的那一班
+ *  - 区间车需检查下游站是否都在区间覆盖范围内
  */
 function getLine11BoardingMargin(station, dirStr, timeMin, downstreamStations) {
     const d = getLineStationData('11号线', station);
@@ -514,33 +514,37 @@ function getLine11BoardingMargin(station, dirStr, timeMin, downstreamStations) {
     const isInner = dirStr.includes('内环');
     if (!isOuter && !isInner) return 'unknown';
 
-    const full = isOuter ? d.upFull : d.downFull;
+    const full     = isOuter ? d.upFull     : d.downFull;
     const terminal = isOuter ? d.upTerminal : d.downTerminal;
-
-    // 硬编码区间车终点（广州地铁 11 号线的固定设计）
     const terminalEnd = isOuter ? '龙潭' : '赤沙';
 
-    // 1. 全程车优先
+    // 收集所有可用的候车选项，取 last 最大者
+    const options = [];
+
+    // 1. 全程车
     if (full && timeMin >= full.first && timeMin <= full.last) {
-        return full.last - timeMin;
+        options.push(full.last);
     }
 
-    // 2. 区间车：需检查路径下游站是否都在覆盖范围内
+    // 2. 区间车：需覆盖下游路径
     if (terminal && timeMin >= terminal.first && timeMin <= terminal.last) {
+        let within;
         if (!downstreamStations || downstreamStations.length === 0) {
-            // 无上下文（如换乘详情展示），保守放行
-            return terminal.last - timeMin;
+            // 无上下文（如单站查询），保守放行
+            within = true;
+        } else {
+            within = isPathWithinTerminalRange(
+                station, dirStr, terminalEnd, downstreamStations
+            );
         }
-        const within = isPathWithinTerminalRange(
-            station, dirStr, terminalEnd, downstreamStations
-        );
-        if (within) {
-            return terminal.last - timeMin;
-        }
-        return null;   // 区间车覆盖不到路径所有下游站 → 视为停运
+        if (within) options.push(terminal.last);
     }
 
-    return null;
+    if (options.length === 0) return null;
+
+    // 取余量最大的（最晚的末班车）
+    const latestLast = Math.max(...options);
+    return latestLast - timeMin;
 }
 
 /**

@@ -75,3 +75,26 @@ function routeGetSuccessors(node) {
 function routeEdgeKey(from, to) {
     return from + '\u0001' + to;
 }
+
+/**
+ * 收集 node 之后的、与 node 同线路、按顺序出现的站名（相邻去重）。
+ * @param {string} node     起点的完整节点名
+ * @param {string[]} allNodes 整条 path.nodes
+ * @returns {string[]}
+ */
+function collectDownstreamStations(startIdx, allNodes) {
+    const startParts = allNodes[startIdx].split('|');
+    if (startParts.length < 4) return [];
+    const line = startParts[0];
+
+    const downstream = [];
+    for (let j = startIdx + 1; j < allNodes.length; j++) {
+        const p = allNodes[j].split('|');
+        if (p.length < 2) continue;
+        if (p[0] !== line) break;
+        const st = p[1];
+        if (st === '开始' || st === '结束') continue;
+        if (downstream[downstream.length - 1] !== st) downstream.push(st);
+    }
+    return downstream;
+}

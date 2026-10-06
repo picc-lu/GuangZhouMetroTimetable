@@ -447,8 +447,11 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
         // 只要该线路有终点站数据，就使用顶部图例
         if (upSet.size > 0 || downSet.size > 0) {
             useTopLegend = true;
-            upTargetName = [...upSet].join(' ｜ ');
-            downTargetName = [...downSet].join(' ｜ ');
+            // 与卡片内 up/down 数组保持相同排序（按终点站名称）
+            const upArr = [...upSet].sort((a, b) => a.localeCompare(b, 'zh'));
+            const downArr = [...downSet].sort((a, b) => a.localeCompare(b, 'zh'));
+            upTargetName = upArr.join(' ｜ ');
+            downTargetName = downArr.join(' ｜ ');
         }
     }
 
