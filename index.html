@@ -60,7 +60,17 @@
             <button id="deselect-all" class="action-button">清空</button>
         </div>
         <div class="search-wrapper" id="search-wrapper">
-            <input type="text" id="search-input" class="search-input" placeholder='搜索站点，如"体育西路"/tyxl' autocomplete="off">
+            <button type="button" class="search-toggle" id="search-toggle"
+                    title="搜索站点" aria-label="搜索站点" aria-expanded="false">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            <input type="text" id="search-input" class="search-input"
+                   placeholder='搜索站点，如"大塘"/dt' autocomplete="off">
             <div class="search-results" id="search-results"></div>
         </div>
         <button id="nearby-btn" class="nearby-btn" type="button" title="附近站点" aria-label="附近站点">
@@ -71,13 +81,15 @@
             </svg>
         </button>
 
-        <button id="route-plan-btn" class="route-plan-btn" type="button" title="路径规划" aria-label="路径规划">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+        <button id="route-plan-btn" class="route-plan-btn" type="button"
+                title="线路规划" aria-label="线路规划">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="6" cy="19" r="3"></circle>
                 <circle cx="18" cy="5" r="3"></circle>
                 <path d="M9 19h5a4 4 0 0 0 4-4V8"></path>
             </svg>
+            <span>线路规划</span>
         </button>
 
         <button id="theme-toggle" class="theme-toggle" type="button" title="切换到夜间模式">

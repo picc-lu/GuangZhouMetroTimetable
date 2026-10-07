@@ -335,8 +335,8 @@ function initRouteTimePickers(ov) {
 function positionTimePanel(panel, trigger) {
     const rect = trigger.getBoundingClientRect();
     const vw = window.innerWidth;
-    // 时面板 7 列，分面板 6 列（对应新的单元格尺寸）
-    const pw = panel.classList.contains('rows-3') ? 340 : 295;
+    // 时面板 7 列，分面板 6 列（单元格加大后同步加宽面板）
+    const pw = panel.classList.contains('rows-3') ? 380 : 330;
 
     let left = rect.left;
     if (left + pw > vw - 8) left = vw - pw - 8;
@@ -881,6 +881,192 @@ function buildStationListHtml(startName, endName, stationRoute) {
     `;
 }
 
+/* ==========================================
+   从路径中提取指定线路、指定站的上车方向
+   - 11 号线环线：用路径实际末端的站名
+   - 多终点线路：优先显示"末班车未过"的最远终点
+   - 其他线路：直接用原始方向字段
+   ========================================== */
+function getSegmentDirection(path, station, lineName) {
+    if (!lineName || !path || !path.nodes) return null;
+
+    // 11 号线环线走独立逻辑
+    if (lineName === '11号线') {
+        return get11LineDirectionFromPath(path, station);
+    }
+
+    // 1. 读原始方向字段（兜底）
+    let rawDirection = null;
+    for (const node of path.nodes) {
+        const parts = node.split('|');
+        if (parts.length >= 4
+            && parts[0] === lineName
+            && parts[1] === station
+            && parts[3] === '站台') {
+            rawDirection = parts[2];
+            break;
+        }
+    }
+    if (!rawDirection) return null;
+
+    // 2. 数据不足 → 直接返回原始方向
+    const lineData = (typeof lineDirectionTime !== 'undefined')
+        ? lineDirectionTime[lineName] : null;
+    const stationData = lineData && lineData[station];
+    const lineStations = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS[lineName]) || [];
+    if (!stationData || lineStations.length === 0) return rawDirection;
+
+    // 3. 找出该段在 path 里的实际末端站
+    const segmentEnd = getSegmentEndStation(path, station, lineName);
+    if (!segmentEnd) return rawDirection;
+
+    // 4. 找到原始方向对应的数据数组（up / down）
+    const dirName = rawDirection.replace(/方向$/, '');
+    let dirArray = null;
+    for (const key of ['up', 'down']) {
+        if (!Array.isArray(stationData[key])) continue;
+        if (stationData[key].some(t =>
+            (t.to || '').split(/[（(]/)[0] === dirName
+        )) {
+            dirArray = stationData[key];
+            break;
+        }
+    }
+    if (!dirArray || dirArray.length === 0) return rawDirection;
+
+    // 5. 线路顺序索引
+    const idxStation = lineStations.indexOf(station);
+    const idxEnd     = lineStations.indexOf(segmentEnd);
+    if (idxStation < 0 || idxEnd < 0) return rawDirection;
+
+    // ★ 用路径规划的出发时刻判断方向，而非主页面的自定义时间
+    const currentMin = (typeof getRouteDepartMin === 'function')
+        ? getRouteDepartMin() : null;
+    if (currentMin == null) return rawDirection;
+
+    const isForward = idxEnd > idxStation;
+
+    // 6. 从 segmentEnd 出发，沿运行方向向远端遍历，
+    //    找到第一个"末班车未过"的终点站作为方向名。
+    if (isForward) {
+        for (let i = lineStations.length - 1; i >= idxEnd; i--) {
+            const cand = lineStations[i];
+            const hasService = dirArray.some(t =>
+                (t.to || '').split(/[（(]/)[0] === cand && currentMin <= t.last
+            );
+            if (hasService) return cand + '方向';
+        }
+    } else {
+        for (let i = 0; i <= idxEnd; i++) {
+            const cand = lineStations[i];
+            const hasService = dirArray.some(t =>
+                (t.to || '').split(/[（(]/)[0] === cand && currentMin <= t.last
+            );
+            if (hasService) return cand + '方向';
+        }
+    }
+
+    return rawDirection;
+}
+
+/** 收集某条线路所有方向数据里出现过的终点站名（去括号后缀） */
+function collectTerminalCandidates(lineName) {
+    const set = new Set();
+    const lineData = (typeof lineDirectionTime !== 'undefined')
+        ? lineDirectionTime[lineName] : null;
+    if (!lineData) return set;
+
+    for (const st in lineData) {
+        const d = lineData[st];
+        if (!d) continue;
+        for (const t of (d.up || [])) {
+            const n = (t.to || '').split(/[（(]/)[0];
+            if (n) set.add(n);
+        }
+        for (const t of (d.down || [])) {
+            const n = (t.to || '').split(/[（(]/)[0];
+            if (n) set.add(n);
+        }
+    }
+    return set;
+}
+
+/** 从 path 里，从 startStation 开始、到离开 lineName 为止的最后一个站名 */
+function getSegmentEndStation(path, startStation, lineName) {
+    let foundStart = false;
+    let lastStation = null;
+
+    for (const node of path.nodes) {
+        const parts = node.split('|');
+        if (parts.length < 2) continue;
+
+        if (parts[0] !== lineName) {
+            if (foundStart) break;
+            continue;
+        }
+
+        const st = parts[1];
+        if (st === '开始' || st === '结束') continue;
+
+        if (!foundStart) {
+            if (st === startStation) {
+                foundStart = true;
+                lastStation = st;
+            }
+        } else if (st !== lastStation) {
+            lastStation = st;
+        }
+    }
+
+    return lastStation;
+}
+
+/**
+ * 从 path 中，提取从 startStation 开始、到离开 11 号线为止的
+ * 最后一个站名，作为该段 11 号线的前进方向。
+ *
+ * 例：path 里有 「11号线|五凤|外环方向|站台」→「11号线|大塘|...」→「11号线|龙潭|...」
+ *     则 startStation='五凤' 返回 '龙潭方向'
+ */
+function get11LineDirectionFromPath(path, startStation) {
+    let foundStart = false;
+    let lastStation = null;
+
+    for (const node of path.nodes) {
+        const parts = node.split('|');
+        if (parts.length < 2) continue;
+
+        if (parts[0] !== '11号线') {
+            if (foundStart) break;   // 离开 11 号线，停止收集
+            continue;
+        }
+
+        const st = parts[1];
+        if (st === '开始' || st === '结束') continue;
+
+        if (!foundStart) {
+            if (st === startStation) {
+                foundStart = true;
+                lastStation = st;
+            }
+        } else if (st !== lastStation) {
+            lastStation = st;
+        }
+    }
+
+    if (lastStation && lastStation !== startStation) {
+        return lastStation + '方向';
+    }
+    return null;
+}
+
+/** 把 "芳村方向" 格式化成 " · 往芳村方向" */
+function formatDirectionText(direction) {
+    if (!direction) return '';
+    const name = direction.replace(/方向$/, '');
+    return `<span class="route-guide-direction">· 往${escapeHtml(name)}</span>`;
+}
+
 function renderRouteCard(item, idx, startName, endName) {
     const rank = item.rank || (idx + 1);
     const transferStations = item.interchanges.map(o => o.key.split('|')[0]).filter(Boolean);
@@ -922,10 +1108,18 @@ function renderRouteCard(item, idx, startName, endName) {
     } else {
         // ---- 组装"上车点列表"：起点 + 每个换乘站 ----
         const boardingPoints = [];
+        const segs = (typeof parseRouteSegments === 'function')
+            ? parseRouteSegments(item.path) : [];
+        const firstSeg = segs[0] || null;
+        const firstDir = firstSeg
+            ? getSegmentDirection(item.path, startName, firstSeg.fullLine)
+            : null;
+
         boardingPoints.push({
             station: startName,
             fromShort: null,
-            toShort: null,
+            toShort: firstSeg ? firstSeg.shortName : null,   // ★ 起点也用 toShort
+            direction: firstDir,                             // ★ 起点也带方向
             note: null,
             door: null,
             timeMin: null,
@@ -938,10 +1132,15 @@ function renderRouteCard(item, idx, startName, endName) {
             const o = item.interchanges[i];
             const g = ROUTE_GRAPH.guides.get(o.key);
             const parts = o.key.split('|');
+            const toLine   = g ? g.toLine   : parts[3];
+            const toStation = g ? g.station : parts[0];
+
             boardingPoints.push({
-                station: g ? g.station : parts[0],
+                station: toStation,
                 fromShort: routeShortLineName(g ? g.fromLine : parts[1]),
-                toShort: routeShortLineName(g ? g.toLine : parts[3]),
+                toShort:   routeShortLineName(toLine),
+                lineShort: null,
+                direction: getSegmentDirection(item.path, toStation, toLine),  // ★ 换乘方向
                 note: g && g.detail ? g.detail : null,
                 door: null,
                 timeMin: o.timeMin,
@@ -964,8 +1163,9 @@ function renderRouteCard(item, idx, startName, endName) {
 
         guideHtml = `<div class="route-guide">` + boardingPoints.map(bp => {
             const stationHtml = `<span class="route-guide-station">${escapeHtml(bp.station)}</span>`;
-            const changeHtml = bp.fromShort
-                ? `<span class="route-guide-change">${escapeHtml(bp.fromShort)}→${escapeHtml(bp.toShort)}</span>`
+            // ★ 起点与换乘统一使用同一模板
+            const changeHtml = bp.toShort
+                ? `<span class="route-guide-change">${escapeHtml(bp.toShort)}${formatDirectionText(bp.direction)}</span>`
                 : '';
             const noteHtml = bp.note
                 ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>`

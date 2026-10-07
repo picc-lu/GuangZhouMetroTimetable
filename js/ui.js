@@ -26,8 +26,8 @@ function applyFilter() {
     for (let option of select.options) {
         if (option.selected) selectedLines.add(option.value);
     }
-    renderAllLines();
-    populateLineButtons();
+    populateLineButtons();   // ★ 先重建按钮
+    renderAllLines();        // ★ 再渲染（内部会同步按钮颜色）
 }
 
 function populateLineButtons() {
@@ -97,8 +97,9 @@ function setLineButtonState(line, isActive) {
         btn.style.backgroundColor = LINE_COLORS[line];
         btn.style.color = getContrastColor(LINE_COLORS[line]);
     } else {
-        btn.style.backgroundColor = '#cbd5e1';
-        btn.style.color = '#ffffff';
+        const dark = typeof isDarkMode === 'function' && isDarkMode();
+        btn.style.backgroundColor = dark ? '#3a4559' : '#cbd5e1';
+        btn.style.color = dark ? '#94a3b8' : '#ffffff';
     }
 }
 

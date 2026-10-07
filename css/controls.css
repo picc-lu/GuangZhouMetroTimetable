@@ -429,44 +429,58 @@ select option:checked {
     box-shadow: 0 0 0 3px rgba(31, 43, 60, 0.1);
 }
 
+/* ==========================================
+   自定义时间下拉菜单（与路径规划时间选择器视觉统一）
+   ========================================== */
 .hour-dropdown {
     position: absolute;
     top: calc(100% + 5px);
     left: 0;
     z-index: 1000;
-    background: white;
-    border: 1px solid #c2cfde;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    padding: 12px;
-    width: 400px;
+    background: #ffffff;
+    border: 1px solid #cbe0f5;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(31, 43, 60, 0.18);
+    padding: 10px;
+    width: 380px;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
+    gap: 4px;
+    box-sizing: border-box;
 }
 
+/* 每个候选按钮 */
 .hour-btn {
-    background: #f0f4fc;
-    border: 1px solid #c2cfde;
-    border-radius: 20px;
-    padding: 8px 13px;
-    font-size: 14px;
-    color: #1f2b3c;
-    cursor: pointer;
-    transition: all 0.1s;
+    padding: 8px 4px;
     text-align: center;
-    margin: 2px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    color: #1f2b3c;
+    background: #f8fafc;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    user-select: none;
+    min-width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s, color 0.1s;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 .hour-btn:hover {
-    background: #d9e2ef;
-    border-color: #8fa8c9;
+    background: #e0efff;
+    color: #1a6bd5;
 }
 
 .hour-btn:active {
-    background: #1f2b3c;
-    color: white;
-    border-color: #1f2b3c;
+    background: #2b7de9;
+    color: #ffffff;
 }
 
 .time-panel .hour-select-wrapper {
@@ -474,7 +488,8 @@ select option:checked {
 }
 
 .minute-dropdown {
-    width: 400px;
+    width: 330px;
+    grid-template-columns: repeat(6, 1fr);
 }
 
 .minute-select-wrapper {
@@ -583,10 +598,12 @@ select option:checked {
     flex-shrink: 0;
 }
 
+/* 搜索框：默认折叠为放大镜按钮，点击展开 */
 .search-input {
-    width: 180px;
-    padding: 8px 16px;
-    border: 2px solid #d0ddee;
+    max-width: 0;
+    width: 210px;
+    padding: 6px 0;
+    border: 2px solid transparent;
     border-radius: 40px;
     font-size: 14px;
     font-family: inherit;
@@ -595,7 +612,24 @@ select option:checked {
     box-sizing: border-box;
     background: #ffffff;
     height: 40px;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-width 0.22s ease,
+    opacity 0.18s ease,
+    padding 0.22s ease,
+    margin-left 0.22s ease,
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.search-wrapper.expanded .search-input {
+    max-width: 200px;
+    padding: 6px 16px;
+    margin-left: 6px;
+    opacity: 1;
+    pointer-events: auto;
+    border-color: #d0ddee;
 }
 
 .search-input:focus {
@@ -607,12 +641,39 @@ select option:checked {
     color: #94a3b8;
 }
 
-.search-wrapper.expanded .search-input {
-    width: 200px;
-    padding: 6px 16px;
-    margin-left: 6px;
-    opacity: 1;
-    pointer-events: auto;
+/* 放大镜切换按钮 */
+.search-toggle {
+    background: #ffffff;
+    border: 2px solid #d0ddee;
+    border-radius: 40px;
+    width: 44px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    padding: 0;
+    flex-shrink: 0;
+    color: #1f2b3c;
+    position: relative;
+    z-index: 2;
+}
+
+.search-toggle:hover {
+    border-color: #8fa8c9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.search-toggle:active {
+    transform: translateY(0);
+}
+
+/* 展开后，放大镜按钮变成"关闭"态视觉（可选） */
+.search-wrapper.expanded .search-toggle {
+    border-color: #b8d4f0;
+    color: #2b7de9;
 }
 
 .search-results {

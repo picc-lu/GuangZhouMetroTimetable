@@ -144,15 +144,25 @@ function hideSearchResults() {
 function expandSearch() {
     const wrapper = document.getElementById('search-wrapper');
     const input = document.getElementById('search-input');
+    const toggle = document.getElementById('search-toggle');
     if (!wrapper || !input) return;
     wrapper.classList.add('expanded');
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
     requestAnimationFrame(() => input.focus());
 }
 
 function collapseSearch() {
     const wrapper = document.getElementById('search-wrapper');
+    const input = document.getElementById('search-input');
+    const toggle = document.getElementById('search-toggle');
     if (!wrapper) return;
     wrapper.classList.remove('expanded');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    if (input) {
+        input.value = '';
+        input.blur();
+    }
+    hideSearchResults();
 }
 
 /** 初始化搜索框 */
@@ -160,7 +170,20 @@ function initStationSearch() {
     const wrapper = document.getElementById('search-wrapper');
     const input = document.getElementById('search-input');
     const box = document.getElementById('search-results');
+    const toggle = document.getElementById('search-toggle');
     if (!wrapper || !input || !box) return;
+
+    if (toggle) {
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (wrapper.classList.contains('expanded')) {
+                collapseSearch();
+            } else {
+                expandSearch();
+            }
+        });
+    }
 
     // 跟踪输入法组合状态，避免在拼音候选阶段修改 value
     let isComposing = false;
@@ -195,15 +218,17 @@ function initStationSearch() {
 
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            input.value = '';
-            hideSearchResults();
-            input.blur();
+            collapseSearch();
         }
     });
 
     document.addEventListener('click', (e) => {
         if (!wrapper.contains(e.target)) {
             hideSearchResults();
+            // 若搜索框已展开且失焦 → 收起
+            if (wrapper.classList.contains('expanded')) {
+                collapseSearch();
+            }
         }
     });
 }

@@ -2,9 +2,11 @@
    媒体查询：平板/手机（≤ 768px）
    ========================================== */
 @media (max-width: 768px) {
-    /* ---------- 顶部控制栏 ---------- */
+
+    /* ==========================================
+       顶部控制栏
+       ========================================== */
     .controls {
-        position: relative;
         position: relative;
         top: auto;
         padding: 12px 16px;
@@ -14,13 +16,13 @@
 
     .controls-row-1 {
         display: flex;
-        flex-wrap: nowrap !important; /* 强制不换行 */
+        flex-wrap: nowrap !important;
         flex-direction: row !important;
         align-items: center;
         gap: 8px !important;
     }
 
-    /* 自定义时间面板：与系统时间面板等高 */
+    /* ---------- 自定义时间面板 ---------- */
     .time-panel {
         flex: 0 1 auto !important;
         min-width: 0;
@@ -48,14 +50,13 @@
         font-size: 12px !important;
     }
 
-    /* 小时/分钟触发器缩小 */
     .hour-trigger {
         padding: 4px 10px !important;
         font-size: 13px !important;
         min-width: 40px !important;
     }
 
-    /* 系统时间排到最前 */
+    /* ---------- 系统时间面板 ---------- */
     .system-time-area {
         order: -1;
         flex: 0 0 auto !important;
@@ -84,6 +85,11 @@
         font-size: 11px !important;
     }
 
+    /* ---------- 筛选/尺寸控件 ---------- */
+    .filter-area {
+        display: none !important;
+    }
+
     .size-control label {
         padding: 2px 6px !important;
         font-size: 12px !important;
@@ -94,17 +100,12 @@
         font-size: 12px !important;
     }
 
-    /* 隐藏筛选 */
-    .filter-area {
-        display: none !important;
-    }
-
-    /* 隐藏"获取最新首末时间数据"按钮和线路版本行 */
+    /* ---------- 隐藏数据获取行 ---------- */
     .controls-row-2 {
         display: none !important;
     }
 
-    /* 线路按钮横向滚动 */
+    /* ---------- 线路按钮横向滚动 ---------- */
     .controls-row-3 {
         display: flex;
         flex-direction: column;
@@ -112,7 +113,6 @@
         padding-bottom: 8px;
     }
 
-    /* 移动端每一行的横向滚动容器 */
     .line-scroll-row {
         display: flex;
         flex-wrap: nowrap !important;
@@ -122,10 +122,7 @@
         padding-bottom: 4px;
     }
 
-    .line-scroll-row::-webkit-scrollbar {
-        display: none;
-    }
-
+    .line-scroll-row::-webkit-scrollbar,
     .controls-row-3::-webkit-scrollbar {
         display: none;
     }
@@ -137,29 +134,131 @@
     }
 
     .hour-dropdown, .minute-dropdown {
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        border-radius: 14px;
+        box-shadow: 0 10px 28px rgba(31, 43, 60, 0.18);
         z-index: 1000;
+        padding: 8px !important;
+        gap: 3px !important;
     }
 
     .hour-dropdown {
         grid-template-columns: repeat(7, 1fr) !important;
-        padding: 10px !important;
-        gap: 8px !important;
-    }
-
-    .hour-btn {
-        padding: 10px 0 !important;
-        font-size: 14px !important;
-        margin: 1px !important;
+        width: 320px !important;
     }
 
     .minute-dropdown {
-        grid-template-columns: repeat(4, 1fr) !important;
-        padding: 10px !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+        width: 270px !important;
+    }
+
+    .hour-btn {
+        padding: 6px 2px !important;
+        font-size: 15px !important;
+        min-width: 40px !important;
+        height: 36px !important;
+        margin: 0 !important;
+    }
+
+    /* ==========================================
+       搜索框（折叠为放大镜 + 点击展开）
+       ========================================== */
+    .search-wrapper {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 240px;
+    }
+
+    .search-input {
+        font-size: 16px;
+        height: 44px;
+        max-width: 230px;
+        padding: 6px 0;
+        opacity: 0;
+        pointer-events: none;
+
+        transform: scale(0.82);
+        transform-origin: left center; /* ★ 左边缘固定，贴住放大镜按钮 */
+    }
+
+    .search-wrapper.expanded .search-input {
+        max-width: 220px;
+        padding: 6px 16px;
+        opacity: 1;
+        pointer-events: auto;
+        /* transform 继承 .search-input 的，无需重写 */
+    }
+
+    .search-toggle {
+        width: 40px;
+        height: 36px;
+    }
+
+    .search-result {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .search-station {
+        font-size: 17px;
+    }
+
+    .search-line-badge {
+        font-size: 15px;
+        padding: 3px 12px;
+    }
+
+    /* ==========================================
+       顶部图标按钮：附近 / 线路规划 / 主题
+       ========================================== */
+    .nearby-btn {
+        width: 40px;
+        height: 36px;
+    }
+
+    .nearby-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* 移动端只留图标，隐藏"线路规划"文字 */
+    .route-plan-btn {
+        padding: 0;
+        width: 40px;
+        height: 36px;
+        background: #e0efff;
+        border-color: #b8d4f0;
+        color: #1f4d8a;
+    }
+
+    .route-plan-btn span {
+        display: none;
+    }
+
+    .route-plan-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .theme-toggle {
+        width: 40px;
+        height: 36px;
+    }
+
+    .theme-toggle svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* 第二行：图标按钮右对齐 */
+    .controls-row-1b {
+        display: flex;
+        justify-content: flex-end;
         gap: 8px !important;
     }
 
+    /* ==========================================
+       线路图卡片
+       ========================================== */
     .line-container {
         margin: 34px 8px 6px;
         padding: 6px 0 10px;
@@ -171,7 +270,7 @@
         top: -28px;
         height: 28px;
         padding: 0 20px !important;
-        font-size: 15px !important; /* ← 移动端从 13px 提到 15px */
+        font-size: 15px !important;
         letter-spacing: 1.2px !important;
         border-radius: 12px 12px 0 0 !important;
         flex: none !important;
@@ -228,7 +327,9 @@
         font-size: 12px !important;
     }
 
-    /* ---------- 回到顶部 ---------- */
+    /* ==========================================
+       回到顶部
+       ========================================== */
     .back-to-top {
         width: 42px;
         height: 42px;
@@ -241,7 +342,9 @@
         height: 20px;
     }
 
-    /* ---------- 个人信息页脚 ---------- */
+    /* ==========================================
+       页脚
+       ========================================== */
     .author-footer {
         padding: 15px 0 30px;
     }
@@ -251,6 +354,9 @@
         font-size: 14px;
     }
 
+    /* ==========================================
+       线路详情弹窗
+       ========================================== */
     .modal-header {
         padding: 14px 16px;
     }
@@ -385,6 +491,9 @@
         border-radius: 20px;
     }
 
+    /* ==========================================
+       提示区
+       ========================================== */
     .notice-area {
         margin: 16px auto 24px;
         padding: 24px 16px 16px;
@@ -404,16 +513,9 @@
         border-radius: 7px 0 10px 0; /* 移动端卡片圆角为 12，内侧约 7 */
     }
 
-    .theme-toggle {
-        width: 40px;
-        height: 36px;
-    }
-
-    .theme-toggle svg {
-        width: 18px;
-        height: 18px;
-    }
-
+    /* ==========================================
+       加载失败提示
+       ========================================== */
     .fetch-error-badge {
         bottom: 16px;
         padding: 8px 18px;
@@ -421,66 +523,9 @@
         border-radius: 20px;
     }
 
-    /* 第二行：筛选（移动端隐藏） + 图标按钮右对齐 */
-    .controls-row-1b {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px !important;
-    }
-
-    /* 搜索框（移动端） */
-    .search-wrapper {
-        flex: 1 1 0;
-        min-width: 0;
-        max-width: 220px;   /* 限宽，让右侧三个按钮能同行 */
-    }
-
-    .search-input {
-        width: 100%;
-        font-size: 16px;
-        padding: 6px 12px;
-        height: 36px;
-    }
-
-    .search-wrapper.expanded .search-input {
-        width: 100%;
-        flex: 1;
-        padding: 4px 12px;
-        height: 36px;
-        font-size: 16px;
-        margin-left: 6px;
-    }
-
-    /* 搜索框移动端：展开时占满剩余宽度 */
-    .search-toggle {
-        width: 40px;
-        height: 36px;
-    }
-
-    .search-result {
-        gap: 10px;
-        padding: 10px 12px;
-    }
-
-    .search-station {
-        font-size: 17px;
-    }
-
-    .search-line-badge {
-        font-size: 15px;
-        padding: 3px 12px;
-    }
-
-    .nearby-btn {
-        width: 40px;
-        height: 36px;
-    }
-
-    .nearby-btn svg {
-        width: 18px;
-        height: 18px;
-    }
-
+    /* ==========================================
+       附近站点面板
+       ========================================== */
     .nearby-container {
         width: 92%;
         max-width: none;

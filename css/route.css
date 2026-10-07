@@ -630,7 +630,7 @@
 .route-time-cell {
     padding: 8px 4px;
     text-align: center;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     font-family: 'SF Mono', Consolas, Menlo, monospace;
     font-variant-numeric: tabular-nums;
@@ -639,8 +639,8 @@
     border-radius: 7px;
     cursor: pointer;
     user-select: none;
-    min-width: 42px;
-    height: 36px;
+    min-width: 44px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1157,6 +1157,16 @@
     flex-shrink: 0;
 }
 
+.route-guide-direction {
+    margin-left: 4px;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+[data-theme="dark"] .route-guide-direction {
+    opacity: 0.75;
+}
+
 .route-guide-note {
     color: #64748b;
     font-size: 12px;
@@ -1293,25 +1303,36 @@
    顶部工具栏按钮
    ========================================== */
 .route-plan-btn {
-    background: #ffffff;
-    border: 2px solid #d0ddee;
+    background: #e0efff;                    /* ★ 淡蓝色底 */
+    border: 2px solid #b8d4f0;
     border-radius: 40px;
-    width: 44px;
     height: 40px;
+    padding: 0 14px 0 12px;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     transition: all 0.15s;
-    padding: 0;
     flex-shrink: 0;
-    color: #1f2b3c;
+    color: #1f4d8a;                          /* ★ 深蓝色文字 */
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.route-plan-btn svg {
+    display: block;
+    flex-shrink: 0;
 }
 
 .route-plan-btn:hover {
-    border-color: #8fa8c9;
+    background: #d0e4f8;
+    border-color: #8fbce6;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 8px rgba(43, 125, 233, 0.12);
 }
 
 .route-plan-btn:active {
@@ -1895,12 +1916,11 @@
    ========================================== */
 @media (max-width: 480px) {
     .route-time-cell {
-        min-width: 36px;
-        height: 32px;
-        font-size: 13px;
+        min-width: 40px;
+        height: 36px;
+        font-size: 15px;
         padding: 6px 2px;
     }
-
     .route-time-panel.rows-3,
     .route-time-panel.rows-2 {
         gap: 3px;

@@ -200,7 +200,7 @@ function positionDropdownOnMobile(dropdown, trigger, align = 'center') {
     const rect = trigger.getBoundingClientRect();
     const vw = window.innerWidth;
     // 分钟下拉框更窄，小时下拉框宽一些
-    const maxW = dropdown.classList.contains('minute-dropdown') ? 240 : 400;
+    const maxW = dropdown.classList.contains('minute-dropdown') ? 270 : 320;
     const ddWidth = Math.min(vw - 32, maxW);
 
     let left;
