@@ -455,18 +455,26 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
         const lineStations = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS[webLine]) || [];
         const lastDownstream = downstreamStations[downstreamStations.length - 1];
         const idxStart = lineStations.indexOf(station);
-        const idxLast = lineStations.indexOf(lastDownstream);
+        const idxLast  = lineStations.indexOf(lastDownstream);
 
         candidates = allRecords.filter(t => {
             const toName = t.to.split(/[（(]/)[0];
-            if (downstreamStations.includes(toName)) return true;
+
+            // ★ 主判断：t.to 必须覆盖路径的最远下游站（而不是仅仅出现在下游站列表中）
+            //   - 正向：idxTo >= idxLast
+            //   - 反向：idxTo <= idxLast
+            //   这样"姬堂"这类中途站就会被排除，因为它离终点"燕山"更近
             if (idxStart >= 0 && idxLast >= 0) {
                 const idxTo = lineStations.indexOf(toName);
-                if (idxTo < 0) return false;
-                if (idxLast > idxStart) return idxTo >= idxLast;   // 正向
-                if (idxLast < idxStart) return idxTo <= idxLast;   // 反向
+                if (idxTo >= 0) {
+                    if (idxLast > idxStart) return idxTo >= idxLast;
+                    if (idxLast < idxStart) return idxTo <= idxLast;
+                }
             }
-            return false;
+
+            // 兜底：只有当索引系统无法判断时（如终点名不在 LINE_STATIONS 里），
+            // 才退回"下游列表包含"的宽松判断
+            return downstreamStations.includes(toName);
         });
     }
 
