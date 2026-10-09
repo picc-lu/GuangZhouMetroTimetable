@@ -1502,42 +1502,58 @@ function getSegmentEndStation(path, startStation, lineName) {
 }
 
 /**
- * 从 path 中，提取从 startStation 开始、到离开 11 号线为止的
- * 最后一个站名，作为该段 11 号线的前进方向。
- *
- * 例：path 里有 「11号线|五凤|外环方向|站台」→「11号线|大塘|...」→「11号线|龙潭|...」
- *     则 startStation='五凤' 返回 '龙潭方向'
+ * 11 号线是环线，原始方向字段只有「外环」「内环」。
+ * 根据当前时刻判断：
+ *   - 全程车还在运营 → 保持「往外环」/「往内环」
+ *   - 全程已收、区间车还在 → 显示区间终点「往龙潭」/「往赤沙」
+ *   - 都停了 → 保持原始方向（让上层过滤逻辑处理）
  */
 function get11LineDirectionFromPath(path, startStation) {
-    let foundStart = false;
-    let lastStation = null;
-
+    // 1. 读原始方向字段
+    let rawDir = null;
     for (const node of path.nodes) {
         const parts = node.split('|');
-        if (parts.length < 2) continue;
-
-        if (parts[0] !== '11号线') {
-            if (foundStart) break;   // 离开 11 号线，停止收集
-            continue;
-        }
-
-        const st = parts[1];
-        if (st === '开始' || st === '结束') continue;
-
-        if (!foundStart) {
-            if (st === startStation) {
-                foundStart = true;
-                lastStation = st;
-            }
-        } else if (st !== lastStation) {
-            lastStation = st;
+        if (parts.length >= 4
+            && parts[0] === '11号线'
+            && parts[1] === startStation
+            && parts[3] === '站台') {
+            rawDir = parts[2];   // "外环方向" 或 "内环方向"
+            break;
         }
     }
+    if (!rawDir) return null;
 
-    if (lastStation && lastStation !== startStation) {
-        return lastStation + '方向';
+    // 2. 拿该站该方向的运营数据
+    const data = (typeof lineDirectionTime !== 'undefined')
+        ? lineDirectionTime['11号线']?.[startStation] : null;
+    if (!data) return rawDir;
+
+    // 3. 取当前规划出发时刻
+    let currentMin = (typeof _routeActiveDepartMin !== 'undefined' && _routeActiveDepartMin != null)
+        ? _routeActiveDepartMin
+        : (typeof getRouteDepartMin === 'function' ? getRouteDepartMin() : null);
+    if (currentMin == null) return rawDir;
+
+    const isOuter = rawDir.includes('外环');
+    const isInner = rawDir.includes('内环');
+    if (!isOuter && !isInner) return rawDir;
+
+    const full        = isOuter ? data.upFull     : data.downFull;
+    const terminal    = isOuter ? data.upTerminal : data.downTerminal;
+    const terminalEnd = isOuter ? '龙潭' : '赤沙';
+
+    const fullActive = !!(full &&
+        currentMin >= full.first && currentMin <= full.last);
+    const terminalActive = !!(terminal &&
+        currentMin >= terminal.first && currentMin <= terminal.last);
+
+    if (fullActive) {
+        return rawDir;                       // 全程车还在 → 往外环 / 往内环
     }
-    return null;
+    if (terminalActive) {
+        return terminalEnd + '方向';         // 只剩区间车 → 往龙潭 / 往赤沙
+    }
+    return rawDir;                           // 都停了 → 保持原始方向
 }
 
 /** 把 "芳村方向" 格式化成 " · 往芳村方向" */
