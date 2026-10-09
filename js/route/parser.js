@@ -121,10 +121,19 @@ function parseInterchangeKeys(path, departMin) {
     return result;
 }
 
-/** 把 path 拆成有序的线路段，附带线路色与起止站。 */
-function parseRouteSegments(path) {
-    const segments = [];
-    let lastLine = null;
+function parseRouteSegments(path, departMin) {
+    // 解析出发时刻：优先用入参，其次 _routeActiveDepartMin，最后回退 getRouteDepartMin
+    let dt = departMin;
+    if (dt == null && typeof _routeActiveDepartMin !== 'undefined') {
+        dt = _routeActiveDepartMin;
+    }
+    if (dt == null && typeof getRouteDepartMin === 'function') {
+        dt = getRouteDepartMin();
+    }
+
+    // 1. 先按 (lineName, rawDir) 切出原始段
+    const rawSegments = [];
+    let lastSegKey = null;
     let currentSeg = null;
 
     for (const node of path.nodes) {
@@ -137,27 +146,111 @@ function parseRouteSegments(path) {
         if (lineName === '佛山3号线北') lineName = '佛山3号线';
 
         const station = parts[1];
+        const rawDir = parts.length >= 4 ? parts[2] : '';
+        const segKey = lineName + '|' + rawDir;
 
-        if (lineName !== lastLine) {
+        if (segKey !== lastSegKey) {
             currentSeg = {
                 fullLine: lineName,
                 fromStation: station,
                 toStation: station,
+                rawDirection: rawDir,
             };
-            segments.push(currentSeg);
-            lastLine = lineName;
+            rawSegments.push(currentSeg);
+            lastSegKey = segKey;
         } else if (currentSeg) {
             currentSeg.toStation = station;
         }
     }
 
-    segments.forEach(s => {
-        s.shortName = s.fullLine.replace(/号|线/g, '').replace(/佛山/g, '佛');
+    // 2. 合并：3 号线南段→北段若贯通车仍可搭，则视为一段
+    const merged = [];
+    let i = 0;
+    while (i < rawSegments.length) {
+        const seg  = rawSegments[i];
+        const next = rawSegments[i + 1];
+
+        const isThrough = next
+            && seg.fullLine === '3号线' && next.fullLine === '3号线'
+            && seg.toStation === '体育西路'
+            && isNorthboundRawDir(next.rawDirection)
+            && isThroughTrainAvailable(seg.fromStation, dt);
+
+        if (isThrough) {
+            merged.push({
+                fullLine: '3号线',
+                fromStation: seg.fromStation,
+                toStation: next.toStation,
+                rawDirection: seg.rawDirection,     // 保留原始方向，方向由 getSegmentDirection 决定
+                isThrough: true,
+            });
+            i += 2;
+        } else {
+            merged.push(seg);
+            i += 1;
+        }
+    }
+
+    // 3. 计算 shortName / 颜色
+    merged.forEach(s => {
+        let sn = s.fullLine
+            .replace(/号线北$/, '')
+            .replace(/号线$/, '')
+            .replace(/线$/, '');
+        if (sn.includes('佛山')) sn = sn.replace(/佛山/g, '佛');
+        s.shortName = sn;
+
         s.color = (typeof LINE_COLORS !== 'undefined' && LINE_COLORS[s.fullLine]) || '#888';
         s.textColor = (typeof getContrastColor === 'function')
             ? getContrastColor(s.color)
             : '#ffffff';
     });
 
-    return segments;
+    return merged;
+}
+
+/** 该方向是否属于 3 号线"向北"（体育西路方向 / 机场北方向 / 天河客运站方向） */
+function isNorthboundRawDir(rawDir) {
+    if (!rawDir) return false;
+    return rawDir.includes('体育西路')
+        || rawDir.includes('机场北')
+        || rawDir.includes('天河客运站');
+}
+
+/**
+ * 3 号线贯通车（海傍 → 机场北方向）在指定站是否仍可搭。
+ * @param {string} station   站名（干净站名，无后缀）
+ * @param {number|null} timeMin  出发/boarding 时刻（分钟）
+ * @returns {boolean}
+ */
+function isThroughTrainAvailable(station, timeMin) {
+    if (timeMin == null) return false;
+    if (typeof ROUTE_GRAPH === 'undefined' || !ROUTE_GRAPH) return false;
+    const tt = ROUTE_GRAPH.throughTrains?.['3号线']?.haibangToAirportNorth;
+    if (!tt || !tt.stationMap || !tt.stationMap.has(station)) return false;
+    return timeMin < tt.stationMap.get(station);   // 严格小于
+}
+
+/**
+ * 3 号线南北段分类。
+ *  - 站点在 LINE3_NORTH_STATIONS → 'north'
+ *  - 体育西路：看下一站，若下一站是北段站 → 'north'，否则 'south'
+ *  - 其余（含南段、支线） → 'south'
+ */
+function classifyLine3Station(station, nextStation) {
+    if (station === '体育西路') {
+        if (nextStation && isLine3NorthStation(nextStation)) return 'north';
+        return 'south';
+    }
+    if (isLine3NorthStation(station)) return 'north';
+    return 'south';
+}
+
+function isLine3NorthStation(station) {
+    if (!station) return false;
+    if (LINE3_NORTH_STATIONS.has(station)) return true;
+    // 别名：机场北 vs 机场北（T2）
+    if (station === '机场北' && LINE3_NORTH_STATIONS.has('机场北（T2）')) return true;
+    if (station === '机场北（T2）' && LINE3_NORTH_STATIONS.has('机场北')) return true;
+    return false;
 }

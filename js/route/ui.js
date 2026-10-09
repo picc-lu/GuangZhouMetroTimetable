@@ -1408,19 +1408,47 @@ function getSegmentDirection(path, station, lineName) {
     }
     if (!rawDirection) return null;
 
-    // 2. 数据不足 → 直接返回原始方向
+    // ★ 优先用"当前规划所用出发时刻"，回退到 getRouteDepartMin
+    let currentMin = _routeActiveDepartMin;
+    if (currentMin == null) {
+        currentMin = (typeof getRouteDepartMin === 'function')
+            ? getRouteDepartMin() : null;
+    }
+
+    // ★ 3 号线南段往北方向：先判断贯通车
+    if (lineName === '3号线'
+        && LINE3_MAIN_SOUTH.has(station)
+        && isNorthboundRawDir(rawDirection)) {
+        // 贯通车仍可搭 → 显示"往机场北"
+        if (typeof isThroughTrainAvailable === 'function'
+            && isThroughTrainAvailable(station, currentMin)) {
+            return '机场北方向';
+        }
+        // 贯通车已过 → 走 Java→Web 映射（大塘、客村等映射为"天河客运站方向"）
+        const resolved = resolveJavaDirectionToWeb(lineName, station, rawDirection);
+        return resolved.dir;
+    }
+
+    // 2. 其余 3 号线（北段站、南段"往海傍"等）：也走映射
+    let mappedDir = rawDirection;
+    if (lineName === '3号线' || lineName === '3号线北') {
+        const resolved = resolveJavaDirectionToWeb(lineName, station, rawDirection);
+        mappedDir = resolved.dir;
+    }
+
+    // 3. 数据不足 → 直接返回映射后的方向
     const lineData = (typeof lineDirectionTime !== 'undefined')
         ? lineDirectionTime[lineName] : null;
     const stationData = lineData && lineData[station];
     const lineStations = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS[lineName]) || [];
-    if (!stationData || lineStations.length === 0) return rawDirection;
+    if (!stationData || lineStations.length === 0) return mappedDir;
 
-    // 3. 找出该段在 path 里的实际末端站
+    // 4. 找出该段在 path 里的实际末端站
     const segmentEnd = getSegmentEndStation(path, station, lineName);
-    if (!segmentEnd) return rawDirection;
+    if (!segmentEnd) return mappedDir;
 
-    // 4. 找到原始方向对应的数据数组（up / down）
-    const dirName = rawDirection.replace(/方向$/, '');
+    // 5. 找到映射后方向对应的数据数组（up / down）
+    const dirName = mappedDir.replace(/方向$/, '');
     let dirArray = null;
     for (const key of ['up', 'down']) {
         if (!Array.isArray(stationData[key])) continue;
@@ -1431,24 +1459,18 @@ function getSegmentDirection(path, station, lineName) {
             break;
         }
     }
-    if (!dirArray || dirArray.length === 0) return rawDirection;
+    if (!dirArray || dirArray.length === 0) return mappedDir;
 
-    // 5. 线路顺序索引
+    // 6. 线路顺序索引
     const idxStation = lineStations.indexOf(station);
     const idxEnd     = lineStations.indexOf(segmentEnd);
-    if (idxStation < 0 || idxEnd < 0) return rawDirection;
+    if (idxStation < 0 || idxEnd < 0) return mappedDir;
 
-    // ★ 优先用"当前规划所用出发时刻"，回退到 getRouteDepartMin
-    let currentMin = _routeActiveDepartMin;
-    if (currentMin == null) {
-        currentMin = (typeof getRouteDepartMin === 'function')
-            ? getRouteDepartMin() : null;
-    }
-    if (currentMin == null) return rawDirection;
+    if (currentMin == null) return mappedDir;
 
     const isForward = idxEnd > idxStation;
 
-    // 6. 从 segmentEnd 出发，沿运行方向向远端遍历，
+    // 7. 从 segmentEnd 出发，沿运行方向向远端遍历，
     //    找到第一个"末班车未过"的终点站作为方向名。
     if (isForward) {
         for (let i = lineStations.length - 1; i >= idxEnd; i--) {
@@ -1468,7 +1490,7 @@ function getSegmentDirection(path, station, lineName) {
         }
     }
 
-    return rawDirection;
+    return mappedDir;
 }
 
 /** 从 path 里，从 startStation 开始、到离开 lineName 为止的最后一个站名 */
@@ -1582,8 +1604,23 @@ function renderRouteCard(item, idx, startName, endName) {
     }
 
     // ---- 换乘指引 ----
+    // 提前解析 segments（parseRouteSegments 会自动读取 _routeActiveDepartMin）
+    const segs = (typeof parseRouteSegments === 'function')
+        ? parseRouteSegments(item.path) : [];
+
+    // 检测 3→3 虚拟换乘：连续两个 3 号线段，前段终点是体育西路
+    // 这类分割会插入一条额外的"体育西路"换乘指引
+    const virtualSplitAfter = new Set();
+    for (let i = 0; i < segs.length - 1; i++) {
+        if (segs[i].fullLine === '3号线'
+            && segs[i + 1].fullLine === '3号线'
+            && segs[i].toStation === '体育西路') {
+            virtualSplitAfter.add(i);
+        }
+    }
+
     let guideHtml;
-    if (item.interchanges.length === 0) {
+    if (item.interchanges.length === 0 && virtualSplitAfter.size === 0) {
         // 直达路径：起点 boarding 余量 ≤15 分钟时提示"剩 x 分"
         const startMargin = (item.boardingMargins && item.boardingMargins.length > 0
             && item.boardingMargins[0] != null
@@ -1602,10 +1639,8 @@ function renderRouteCard(item, idx, startName, endName) {
             </div>
         </div>`;
     } else {
-        // ---- 组装"上车点列表"：起点 + 每个换乘站 ----
+        // ---- 组装"上车点列表"：起点 + 每个换乘站（含 3→3 虚拟换乘） ----
         const boardingPoints = [];
-        const segs = (typeof parseRouteSegments === 'function')
-            ? parseRouteSegments(item.path) : [];
         const firstSeg = segs[0] || null;
         const firstDir = firstSeg
             ? getSegmentDirection(item.path, startName, firstSeg.fullLine)
@@ -1614,52 +1649,95 @@ function renderRouteCard(item, idx, startName, endName) {
         boardingPoints.push({
             station: startName,
             fromShort: null,
-            toShort: firstSeg ? firstSeg.shortName : null,   // ★ 起点也用 toShort
-            direction: firstDir,                             // ★ 起点也带方向
+            toShort: firstSeg ? firstSeg.shortName : null,
+            direction: firstDir,
             note: null,
             door: null,
             timeMin: null,
             walkMin: null,
             boardingTime: null,
             marginMin: item.startMargin,
+            interchangeIdx: null,       // 与 item.interchanges 的映射（供门号填充使用）
+            isVirtual3to3: false,
         });
 
-        for (let i = 0; i < item.interchanges.length; i++) {
-            const o = item.interchanges[i];
-            const g = ROUTE_GRAPH.guides.get(o.key);
-            const parts = o.key.split('|');
-            const toLine   = g ? g.toLine   : parts[3];
-            const toStation = g ? g.station : parts[0];
+        let interchangeCursor = 0;
+        for (let si = 0; si < segs.length - 1; si++) {
+            // 优先判断：这是否为 3→3 虚拟换乘
+            if (virtualSplitAfter.has(si)) {
+                boardingPoints.push({
+                    station: '体育西路',
+                    fromShort: '3',
+                    toShort: '3',
+                    lineShort: null,
+                    direction: '机场北方向',   // 3 号线北段的方向固定为机场北
+                    note: null,                 // 无备注
+                    door: null,                 // 稍后统一填门号
+                    timeMin: null,              // 虚拟换乘不展示时间
+                    walkMin: null,
+                    boardingTime: null,
+                    marginMin: null,
+                    interchangeIdx: null,
+                    isVirtual3to3: true,
+                });
+                continue;
+            }
 
-            boardingPoints.push({
-                station: toStation,
-                fromShort: routeShortLineName(g ? g.fromLine : parts[1]),
-                toShort:   routeShortLineName(toLine),
-                lineShort: null,
-                direction: getSegmentDirection(item.path, toStation, toLine),  // ★ 换乘方向
-                note: g && g.detail ? g.detail : null,
-                door: null,
-                timeMin: o.timeMin,
-                walkMin: o.walkMin,
-                boardingTime: o.boardingTime,
-                marginMin: o.marginMin,
-            });
+            // 真实换乘：对应 item.interchanges[interchangeCursor]
+            const o = item.interchanges[interchangeCursor];
+            if (o) {
+                const g = ROUTE_GRAPH.guides.get(o.key);
+                const parts = o.key.split('|');
+                const toLine   = g ? g.toLine   : parts[3];
+                const toStation = g ? g.station : parts[0];
+
+                boardingPoints.push({
+                    station: toStation,
+                    fromShort: routeShortLineName(g ? g.fromLine : parts[1]),
+                    toShort:   routeShortLineName(toLine),
+                    lineShort: null,
+                    direction: getSegmentDirection(item.path, toStation, toLine),
+                    note: g && g.detail ? g.detail : null,
+                    door: null,
+                    timeMin: o.timeMin,
+                    walkMin: o.walkMin,
+                    boardingTime: o.boardingTime,
+                    marginMin: o.marginMin,
+                    interchangeIdx: interchangeCursor,
+                    isVirtual3to3: false,
+                });
+            }
+            interchangeCursor++;
         }
 
-        // 门号填充：boardingPoints[i] 的门号来自 interchanges[i] 的 guide.screenDoors
-        // （"在当前上车的这条线上，为方便下一次换乘应站的门"）
-        for (let i = 0; i < boardingPoints.length; i++) {
-            if (i < item.interchanges.length) {
-                const g = ROUTE_GRAPH.guides.get(item.interchanges[i].key);
-                if (g && g.screenDoors && g.screenDoors.length > 0) {
-                    boardingPoints[i].door = formatScreenDoorsRange(g.screenDoors);
+        // ---- 门号填充 ----
+        // boardingPoints[i].door = 在 boardingPoints[i] 站上车时，
+        // 为方便在 boardingPoints[i+1] 站换乘，应站在哪节车厢对应的站台门前
+        // - 3→3 虚拟换乘（体育西路）：硬编码门号
+        // - 真实换乘：从 item.interchanges[nextBp.interchangeIdx] 的 guide 取
+        for (let i = 0; i < boardingPoints.length - 1; i++) {
+            const bp = boardingPoints[i];
+            const nextBp = boardingPoints[i + 1];
+
+            if (nextBp.isVirtual3to3) {
+                bp.door = '2\\3\\6\\10\\11\\16\\19';
+                continue;
+            }
+
+            if (typeof nextBp.interchangeIdx === 'number') {
+                const o = item.interchanges[nextBp.interchangeIdx];
+                if (o) {
+                    const g = ROUTE_GRAPH.guides.get(o.key);
+                    if (g && g.screenDoors && g.screenDoors.length > 0) {
+                        bp.door = formatScreenDoorsRange(g.screenDoors);
+                    }
                 }
             }
         }
 
+        // ---- 渲染 ----
         guideHtml = `<div class="route-guide">` + boardingPoints.map(bp => {
             const stationHtml = `<span class="route-guide-station">${escapeHtml(bp.station)}</span>`;
-            // ★ 起点与换乘统一使用同一模板
             const changeHtml = bp.toShort
                 ? `<span class="route-guide-change">${escapeHtml(bp.toShort)}${formatDirectionText(bp.direction)}</span>`
                 : '';

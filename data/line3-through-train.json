@@ -1,0 +1,34 @@
+{
+  "line": "3号线贯通车",
+  "generatedAt": "2026-10-09T17:55:30.762Z",
+  "source": "由 3号线末班车各站间隔 + 3号线北段末班车各站间隔推算，并用 大塘 22:13 校准",
+  "note": "仅供研究参考；机场北→海傍方向待补数据",
+  "directions": {
+    "haibangToAirportNorth": {
+      "description": "海傍 → 机场北 贯通车（末班，推算）",
+      "calibration": { "station": "大塘", "time": "22:13" },
+      "stations": [
+        { "station": "海傍",        "line": "3号线",   "time": "21:43", "timeMin": 1303 },
+        { "station": "海涌路",      "line": "3号线",   "time": "21:45", "timeMin": 1305 },
+        { "station": "石碁南",      "line": "3号线",   "time": "21:47", "timeMin": 1307 },
+        { "station": "傍江",        "line": "3号线",   "time": "21:50", "timeMin": 1310 },
+        { "station": "番禺广场",    "line": "3号线",   "time": "21:53", "timeMin": 1313 },
+        { "station": "市桥",        "line": "3号线",   "time": "21:57", "timeMin": 1317 },
+        { "station": "汉溪长隆",    "line": "3号线",   "time": "22:02", "timeMin": 1322 },
+        { "station": "大石",        "line": "3号线",   "time": "22:05", "timeMin": 1325 },
+        { "station": "厦滘",        "line": "3号线",   "time": "22:08", "timeMin": 1328 },
+        { "station": "沥滘",        "line": "3号线",   "time": "22:10", "timeMin": 1330 },
+        { "station": "大塘",        "line": "3号线",   "time": "22:13", "timeMin": 1333 },
+        { "station": "客村",        "line": "3号线",   "time": "22:16", "timeMin": 1336 },
+        { "station": "广州塔",      "line": "3号线",   "time": "22:18", "timeMin": 1338 },
+        { "station": "珠江新城",    "line": "3号线",   "time": "22:21", "timeMin": 1341 }
+      ]
+    },
+    "airportNorthToHaibang": {
+      "description": "机场北 → 海傍 贯通车（末班，待补数据）",
+      "calibration": null,
+      "keyTimes": {},
+      "stations": []
+    }
+  }
+}
