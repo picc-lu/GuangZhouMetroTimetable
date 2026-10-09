@@ -1,9 +1,141 @@
 // ========== 路径规划 UI ==========
 
+// 反向规划模式：false = 输入出发时刻，true = 输入到达时刻
+let _routeArriveMode = false;
+// 最近一次成功反向搜索得到的最晚出发时刻（分钟），用于结果区展示
+let _routeLastArrivedAt = null;
+// 当前规划使用的出发时刻（分钟），供 getSegmentDirection 等下游函数使用
+let _routeActiveDepartMin = null;
+
 let _routeOverlay = null;
 let _routeDepartMin = null;
 
 let _routeTimeDocClickBound = false;
+
+/* ==========================================
+   偏好设置 / 起终点历史（localStorage 持久化）
+   ========================================== */
+const ROUTE_PREFS_KEY   = 'route_prefs';
+const ROUTE_HISTORY_KEY = 'route_history';
+const ROUTE_HISTORY_MAX = 5;
+
+function loadRoutePrefs() {
+    try {
+        const raw = localStorage.getItem(ROUTE_PREFS_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        return (obj && typeof obj === 'object') ? obj : null;
+    } catch (_) { return null; }
+}
+
+function saveRoutePrefs(prefs) {
+    try { localStorage.setItem(ROUTE_PREFS_KEY, JSON.stringify(prefs)); } catch (_) {}
+}
+
+function loadRouteHistory() {
+    try {
+        const raw = localStorage.getItem(ROUTE_HISTORY_KEY);
+        if (!raw) return { starts: [], ends: [] };
+        const obj = JSON.parse(raw);
+        return {
+            starts: Array.isArray(obj.starts) ? obj.starts : [],
+            ends:   Array.isArray(obj.ends)   ? obj.ends   : [],
+        };
+    } catch (_) {
+        return { starts: [], ends: [] };
+    }
+}
+
+function saveRouteHistory(history) {
+    try { localStorage.setItem(ROUTE_HISTORY_KEY, JSON.stringify(history)); } catch (_) {}
+}
+
+function pushRouteHistory(kind, station) {
+    if (!station) return;
+    const history = loadRouteHistory();
+    const arr = kind === 'start' ? history.starts : history.ends;
+    const idx = arr.indexOf(station);
+    if (idx >= 0) arr.splice(idx, 1);
+    arr.unshift(station);
+    if (arr.length > ROUTE_HISTORY_MAX) arr.length = ROUTE_HISTORY_MAX;
+    saveRouteHistory(history);
+}
+
+function getRouteHistoryArr(kind) {
+    const history = loadRouteHistory();
+    return kind === 'start' ? history.starts : history.ends;
+}
+
+function routeHistoryKind(inputEl) {
+    if (!inputEl) return null;
+    if (inputEl.id === 'route-start') return 'start';
+    if (inputEl.id === 'route-end')   return 'end';
+    return null;
+}
+
+/** 把保存的偏好应用到弹窗 UI */
+function applyRoutePrefs(ov) {
+    if (!ov) return;
+    const prefs = loadRoutePrefs();
+    if (!prefs) return;
+
+    // 排序模式
+    if (prefs.sortMode === 'conservative' || prefs.sortMode === 'fastest') {
+        const radio = ov.querySelector(`input[name="route-sort"][value="${prefs.sortMode}"]`);
+        if (radio) radio.checked = true;
+    }
+
+    // 时间模式
+    if (typeof prefs.arriveMode === 'boolean') {
+        _routeArriveMode = prefs.arriveMode;
+        const wrap = ov.querySelector('#route-time-mode');
+        if (wrap) {
+            wrap.querySelectorAll('.route-time-mode-btn').forEach(b => {
+                b.classList.toggle('active',
+                    (b.dataset.mode === 'arrive') === _routeArriveMode);
+            });
+        }
+        const nowBtn = ov.querySelector('#route-now');
+        if (nowBtn) nowBtn.style.display = _routeArriveMode ? 'none' : '';
+    }
+
+    // 单次换乘上限
+    const mtc = ov.querySelector('#route-max-transfer-check');
+    const mti = ov.querySelector('#route-max-transfer-min');
+    if (mtc && mti) {
+        if (prefs.maxTransferChecked) {
+            mtc.checked = true;
+            mti.disabled = false;
+            if (typeof prefs.maxTransferMin === 'number' &&
+                prefs.maxTransferMin >= 0 && prefs.maxTransferMin <= 60) {
+                mti.value = String(prefs.maxTransferMin);
+            }
+        } else {
+            mtc.checked = false;
+            mti.disabled = true;
+        }
+    }
+
+    // 步行速度
+    const wss = ov.querySelector('#route-walk-speed');
+    if (wss && prefs.walkSpeed) {
+        wss.value = String(prefs.walkSpeed);
+    }
+
+    // 不走站外换乘
+    const aoc = ov.querySelector('#route-avoid-outdoor-check');
+    if (aoc) aoc.checked = !!prefs.avoidOutOfStation;
+
+    // 高级设置展开状态
+    if (prefs.advancedOpen) {
+        const advWrap   = ov.querySelector('#route-advanced');
+        const advToggle = ov.querySelector('#route-advanced-toggle');
+        if (advWrap && advToggle) {
+            advWrap.classList.add('open');
+            advToggle.setAttribute('aria-expanded', 'true');
+        }
+    }
+}
 
 function initRouteUI() {
     const btn = document.getElementById('route-plan-btn');
@@ -23,15 +155,6 @@ function ensureRouteOverlay() {
             </div>
             <div class="route-body">
                 <div class="route-form">
-                    <div class="route-field route-time-field">
-                        <label>时间</label>
-                        <div class="route-time-trigger" id="route-hour-trigger">09</div>
-                        <span class="route-time-sep">:</span>
-                        <div class="route-time-trigger" id="route-minute-trigger">30</div>
-                        <button id="route-now" class="route-now-btn" type="button">现在</button>
-                        <div class="route-time-panel" id="route-hour-panel"></div>
-                        <div class="route-time-panel" id="route-minute-panel"></div>
-                    </div>
                     <div class="route-stops">
                         <div class="route-field">
                             <label>起</label>
@@ -61,41 +184,81 @@ function ensureRouteOverlay() {
                             </svg>
                          </button>
                     </div>
-                    <div class="route-sort-row">
-                        <label class="route-sort-option">
-                            <input type="radio" name="route-sort" value="fastest" checked>
-                            <span class="route-sort-label">最快优先</span>
-                            <span class="route-sort-hint">按总耗时排序</span>
-                        </label>
-                        <label class="route-sort-option">
-                            <input type="radio" name="route-sort" value="conservative">
-                            <span class="route-sort-label">保守优先</span>
-                            <span class="route-sort-hint">末班车时间充裕优先</span>
-                        </label>
+                    <div class="route-field route-time-field">
+                        <div class="route-time-trigger" id="route-hour-trigger">09</div>
+                        <span class="route-time-sep">:</span>
+                        <div class="route-time-trigger" id="route-minute-trigger">30</div>
+                         <div class="route-time-mode" id="route-time-mode">
+                            <button type="button" class="route-time-mode-btn active"
+                                    data-mode="depart">出发</button>
+                            <button type="button" class="route-time-mode-btn"
+                                    data-mode="arrive">到达</button>
+                        </div>
+                        <button id="route-now" class="route-now-btn" type="button">现在</button>
+                        <div class="route-time-panel" id="route-hour-panel"></div>
+                        <div class="route-time-panel" id="route-minute-panel"></div>
                     </div>
-                    <div class="route-extra-options">
-                        <label class="route-extra-option">
-                            <span class="route-switch">
-                                <input type="checkbox" id="route-max-transfer-check">
-                                <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
-                            </span>
-                            <span>单次换乘时间不超过</span>
-                            <input type="text" id="route-max-transfer-min"
-                                   class="route-max-transfer-input"
-                                   inputmode="numeric" pattern="[0-9]*"
-                                   maxlength="2" value="5" disabled>
-                            <span>分钟</span>
-                        </label>
-                        <label class="route-extra-option">
-                            <span class="route-switch">
-                                <input type="checkbox" id="route-avoid-outdoor-check">
-                                <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
-                            </span>
-                            <span class="route-extra-option-label">
-                                <span class="route-extra-option-title">不走站外换乘</span>
-                                <span class="route-extra-option-sub">目前仅琶洲 8↔11 与五羊邨 5↔10</span>
-                            </span>
-                        </label>
+                    <div class="route-advanced" id="route-advanced">
+                        <button type="button" class="route-advanced-toggle"
+                                id="route-advanced-toggle" aria-expanded="false">
+                            <span class="route-advanced-title">⚙ 高级设置</span>
+                            <svg class="route-advanced-icon" viewBox="0 0 24 24"
+                                 width="14" height="14" fill="none" stroke="currentColor"
+                                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="route-advanced-body">
+                            <div class="route-advanced-inner">
+
+                                <div class="route-sort-row">
+                                    <label class="route-sort-option">
+                                        <input type="radio" name="route-sort" value="fastest" checked>
+                                        <span class="route-sort-label">最快优先</span>
+                                        <span class="route-sort-hint">按总耗时排序</span>
+                                    </label>
+                                    <label class="route-sort-option">
+                                        <input type="radio" name="route-sort" value="conservative">
+                                        <span class="route-sort-label">保守优先</span>
+                                        <span class="route-sort-hint">末班车时间充裕优先</span>
+                                    </label>
+                                </div>
+
+                                <div class="route-extra-options">
+                                    <label class="route-extra-option">
+                                        <span class="route-switch">
+                                            <input type="checkbox" id="route-max-transfer-check">
+                                            <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
+                                        </span>
+                                        <span>单次换乘时间不超过</span>
+                                        <input type="text" id="route-max-transfer-min"
+                                               class="route-max-transfer-input"
+                                               inputmode="numeric" pattern="[0-9]*"
+                                               maxlength="2" value="5" disabled>
+                                        <span>分钟</span>
+                                    </label>
+                                    <label class="route-extra-option">
+                                        <span class="route-switch">
+                                            <input type="checkbox" id="route-avoid-outdoor-check">
+                                            <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
+                                        </span>
+                                        <span class="route-extra-option-label">
+                                            <span class="route-extra-option-title">不走站外换乘</span>
+                                            <span class="route-extra-option-sub">目前仅琶洲 8↔11 与五羊邨 5↔10</span>
+                                        </span>
+                                    </label>
+                                    <label class="route-extra-option route-extra-speed">
+                                        <span>步行速度</span>
+                                                                    <select id="route-walk-speed" class="route-walk-speed-select">
+                                <option value="1.2">悠闲 · 1.2 m/s</option>
+                                <option value="1.5" selected>中等 · 1.5 m/s</option>
+                                <option value="1.8">快走 · 1.8 m/s</option>
+                            </select>
+                                    </label>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                     <button id="route-go" class="route-go" type="button">
                         <span class="route-go-text">规划</span>
@@ -136,6 +299,42 @@ function ensureRouteOverlay() {
 
     initRouteTimePickers(ov);
 
+    // 高级设置折叠
+    const advWrap   = ov.querySelector('#route-advanced');
+    const advToggle = ov.querySelector('#route-advanced-toggle');
+    if (advWrap && advToggle) {
+        advToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = advWrap.classList.toggle('open');
+            advToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    }
+
+    // 时间模式 Tab：出发 / 到达
+    const timeModeWrap = ov.querySelector('#route-time-mode');
+    if (timeModeWrap) {
+        timeModeWrap.addEventListener('click', (e) => {
+            const btn = e.target.closest('.route-time-mode-btn');
+            if (!btn) return;
+            e.stopPropagation();
+            const mode = btn.dataset.mode;
+            if (mode === 'arrive' && !_routeArriveMode) {
+                _routeArriveMode = true;
+            } else if (mode === 'depart' && _routeArriveMode) {
+                _routeArriveMode = false;
+            } else {
+                return;
+            }
+            timeModeWrap.querySelectorAll('.route-time-mode-btn').forEach(b => {
+                b.classList.toggle('active', b === btn);
+            });
+            // 到达模式：隐藏"现在"按钮（"现在到达"语义不成立）
+            const nowBtn = ov.querySelector('#route-now');
+            if (nowBtn) nowBtn.style.display = _routeArriveMode ? 'none' : '';
+            setRouteMeta(routeMetaText());
+        });
+    }
+
     setupRouteAutocomplete(
         ov.querySelector('#route-start'),
         ov.querySelector('#route-start-suggestions')
@@ -148,6 +347,17 @@ function ensureRouteOverlay() {
     enableSelectAllOnFocus(ov.querySelector('#route-start'));
     enableSelectAllOnFocus(ov.querySelector('#route-end'));
     enableSelectAllOnFocus(ov.querySelector('#route-max-transfer-min'));
+
+    // 步行速度变化
+    const wssChange = ov.querySelector('#route-walk-speed');
+    if (wssChange) {
+        wssChange.addEventListener('change', () => {
+            const v = parseFloat(wssChange.value);
+            if (typeof ROUTE_GRAPH !== 'undefined' && ROUTE_GRAPH.loaded && !isNaN(v)) {
+                ROUTE_GRAPH.userWalkSpeed = v;
+            }
+        });
+    }
 
     ov.querySelector('#route-swap').addEventListener('click', () => {
         const startInput = ov.querySelector('#route-start');
@@ -235,7 +445,7 @@ function ensureRouteOverlay() {
             }
         });
     }
-
+    applyRoutePrefs(ov);
     return ov;
 }
 
@@ -397,13 +607,16 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
         currentItems = [];
     }
 
-    function render(items) {
+    function render(items, headerText) {
         currentItems = items;
         if (items.length === 0) {
             hide();
             return;
         }
-        suggestionsEl.innerHTML = items.map((s, i) => {
+        const headerHtml = headerText
+            ? `<div class="route-suggestions-header">${escapeHtml(headerText)}</div>`
+            : '';
+        suggestionsEl.innerHTML = headerHtml + items.map((s, i) => {
             const cls = i === activeIndex ? 'route-suggestion active' : 'route-suggestion';
             return `<div class="${cls}" data-value="${escapeHtml(s)}">${escapeHtml(s)}</div>`;
         }).join('');
@@ -424,6 +637,16 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
     function updateSuggestions() {
         const q = inputEl.value.trim();
         if (!q) {
+            // ★ 空输入 → 显示历史
+            const kind = routeHistoryKind(inputEl);
+            if (kind) {
+                const arr = getRouteHistoryArr(kind);
+                if (arr.length > 0) {
+                    activeIndex = -1;
+                    render(arr, '最近使用');
+                    return;
+                }
+            }
             hide();
             return;
         }
@@ -440,11 +663,7 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
     inputEl.addEventListener('input', updateSuggestions);
 
     inputEl.addEventListener('focus', () => {
-        const q = inputEl.value.trim();
-        if (!q) {
-            hide();
-            return;
-        }
+        // 统一走 updateSuggestions：空输入自动显示历史
         updateSuggestions();
     });
 
@@ -563,6 +782,13 @@ function closeRoutePlanner() {
 function routeMetaText() {
     const min = getRouteDepartMin();
     const mode = _routeDepartMin !== null ? '自定义时间' : '系统时间';
+
+    if (_routeArriveMode) {
+        if (_routeLastArrivedAt != null) {
+            return `目标到达 ${fmtHM(min)} · 建议出发 ${fmtHM(_routeLastArrivedAt)}（${mode}）`;
+        }
+        return `目标到达 ${fmtHM(min)}（${mode}）`;
+    }
     return `出发时刻 ${fmtHM(min)}（${mode}）`;
 }
 
@@ -578,6 +804,145 @@ function hideAllRouteLegends() {
     const l2 = _routeOverlay.querySelector('#route-legend-3line');
     if (l1) l1.style.display = 'none';
     if (l2) l2.style.display = 'none';
+}
+
+/* ==========================================
+   空结果引导
+   ========================================== */
+function buildRouteSuggestions(r, currentCfg) {
+    const suggestions = [];
+    const reasons = r.rejected.map(x => x.reason).join(' ');
+    const uniqueReasons = [...new Set(r.rejected.map(x => x.reason))];
+
+    // 1. 单次换乘上限被卡住 → 建议关闭或提高
+    if (currentCfg.maxTransferMin != null &&
+        reasons.includes('超过设定上限')) {
+        suggestions.push({
+            action: 'disable-max-transfer',
+            label: '关闭"单次换乘时间不超过"',
+            value: '',
+        });
+        if (currentCfg.maxTransferMin < 15) {
+            suggestions.push({
+                action: 'set-max-transfer',
+                label: `放宽到 15 分钟`,
+                value: 15,
+            });
+        }
+    }
+
+    // 2. 不走站外换乘被卡住 → 建议关闭
+    if (currentCfg.avoidOutOfStation &&
+        reasons.includes('站外换乘')) {
+        suggestions.push({
+            action: 'allow-outdoor',
+            label: '允许站外换乘（琶洲、五羊邨）',
+            value: '',
+        });
+    }
+
+    // 3. 末班车已收 → 建议提前出发
+    const lastTrainReason = uniqueReasons.find(x =>
+        x.includes('已无运营') || x.includes('已停运') || x.includes('末班车')
+    );
+    if (lastTrainReason) {
+        const targetMin = getRouteDepartMin();
+        if (_routeArriveMode) {
+            // 反向模式：希望更晚到达才能赶上末班车 → 目标到达时刻 +30
+            const later = targetMin + 30;
+            if (later <= 26 * 60) {
+                suggestions.push({
+                    action: 'later-arrive',
+                    label: `目标到达延后 30 分钟（${fmtHM(later)}）`,
+                    value: 30,
+                });
+            }
+        } else {
+            // 正向模式：更早出发
+            const earlier = targetMin - 30;
+            if (earlier >= 5 * 60) {
+                suggestions.push({
+                    action: 'earlier-depart',
+                    label: `提前 30 分钟出发（${fmtHM(earlier)}）`,
+                    value: 30,
+                });
+            }
+        }
+    }
+
+    return suggestions;
+}
+
+function applyRouteSuggestion(action, value) {
+    if (!_routeOverlay) return;
+
+    if (action === 'disable-max-transfer') {
+        const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
+        if (mtc) { mtc.checked = false; mtc.dispatchEvent(new Event('change')); }
+
+    } else if (action === 'set-max-transfer') {
+        const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
+        const mti = _routeOverlay.querySelector('#route-max-transfer-min');
+        if (mtc && mti) {
+            mtc.checked = true;
+            mtc.dispatchEvent(new Event('change'));
+            mti.value = String(value);
+        }
+
+    } else if (action === 'allow-outdoor') {
+        const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
+        if (aoc) aoc.checked = false;
+
+    } else if (action === 'earlier-depart') {
+        const delta = parseInt(value, 10) || 30;
+        _routeDepartMin = getRouteDepartMin() - delta;
+        refreshRouteTimeTriggers();
+        setRouteMeta(routeMetaText());
+
+    } else if (action === 'later-arrive') {
+        const delta = parseInt(value, 10) || 30;
+        _routeDepartMin = getRouteDepartMin() + delta;
+        refreshRouteTimeTriggers();
+        setRouteMeta(routeMetaText());
+    }
+
+    // 自动重算
+    setTimeout(() => runRoutePlanning(), 80);
+}
+
+/* ==========================================
+   反向规划：给定目标到达时刻，二分查找最晚出发时刻
+   ========================================== */
+async function findLatestDepartureForArrival(start, end, targetArriveMin,
+                                             sortMode, maxTransferMin, avoidOutOfStation) {
+    const STEP = 5;   // 5 分钟粒度
+    // 最早不早于 5:00，最多往前找 4 小时
+    const EARLIEST = Math.max(5 * 60, targetArriveMin - 4 * 60);
+
+    const loIdx = Math.floor(EARLIEST   / STEP);
+    const hiIdx = Math.floor(targetArriveMin / STEP);
+
+    let bestIdx = -1;
+    let L = loIdx, R = hiIdx;
+
+    while (L <= R) {
+        const midIdx = Math.floor((L + R) / 2);
+        const t = midIdx * STEP;
+
+        const r = await planRoutes(start, end, t, sortMode,
+            maxTransferMin, avoidOutOfStation);
+        const ok = r.results && r.results.length > 0
+            && r.results.some(item => Math.round(item.arriveMin) <= targetArriveMin);
+
+        if (ok) {
+            bestIdx = midIdx;
+            L = midIdx + 1;
+        } else {
+            R = midIdx - 1;
+        }
+    }
+
+    return bestIdx >= 0 ? bestIdx * STEP : null;
 }
 
 /* ==========================================
@@ -609,6 +974,9 @@ async function runRoutePlanning() {
     const sortMode = sortRadio ? sortRadio.value : 'fastest';
     const departMin = getRouteDepartMin();
 
+    // 反向规划：把用户填的时刻当作"期望到达时刻"，先算出最晚出发时刻
+    _routeLastArrivedAt = null;
+
     // 读取"单次换乘时间不超过 n 分钟"（允许 0）
     let maxTransferMin = null;
     const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
@@ -625,6 +993,36 @@ async function runRoutePlanning() {
     const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
     if (aoc) avoidOutOfStation = aoc.checked;
 
+    // 读取步行速度
+    let walkSpeed = 1.5;
+    const wssEl = _routeOverlay.querySelector('#route-walk-speed');
+    if (wssEl) {
+        const v = parseFloat(wssEl.value);
+        if (!isNaN(v) && v > 0) walkSpeed = v;
+    }
+
+    // ★ 应用到 ROUTE_GRAPH
+    if (typeof ROUTE_GRAPH !== 'undefined' && ROUTE_GRAPH.loaded) {
+        ROUTE_GRAPH.userWalkSpeed = walkSpeed;
+    }
+
+    const advWrapEl = _routeOverlay.querySelector('#route-advanced');
+    saveRoutePrefs({
+        sortMode,
+        maxTransferChecked: !!(mtc && mtc.checked),
+        maxTransferMin: (mtc && mtc.checked && mti)
+            ? (parseInt(mti.value, 10) || 0)
+            : 5,
+        avoidOutOfStation,
+        walkSpeed,
+        arriveMode: _routeArriveMode,
+        advancedOpen: !!(advWrapEl && advWrapEl.classList.contains('open')),
+    });
+
+    // ★ 把起终点推进历史
+    pushRouteHistory('start', start);
+    pushRouteHistory('end', end);
+
     // 进入 loading 状态：用 class，不动 textContent
     goBtn.disabled = true;
     goBtn.classList.add('loading');
@@ -636,7 +1034,78 @@ async function runRoutePlanning() {
     );
 
     try {
-        const r = await planRoutes(start, end, departMin, sortMode,
+        // ★ 反向规划：先算出最晚出发时刻
+        let actualDepartMin = departMin;
+        if (_routeArriveMode) {
+            const targetArriveMin = departMin;
+            const found = await findLatestDepartureForArrival(
+                start, end, targetArriveMin, sortMode,
+                maxTransferMin, avoidOutOfStation
+            );
+
+            if (found == null) {
+                const earliest = Math.max(5 * 60, targetArriveMin - 4 * 60);
+                let html = `<div class="route-empty">`;
+                html += `<div class="route-empty-title">当前时刻没有可用的路径</div>`;
+                html += `<div class="route-empty-detail">`;
+                html += `无法在 ${fmtHM(earliest)} ~ ${fmtHM(targetArriveMin)} 之间找到`;
+                html += `能于 ${fmtHM(targetArriveMin)} 前到达的路径`;
+                html += `</div>`;
+
+                // ★ 反向失败时唯一能做的就是让目标到达时间更晚
+                const suggestions = [];
+                const later30 = targetArriveMin + 30;
+                const later60 = targetArriveMin + 60;
+                const LIMIT   = 26 * 60;   // 次日 02:00 上限
+
+                if (later30 <= LIMIT) {
+                    suggestions.push({
+                        action: 'later-arrive',
+                        label: `目标到达延后 30 分钟（${fmtHM(later30)}）`,
+                        value: 30,
+                    });
+                }
+                if (later60 <= LIMIT) {
+                    suggestions.push({
+                        action: 'later-arrive',
+                        label: `目标到达延后 1 小时（${fmtHM(later60)}）`,
+                        value: 60,
+                    });
+                }
+
+                if (suggestions.length > 0) {
+                    html += `<div class="route-empty-suggest">💡 试试这些调整</div>`;
+                    html += `<div class="route-suggest-actions">`;
+                    html += suggestions.map(s =>
+                        `<button type="button" class="route-suggest-btn"
+                                 data-action="${s.action}"
+                                 data-value="${escapeHtml(String(s.value ?? ''))}">
+                            ${escapeHtml(s.label)}
+                        </button>`
+                    ).join('');
+                    html += `</div>`;
+                }
+                html += `</div>`;
+
+                hideAllRouteLegends();
+                resultsEl.innerHTML = html;
+
+                resultsEl.querySelectorAll('.route-suggest-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        applyRouteSuggestion(btn.dataset.action, btn.dataset.value);
+                    });
+                });
+                return;
+            }
+
+            actualDepartMin = found;
+            _routeLastArrivedAt = found;
+        }
+
+        _routeActiveDepartMin = actualDepartMin;
+
+        const r = await planRoutes(start, end, actualDepartMin, sortMode,
             maxTransferMin, avoidOutOfStation);
 
         if (r.error) {
@@ -647,14 +1116,34 @@ async function runRoutePlanning() {
         if (r.results.length === 0) {
             let html = `<div class="route-empty">`;
             html += `<div class="route-empty-title">当前时刻没有可用的路径</div>`;
-            if (r.rejected.length > 0) {
-                html += `<div class="route-reject-hint">${r.rejected.length} 条路径因末班车已停运被过滤</div>`;
-                const reasons = [...new Set(r.rejected.map(x => x.reason))].slice(0, 3);
-                html += `<ul class="route-reject-list">${reasons.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
+
+            // ★ 生成可操作的引导
+            const suggestions = buildRouteSuggestions(r, {
+                maxTransferMin, avoidOutOfStation, sortMode,
+            });
+            if (suggestions.length > 0) {
+                html += `<div class="route-empty-suggest">💡 试试这些调整</div>`;
+                html += `<div class="route-suggest-actions">`;
+                html += suggestions.map(s =>
+                    `<button type="button" class="route-suggest-btn"
+                             data-action="${s.action}"
+                             data-value="${escapeHtml(String(s.value ?? ''))}">
+                        ${escapeHtml(s.label)}
+                    </button>`
+                ).join('');
+                html += `</div>`;
             }
             html += `</div>`;
             hideAllRouteLegends();
             resultsEl.innerHTML = html;
+
+            // ★ 绑定建议按钮
+            resultsEl.querySelectorAll('.route-suggest-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    applyRouteSuggestion(btn.dataset.action, btn.dataset.value);
+                });
+            });
             return;
         }
 
@@ -672,7 +1161,16 @@ async function runRoutePlanning() {
         const legend3LineEl = _routeOverlay.querySelector('#route-legend-3line');
         if (legend3LineEl) legend3LineEl.style.display = has3LineWarning ? 'flex' : 'none';
 
-        resultsEl.innerHTML = r.results.map((item, idx) =>
+        // ★ 反向规划模式：顶部加一条"建议出发"提示
+        let headlineHtml = '';
+        if (_routeArriveMode && _routeLastArrivedAt != null) {
+            headlineHtml = `<div class="route-arrive-headline">
+                ✅ 最晚 <b>${fmtHM(_routeLastArrivedAt)}</b> 抵达站台候车，
+                可于 <b>${fmtHM(departMin)}</b> 前到达
+            </div>`;
+        }
+
+        resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>
             renderRouteCard(item, idx, start, end)
         ).join('');
 
@@ -752,6 +1250,7 @@ async function runRoutePlanning() {
                 `<div class="route-error">规划失败：${escapeHtml(e.message || String(e))}</div>`;
         }
     } finally {
+        _routeActiveDepartMin = null;    // ★ 清理
         const goBtn2 = _routeOverlay.querySelector('#route-go');
         if (goBtn2) {
             goBtn2.disabled = false;
@@ -939,9 +1438,12 @@ function getSegmentDirection(path, station, lineName) {
     const idxEnd     = lineStations.indexOf(segmentEnd);
     if (idxStation < 0 || idxEnd < 0) return rawDirection;
 
-    // ★ 用路径规划的出发时刻判断方向，而非主页面的自定义时间
-    const currentMin = (typeof getRouteDepartMin === 'function')
-        ? getRouteDepartMin() : null;
+    // ★ 优先用"当前规划所用出发时刻"，回退到 getRouteDepartMin
+    let currentMin = _routeActiveDepartMin;
+    if (currentMin == null) {
+        currentMin = (typeof getRouteDepartMin === 'function')
+            ? getRouteDepartMin() : null;
+    }
     if (currentMin == null) return rawDirection;
 
     const isForward = idxEnd > idxStation;
@@ -967,28 +1469,6 @@ function getSegmentDirection(path, station, lineName) {
     }
 
     return rawDirection;
-}
-
-/** 收集某条线路所有方向数据里出现过的终点站名（去括号后缀） */
-function collectTerminalCandidates(lineName) {
-    const set = new Set();
-    const lineData = (typeof lineDirectionTime !== 'undefined')
-        ? lineDirectionTime[lineName] : null;
-    if (!lineData) return set;
-
-    for (const st in lineData) {
-        const d = lineData[st];
-        if (!d) continue;
-        for (const t of (d.up || [])) {
-            const n = (t.to || '').split(/[（(]/)[0];
-            if (n) set.add(n);
-        }
-        for (const t of (d.down || [])) {
-            const n = (t.to || '').split(/[（(]/)[0];
-            if (n) set.add(n);
-        }
-    }
-    return set;
 }
 
 /** 从 path 里，从 startStation 开始、到离开 lineName 为止的最后一个站名 */
@@ -1249,8 +1729,8 @@ function renderRouteCard(item, idx, startName, endName) {
             </div>
             <div class="route-detail">
                 ${warningHtml}
-                ${buildStationListHtml(startName, endName, item.stationRoute)}
                 ${guideHtml}
+                ${buildStationListHtml(startName, endName, item.stationRoute)}
             </div>
         </div>
     `;

@@ -549,6 +549,7 @@
     flex: 1 1 100%;
     gap: 6px;
     position: relative;
+    justify-content: flex-start;   /* ★ 内容左对齐，不铺满 */
 }
 
 .route-time-trigger {
@@ -696,6 +697,28 @@
     background: #c2cfde;
     border-radius: 4px;
     border: 1.5px solid #f1f5f9;
+}
+
+/* ==========================================
+   下拉候选列表：分组标题（用于"最近使用"）
+   ========================================== */
+.route-suggestions-header {
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+[data-theme="dark"] .route-suggestions-header {
+    background: #232b3d;
+    color: #64748b;
+    border-bottom-color: #2d3748;
 }
 
 .route-suggestion {
@@ -1987,4 +2010,305 @@
         padding: 3px 10px;
         font-size: 11.5px;
     }
+}
+
+/* ==========================================
+   步行速度选择器
+   ========================================== */
+.route-extra-speed {
+    gap: 8px;
+}
+
+.route-walk-speed-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #ffffff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 8px center;
+    background-size: 12px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 3px 26px 3px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #1f2b3c;
+    cursor: pointer;
+    outline: none;
+    min-width: 118px;          /* ★ 容纳 "中等 · 1.5 m/s" */
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+.route-walk-speed-select:focus {
+    border-color: #2b7de9;
+    box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15);
+}
+
+[data-theme="dark"] .route-walk-speed-select {
+    background-color: #1a2030;
+    border-color: #3a4559;
+    color: #e2e8f0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+
+[data-theme="dark"] .route-walk-speed-select:focus {
+    border-color: #5da0ff;
+    box-shadow: 0 0 0 3px rgba(93, 160, 255, 0.2);
+}
+
+/* ==========================================
+   空结果时的操作引导
+   ========================================== */
+.route-empty-suggest {
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    text-align: left;
+    padding-left: 4px;
+}
+
+.route-suggest-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.route-suggest-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    background: #f0f6ff;
+    color: #1a6bd5;
+    border: 1.5px solid #b8d4f0;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    line-height: 1.2;
+}
+
+.route-suggest-btn:hover {
+    background: #dbeafe;
+    border-color: #7ab0e6;
+}
+
+.route-suggest-btn:active {
+    background: #c0daf8;
+    transform: scale(0.98);
+}
+
+[data-theme="dark"] .route-empty-suggest {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .route-suggest-btn {
+    background: #1e3a5f;
+    color: #93c5fd;
+    border-color: #2a4d78;
+}
+
+[data-theme="dark"] .route-suggest-btn:hover {
+    background: #264a74;
+    border-color: #3a6aa0;
+}
+
+/* ==========================================
+   时间模式 Tab（出发 / 到达）
+   ========================================== */
+.route-time-mode {
+    display: inline-flex;
+    background: #eef2f8;
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+    margin-left: 8px;      /* ← 从 margin-right 改为 margin-left */
+    flex-shrink: 0;
+}
+
+.route-time-mode-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.route-time-mode-btn:hover {
+    color: #1f2b3c;
+}
+
+.route-time-mode-btn.active {
+    background: #2b7de9;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(43, 125, 233, 0.35);
+}
+
+[data-theme="dark"] .route-time-mode {
+    background: #1a2030;
+}
+
+[data-theme="dark"] .route-time-mode-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .route-time-mode-btn:hover {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .route-time-mode-btn.active {
+    background: #2b7de9;
+    color: #ffffff;
+}
+
+/* ==========================================
+   反向规划：结果区顶部的"建议出发"提示
+   ========================================== */
+.route-arrive-headline {
+    margin: 4px 0 6px;
+    padding: 10px 14px;
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #065f46;
+    line-height: 1.5;
+}
+
+.route-arrive-headline b {
+    font-weight: 800;
+    color: #047857;
+}
+
+[data-theme="dark"] .route-arrive-headline {
+    background: #052e16;
+    border-left-color: #10b981;
+    color: #6ee7b7;
+}
+
+[data-theme="dark"] .route-arrive-headline b {
+    color: #4ade80;
+}
+
+/* ==========================================
+   高级设置折叠面板
+   ========================================== */
+.route-advanced {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;   /* ★ 让切换按钮靠右 */
+    margin-top: 4px;
+}
+
+.route-advanced-toggle {
+    display: inline-flex;    /* ★ 宽度自适应 */
+    width: auto;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.2;
+}
+
+.route-advanced-toggle:hover {
+    background: #eef2f8;
+    border-color: #cbd5e1;
+    color: #1f2b3c;
+}
+
+.route-advanced-toggle:active {
+    background: #e2e8f0;
+}
+
+.route-advanced-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.3px;
+}
+
+.route-advanced-icon {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.route-advanced.open .route-advanced-icon {
+    transform: rotate(180deg);
+}
+
+.route-advanced-body {
+    width: 100%;
+    align-self: stretch;      /* ★ 抵消父级 flex-end 的收缩 */
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 0;
+}
+
+.route-advanced.open .route-advanced-body {
+    grid-template-rows: 1fr;
+    margin-top: 10px;
+}
+
+.route-advanced-inner {
+    min-height: 0;             /* grid 行高过渡必需 */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 删除 */
+[data-theme="dark"] .route-advanced {
+    border-top-color: #2d3748;
+}
+
+[data-theme="dark"] .route-advanced-toggle {
+    background: #232b3d;
+    border-color: #3a4559;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .route-advanced-toggle:hover {
+    background: #2a3348;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .route-advanced-toggle:active {
+    background: #3a4559;
+}
+
+.route-empty-detail {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+[data-theme="dark"] .route-empty-detail {
+    color: #94a3b8;
 }

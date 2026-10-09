@@ -24,6 +24,7 @@ function loadRouteGraph() {
             const nodes = new Set(data.nodes);
             const edges = new Map();
             const succ = new Map();
+            const walkEdges = new Set();   // ★ 换乘步行边集合
 
             for (const e of data.edges) {
                 let m = edges.get(e.f);
@@ -33,6 +34,14 @@ function loadRouteGraph() {
                 let arr = succ.get(e.f);
                 if (!arr) { arr = []; succ.set(e.f, arr); }
                 arr.push(e.t);
+
+                // ★ 判断换乘步行边：到站 → 站台
+                const fp = e.f.split('|');
+                const tp = e.t.split('|');
+                if (fp.length >= 4 && tp.length >= 4
+                    && fp[3] === '到站' && tp[3] === '站台') {
+                    walkEdges.add(e.f + '\u0001' + e.t);
+                }
             }
 
             const guides = new Map();
@@ -45,8 +54,10 @@ function loadRouteGraph() {
             ROUTE_GRAPH.nodes = nodes;
             ROUTE_GRAPH.edges = edges;
             ROUTE_GRAPH.succ = succ;
+            ROUTE_GRAPH.walkEdges = walkEdges;              // ★
             ROUTE_GRAPH.guides = guides;
             ROUTE_GRAPH.walkSpeed = data.walkSpeed || 1.5;
+            ROUTE_GRAPH.userWalkSpeed = 1.5;                 // ★ 默认"正常"
             ROUTE_GRAPH.version = data.version || '';
             ROUTE_GRAPH.loaded = true;
             console.log(
@@ -65,7 +76,16 @@ function routeGetEdgeWeight(from, to) {
     const m = ROUTE_GRAPH.edges.get(from);
     if (!m) return null;
     const w = m.get(to);
-    return w === undefined ? null : w;
+    if (w === undefined) return null;
+
+    // ★ 换乘步行边按用户速度缩放
+    if (ROUTE_GRAPH.walkEdges && ROUTE_GRAPH.walkEdges.has(from + '\u0001' + to)) {
+        const speed = ROUTE_GRAPH.userWalkSpeed || 1.5;
+        if (speed !== 1.5) {
+            return Math.round(w * 1.5 / speed);
+        }
+    }
+    return w;
 }
 
 function routeGetSuccessors(node) {

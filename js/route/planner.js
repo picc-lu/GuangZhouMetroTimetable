@@ -1,8 +1,8 @@
 // ========== 路径规划主逻辑（含末班车可达性检查 + 排序模式） ==========
 
-const PLAN_MAX_K = 50;
-const PLAN_TARGET = 10;
-const PLAN_MAX_CHECK = 30;
+const PLAN_TARGET    = 5;
+const PLAN_MAX_K     = PLAN_TARGET * 5;
+const PLAN_MAX_CHECK = PLAN_TARGET * 3;
 
 const LINE_NAME_ALIASES = {
     '3号线': ['3号线', '3号线北'],
