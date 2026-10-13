@@ -12,6 +12,15 @@ let _routeDepartMin = null;
 
 let _routeTimeDocClickBound = false;
 
+// iOS 设备识别（iPadOS 13+ 伪装成 MacIntel，通过 maxTouchPoints 判断）
+const _isIOSDevice = (() => {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    if (/iPad|iPhone|iPod/.test(ua)) return true;
+    if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+    return false;
+})();
+
 /* ==========================================
    偏好设置 / 起终点历史（localStorage 持久化）
    ========================================== */
@@ -630,6 +639,14 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
                 try {
                     inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
                 } catch (_) {}
+
+                // ★ iOS Safari 修复：
+                // mousedown 里的 preventDefault 会保留 input 焦点，但 iOS 键盘
+                // 状态机不会随之复位，导致下一次点击其他输入框的第一次 tap 无效。
+                // 主动 blur 让键盘干净收起，重置焦点状态。
+                if (_isIOSDevice) {
+                    inputEl.blur();
+                }
             });
         });
     }
