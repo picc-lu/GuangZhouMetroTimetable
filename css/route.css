@@ -107,6 +107,38 @@
     min-width: 0;
 }
 
+/* 输入框错误高亮（漏填起/终点时） */
+.route-field.input-error {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+    animation: routeFieldShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.route-field.input-error label {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+@keyframes routeFieldShake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-5px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-4px); }
+    60% { transform: translateX(4px); }
+    75% { transform: translateX(-2px); }
+    90% { transform: translateX(2px); }
+}
+
+[data-theme="dark"] .route-field.input-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+[data-theme="dark"] .route-field.input-error label {
+    background: #4a1a1a;
+    color: #fca5a5;
+}
+
 .route-field:focus-within {
     border-color: #2b7de9;
     box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15);
@@ -668,20 +700,22 @@
 }
 
 .route-suggestions {
-    position: absolute;
-    top: calc(100% + 6px);
+    /* 定位交给 JS：使用 position: fixed 避免被祖先 overflow 裁剪 */
+    position: fixed;
+    top: 0;
     left: 0;
-    right: 0;
+    width: 0;
     background: #ffffff;
     border: 1px solid #dbe6f2;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(31, 43, 60, 0.15);
     max-height: 340px;
     overflow-y: auto;
-    z-index: 30;
+    z-index: 3000;             /* 高于 .route-overlay 的 2500 */
     display: none;
     scrollbar-width: thin;
     scrollbar-color: #c2cfde #f1f5f9;
+    box-sizing: border-box;
 }
 
 .route-suggestions::-webkit-scrollbar {
@@ -2118,31 +2152,58 @@
 }
 
 /* ==========================================
-   时间模式 Tab（出发 / 到达）
+   时间模式 Tab（出发 / 到达）—— 滑块动画
    ========================================== */
 .route-time-mode {
+    position: relative;
     display: inline-flex;
     background: #eef2f8;
     border-radius: 8px;
     padding: 2px;
-    gap: 2px;
-    margin-left: 8px;      /* ← 从 margin-right 改为 margin-left */
+    margin-left: 8px;
     flex-shrink: 0;
+    isolation: isolate;   /* 让 z-index 只在内部作用 */
+}
+
+/* 滑块 */
+.route-time-mode::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(50% - 2px);
+    height: calc(100% - 4px);
+    background: #2b7de9;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(43, 125, 233, 0.35);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* 激活"到达" → 滑块右移 */
+.route-time-mode.mode-arrive::before {
+    transform: translateX(100%);
 }
 
 .route-time-mode-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-width: 44px;
     background: transparent;
     border: none;
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     font-family: inherit;
     color: #64748b;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: color 0.2s ease;
     white-space: nowrap;
     line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .route-time-mode-btn:hover {
@@ -2150,13 +2211,15 @@
 }
 
 .route-time-mode-btn.active {
-    background: #2b7de9;
     color: #ffffff;
-    box-shadow: 0 1px 3px rgba(43, 125, 233, 0.35);
 }
 
 [data-theme="dark"] .route-time-mode {
     background: #1a2030;
+}
+
+[data-theme="dark"] .route-time-mode::before {
+    background: #2b7de9;
 }
 
 [data-theme="dark"] .route-time-mode-btn {
@@ -2168,7 +2231,6 @@
 }
 
 [data-theme="dark"] .route-time-mode-btn.active {
-    background: #2b7de9;
     color: #ffffff;
 }
 

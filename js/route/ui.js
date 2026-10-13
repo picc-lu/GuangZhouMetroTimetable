@@ -21,6 +21,22 @@ const _isIOSDevice = (() => {
     return false;
 })();
 
+function getVisualViewport() {
+    const vv = window.visualViewport;
+    if (vv) {
+        return {
+            width: vv.width,
+            height: vv.height,
+            offsetTop: vv.offsetTop || 0,
+        };
+    }
+    return {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        offsetTop: 0,
+    };
+}
+
 /* ==========================================
    偏好设置 / 起终点历史（localStorage 持久化）
    ========================================== */
@@ -33,7 +49,10 @@ function loadRoutePrefs() {
         const raw = localStorage.getItem(ROUTE_PREFS_KEY);
         if (!raw) return null;
         const obj = JSON.parse(raw);
-        return (obj && typeof obj === 'object') ? obj : null;
+        if (!obj || typeof obj !== 'object') return null;
+        // ★ 兼容旧版本：丢弃已废弃的 advancedOpen 字段
+        delete obj.advancedOpen;
+        return obj;
     } catch (_) { return null; }
 }
 
@@ -103,6 +122,8 @@ function applyRoutePrefs(ov) {
                 b.classList.toggle('active',
                     (b.dataset.mode === 'arrive') === _routeArriveMode);
             });
+            // ★ 滑块动画：同步容器类
+            wrap.classList.toggle('mode-arrive', _routeArriveMode);
         }
         const nowBtn = ov.querySelector('#route-now');
         if (nowBtn) nowBtn.style.display = _routeArriveMode ? 'none' : '';
@@ -134,16 +155,6 @@ function applyRoutePrefs(ov) {
     // 不走站外换乘
     const aoc = ov.querySelector('#route-avoid-outdoor-check');
     if (aoc) aoc.checked = !!prefs.avoidOutOfStation;
-
-    // 高级设置展开状态
-    if (prefs.advancedOpen) {
-        const advWrap   = ov.querySelector('#route-advanced');
-        const advToggle = ov.querySelector('#route-advanced-toggle');
-        if (advWrap && advToggle) {
-            advWrap.classList.add('open');
-            advToggle.setAttribute('aria-expanded', 'true');
-        }
-    }
 }
 
 function initRouteUI() {
@@ -274,7 +285,7 @@ function ensureRouteOverlay() {
                         <span class="route-go-spinner" aria-hidden="true"></span>
                     </button>
                 </div>
-                <div class="route-meta" id="route-meta">正在加载线路图…</div>
+                <div class="route-meta" id="route-meta" style="display: none">正在加载线路图…</div>
                 <div class="route-legend" id="route-legend" style="display:none">
                     <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                         <path d="M12 2 L22 20 L2 20 Z"
@@ -297,7 +308,7 @@ function ensureRouteOverlay() {
                     </svg>
                     <span>3 号线出现该标志，表示该路径存在跨段风险，请展开卡片查看换乘指引</span>
                 </div>
-                <div class="route-results" id="route-results">
+                <div class="route-results" id="route-results" style="display:none">
                     <div class="route-empty">填写起点和终点，点击「规划」查看前 ${PLAN_TARGET} 条推荐路径</div>
                 </div>
             </div>
@@ -305,6 +316,11 @@ function ensureRouteOverlay() {
     `;
     document.body.appendChild(ov);
     _routeOverlay = ov;
+
+    // ★ 把建议列表挂到 body 下，避免被 .route-overlay 的 backdrop-filter
+    //   和 .route-container 的 transform 建立 containing block，导致 fixed 定位错乱
+    document.body.appendChild(ov.querySelector('#route-start-suggestions'));
+    document.body.appendChild(ov.querySelector('#route-end-suggestions'));
 
     initRouteTimePickers(ov);
 
@@ -337,6 +353,8 @@ function ensureRouteOverlay() {
             timeModeWrap.querySelectorAll('.route-time-mode-btn').forEach(b => {
                 b.classList.toggle('active', b === btn);
             });
+            // ★ 滑块动画：切换容器上的 mode-arrive 类
+            timeModeWrap.classList.toggle('mode-arrive', _routeArriveMode);
             // 到达模式：隐藏"现在"按钮（"现在到达"语义不成立）
             const nowBtn = ov.querySelector('#route-now');
             if (nowBtn) nowBtn.style.display = _routeArriveMode ? 'none' : '';
@@ -346,12 +364,24 @@ function ensureRouteOverlay() {
 
     setupRouteAutocomplete(
         ov.querySelector('#route-start'),
-        ov.querySelector('#route-start-suggestions')
+        document.getElementById('route-start-suggestions')
     );
     setupRouteAutocomplete(
         ov.querySelector('#route-end'),
-        ov.querySelector('#route-end-suggestions')
+        document.getElementById('route-end-suggestions')
     );
+
+    // 用户修改输入框时，自动清除错误高亮
+    ['#route-start', '#route-end'].forEach(sel => {
+        const el = ov.querySelector(sel);
+        if (!el) return;
+        el.addEventListener('input', () => {
+            if (el.value.trim()) {
+                const field = el.closest('.route-field');
+                if (field) field.classList.remove('input-error');
+            }
+        });
+    });
 
     enableSelectAllOnFocus(ov.querySelector('#route-start'));
     enableSelectAllOnFocus(ov.querySelector('#route-end'));
@@ -387,6 +417,11 @@ function ensureRouteOverlay() {
 
         setTimeout(() => {
             // ---- 交换数据 ----
+
+            // 交换后清除错误高亮
+            ov.querySelectorAll('.route-field.input-error')
+                .forEach(f => f.classList.remove('input-error'));
+
             const tmp = startInput.value;
             startInput.value = endInput.value;
             endInput.value = tmp;
@@ -609,9 +644,56 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
     let activeIndex = -1;
     let currentItems = [];
 
+    /** 贴输入框正下方；列表高度不超过可视区底部（键盘顶） */
+    function positionSuggestions() {
+        if (!suggestionsEl || suggestionsEl.style.display === 'none') return;
+
+        const vp = getVisualViewport();
+        const MARGIN = 8;
+        const GAP = 4;
+        const DESIRED_MAX = 340;
+
+        const fieldEl = inputEl.closest('.route-field');
+        const rect = fieldEl ? fieldEl.getBoundingClientRect()
+            : inputEl.getBoundingClientRect();
+
+        // ---- 水平：与 .route-field 同宽，不溢出视口 ----
+        let left = rect.left;
+        let width = rect.width;
+        if (left < MARGIN) { width -= (MARGIN - left); left = MARGIN; }
+        if (left + width > vp.width - MARGIN) {
+            width = Math.max(80, vp.width - MARGIN - left);
+        }
+
+        // ---- 垂直：贴输入框正下方；高度截止到键盘顶部 ----
+        // iOS 键盘弹出后 getBoundingClientRect() 返回的是"相对 visual viewport"
+        // 的坐标，而 position:fixed 的 top 相对"layout viewport"。两者相差
+        // vv.offsetTop（键盘把 visual viewport 上推的距离），必须补偿。
+        const coordOffset = _isIOSDevice ? (vp.offsetTop || 0) : 0;
+        const top = rect.bottom + coordOffset + GAP;
+        const maxH = Math.max(80, Math.min(DESIRED_MAX, vp.height - rect.bottom - GAP - MARGIN));
+
+        suggestionsEl.style.position  = 'fixed';
+        suggestionsEl.style.top       = top + 'px';
+        suggestionsEl.style.bottom    = 'auto';
+        suggestionsEl.style.left      = left + 'px';
+        suggestionsEl.style.width     = width + 'px';
+        suggestionsEl.style.right     = 'auto';
+        suggestionsEl.style.maxHeight = maxH + 'px';
+        suggestionsEl.style.zIndex    = '3000';
+    }
+
     function hide() {
         suggestionsEl.style.display = 'none';
         suggestionsEl.innerHTML = '';
+        // 清掉 fixed 定位，防止下次显示时残留旧值
+        suggestionsEl.style.position = '';
+        suggestionsEl.style.top = '';
+        suggestionsEl.style.bottom = '';
+        suggestionsEl.style.left = '';
+        suggestionsEl.style.width = '';
+        suggestionsEl.style.right = '';
+        suggestionsEl.style.maxHeight = '';
         activeIndex = -1;
         currentItems = [];
     }
@@ -630,6 +712,7 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
             return `<div class="${cls}" data-value="${escapeHtml(s)}">${escapeHtml(s)}</div>`;
         }).join('');
         suggestionsEl.style.display = 'block';
+        positionSuggestions();
 
         suggestionsEl.querySelectorAll('.route-suggestion').forEach(el => {
             el.addEventListener('mousedown', (e) => {
@@ -640,10 +723,7 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
                     inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
                 } catch (_) {}
 
-                // ★ iOS Safari 修复：
-                // mousedown 里的 preventDefault 会保留 input 焦点，但 iOS 键盘
-                // 状态机不会随之复位，导致下一次点击其他输入框的第一次 tap 无效。
-                // 主动 blur 让键盘干净收起，重置焦点状态。
+                // iOS Safari：主动 blur，重置焦点状态机
                 if (_isIOSDevice) {
                     inputEl.blur();
                 }
@@ -654,7 +734,6 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
     function updateSuggestions() {
         const q = inputEl.value.trim();
         if (!q) {
-            // ★ 空输入 → 显示历史
             const kind = routeHistoryKind(inputEl);
             if (kind) {
                 const arr = getRouteHistoryArr(kind);
@@ -668,7 +747,6 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
             return;
         }
         const items = searchRouteStations(q, 20);
-        // 唯一候选 == 输入值 → 不显示
         if (items.length === 1 && items[0] === q) {
             hide();
             return;
@@ -680,7 +758,6 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
     inputEl.addEventListener('input', updateSuggestions);
 
     inputEl.addEventListener('focus', () => {
-        // 统一走 updateSuggestions：空输入自动显示历史
         updateSuggestions();
     });
 
@@ -716,6 +793,35 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
 
     document.addEventListener('click', (e) => {
         if (!inputEl.parentElement.contains(e.target)) hide();
+    });
+
+    // ---- 滚动 / 视口变化处理 ----
+    // 1) 弹窗内部滚动 → 列表跟着输入框一起移出可见区，直接隐藏最干净
+    const routeBody = inputEl.closest('.route-body');
+    if (routeBody) {
+        routeBody.addEventListener('scroll', () => hide(), { passive: true });
+    }
+
+    // 2) 视口变化（键盘弹出/收起、旋转）→ 重新定位（不隐藏，用户正在输入）
+    const repositionIfVisible = () => {
+        if (suggestionsEl.style.display !== 'none' && currentItems.length > 0) {
+            positionSuggestions();
+        }
+    };
+
+    if (window.visualViewport) {
+        // iOS 键盘弹出主要靠这个事件
+        window.visualViewport.addEventListener('resize', repositionIfVisible, { passive: true });
+        window.visualViewport.addEventListener('scroll', repositionIfVisible, { passive: true });
+    }
+    window.addEventListener('resize', repositionIfVisible, { passive: true });
+
+    // 3) 输入框自身失焦时隐藏（避免列表滞留）
+    inputEl.addEventListener('blur', () => {
+        // 延迟到 mousedown 之后，避免和"点选候选项"冲突
+        setTimeout(() => {
+            if (document.activeElement !== inputEl) hide();
+        }, 120);
     });
 }
 
@@ -787,7 +893,7 @@ async function openRoutePlanner() {
 function closeRoutePlanner() {
     if (!_routeOverlay) return;
     _routeOverlay.style.display = 'none';
-    _routeOverlay.querySelectorAll('.route-suggestions').forEach(el => {
+    document.querySelectorAll('.route-suggestions').forEach(el => {
         el.style.display = 'none';
         el.innerHTML = '';
     });
@@ -978,10 +1084,31 @@ async function runRoutePlanning() {
     const start = startInput.value.trim();
     const end = endInput.value.trim();
 
-    if (!start || !end) {
-        resultsEl.innerHTML = `<div class="route-error">请填写起点和终点</div>`;
+    const startField = startInput.closest('.route-field');
+    const endField   = endInput.closest('.route-field');
+
+    // 清除上一次的错误状态
+    if (startField) startField.classList.remove('input-error');
+    if (endField)   endField.classList.remove('input-error');
+
+    // 漏填 → 给对应输入框加红框抖动，不显示下方区域
+    const missingStart = !start;
+    const missingEnd   = !end;
+
+    if (missingStart && startField) startField.classList.add('input-error');
+    if (missingEnd   && endField)   endField.classList.add('input-error');
+
+    if (missingStart || missingEnd) {
+        // 保持 meta/results 隐藏（如果之前已经规划过，也一并隐藏，避免残留信息）
+        _routeOverlay.querySelector('#route-meta').style.display = 'none';
+        resultsEl.style.display = 'none';
         return;
     }
+
+    // 通过基础校验 → 显示下方区域
+    _routeOverlay.querySelector('#route-meta').style.display = '';
+    resultsEl.style.display = '';
+
     if (start === end) {
         resultsEl.innerHTML = `<div class="route-error">起点和终点不能相同</div>`;
         return;
@@ -1023,7 +1150,6 @@ async function runRoutePlanning() {
         ROUTE_GRAPH.userWalkSpeed = walkSpeed;
     }
 
-    const advWrapEl = _routeOverlay.querySelector('#route-advanced');
     saveRoutePrefs({
         sortMode,
         maxTransferChecked: !!(mtc && mtc.checked),
@@ -1033,7 +1159,7 @@ async function runRoutePlanning() {
         avoidOutOfStation,
         walkSpeed,
         arriveMode: _routeArriveMode,
-        advancedOpen: !!(advWrapEl && advWrapEl.classList.contains('open')),
+        // ★ 不再持久化 advancedOpen：每次打开弹窗都默认收起
     });
 
     // ★ 把起终点推进历史
@@ -1605,9 +1731,15 @@ function formatDirectionText(direction) {
 function renderRouteCard(item, idx, startName, endName) {
     const rank = item.rank || (idx + 1);
     const transferStations = item.interchanges.map(o => o.key.split('|')[0]).filter(Boolean);
-    const transferText = transferStations.length > 0
-        ? transferStations.join(' · ')
-        : '直达';
+
+    // 换乘路径：显示换乘站；直达路径：显示乘车方向（如"往龙潭"）
+    let transferText;
+    if (transferStations.length > 0) {
+        transferText = transferStations.join(' · ');
+    } else {
+        const directDir = getDirectDirectionText(item.path, startName);
+        transferText = directDir || '直达';
+    }
 
     let warningHtml = '';
     if (item.warnings && item.warnings.length > 0) {
@@ -1887,4 +2019,23 @@ function enableSelectAllOnFocus(inputEl) {
             try { inputEl.select(); } catch (_) {}
         }, 0);
     });
+}
+
+/**
+ * 直达路径的乘车方向文案，如"往龙潭"、"往外环"、"往机场北"。
+ * 取路径第一段的线路 + 起点站，交给 getSegmentDirection 处理。
+ * 若无法判定，返回空串（上层会回退为"直达"）。
+ */
+function getDirectDirectionText(path, startName) {
+    if (!path || !path.nodes) return '';
+    const segs = (typeof parseRouteSegments === 'function')
+        ? parseRouteSegments(path) : [];
+    if (segs.length === 0) return '';
+
+    const firstSeg = segs[0];
+    const dir = getSegmentDirection(path, startName, firstSeg.fullLine);
+    if (!dir) return '';
+
+    const name = dir.replace(/方向$/, '');
+    return name ? `往${name}` : '';
 }

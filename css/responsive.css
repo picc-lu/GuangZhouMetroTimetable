@@ -111,6 +111,7 @@
         flex-direction: column;
         gap: 6px !important;
         padding-bottom: 8px;
+        border-bottom: 1px dashed #ccd9e9;   /* ★ 新增，与桌面端一致 */
     }
 
     .line-scroll-row {
