@@ -47,25 +47,33 @@ const LINE3_BRANCH = new Set([
 function resolveJavaDirectionToWeb(javaLine, station, javaDir) {
     if (javaLine !== '3号线') return {line: javaLine, dir: javaDir};
 
-    if (LINE3_NORTH_STATIONS.has(station)) {
+    // 站名兼容：把图里的"机场北"映射到集合中的"机场北（T2）"
+    const normStation = (s) => {
+        if (!s) return s;
+        if (s === '机场北') return '机场北（T2）';
+        return s;
+    };
+    const s = normStation(station);
+
+    if (LINE3_NORTH_STATIONS.has(s)) {
         if (javaDir === '海傍方向') return {line: '3号线北', dir: '体育西路方向'};
         if (javaDir === '体育西路方向') return {line: '3号线北', dir: '体育西路方向'};
         if (javaDir === '机场北方向') return {line: '3号线北', dir: '机场北（T2）方向'};
     }
 
-    if (station === '体育西路') {
+    if (s === '体育西路') {
         if (javaDir === '海傍方向') return {line: '3号线', dir: '海傍方向'};
         if (javaDir === '机场北方向') return {line: '3号线北', dir: '机场北（T2）方向'};
         if (javaDir === '天河客运站方向') return {line: '3号线', dir: '天河客运站方向'};
         if (javaDir === '体育西路方向') return {line: '3号线', dir: '海傍方向'};
     }
 
-    if (LINE3_MAIN_SOUTH.has(station)) {
+    if (LINE3_MAIN_SOUTH.has(s)) {
         if (javaDir === '体育西路方向') return {line: '3号线', dir: '天河客运站方向'};
         if (javaDir === '海傍方向') return {line: '3号线', dir: '海傍方向'};
     }
 
-    if (LINE3_BRANCH.has(station)) {
+    if (LINE3_BRANCH.has(s)) {
         if (javaDir === '天河客运站方向') return {line: '3号线', dir: '天河客运站方向'};
         if (javaDir === '体育西路方向') return {line: '3号线', dir: '海傍方向'};
     }

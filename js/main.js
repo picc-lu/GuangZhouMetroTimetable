@@ -210,6 +210,9 @@ const now = new Date();
 // 5:00 定时刷新仍然保留（页面长驻时用于自动更新数据）
 scheduleForceRefreshAt5AM();
 
+// 后台预加载短线车数据（UI 弹窗点击时立即就能用）
+if (typeof loadShortServices === 'function') loadShortServices();
+
 initStationSearch();
 initNearbyButton();
 initRouteUI();

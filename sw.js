@@ -1,5 +1,5 @@
 // 版本号变更时触发缓存更新（改 constants.js 里的 APP_VERSION 即可）
-const CACHE_NAME = `gz-metro-v1.1.11`;
+const CACHE_NAME = `gz-metro-v1.1.12`;
 const ASSETS = [
     './',
     './index.html',
@@ -30,6 +30,7 @@ const ASSETS = [
 
     './data/metro-graph.json',
     './data/line3-through-train.json',
+    './data/short-services.json',
     './css/route.css',
     './js/route/heap.js',
     './js/route/graph.js',
@@ -37,7 +38,12 @@ const ASSETS = [
     './js/route/yen.js',
     './js/route/parser.js',
     './js/route/planner.js',
-    './js/route/ui.js',
+    './js/route/ui-state.js',
+    './js/route/ui-prefs.js',
+    './js/route/ui-autocomplete.js',
+    './js/route/ui-shell.js',
+    './js/route/ui-render.js',
+    './js/route/ui-planning.js',
 
 ];
 
