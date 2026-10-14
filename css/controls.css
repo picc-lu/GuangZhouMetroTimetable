@@ -179,7 +179,6 @@ select option:checked {
 .time-panel .action-button,
 .system-time-area .action-button {
     background: #1f2b3c;
-    border: none;
     color: white;
     padding: 6px 18px;
     border-radius: 30px;
@@ -217,7 +216,6 @@ select option:checked {
 
 .action-button {
     background: #1f2b3c;
-    border: none;
     color: white;
     padding: 6px 16px;
     border-radius: 30px;
@@ -288,7 +286,6 @@ select option:checked {
 
 .filter-area .action-button {
     background: #1f2b3c;
-    border: none;
     color: white;
     padding: 6px 12px;
     border-radius: 30px;

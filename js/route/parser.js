@@ -38,7 +38,7 @@ function parseInterchangeRoute(path, simplified = true) {
         if (lineName === '佛山3号线北') lineName = '佛山3号线';
 
         if (simplified) {
-            lineName = lineName.replace(/号|线/g, '').replace(/佛山/g, '佛');
+            lineName = lineName.replace(/[号线]/g, '').replace(/佛山/g, '佛');
         }
         if (result === null) {
             result = lineName;
