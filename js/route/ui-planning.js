@@ -241,12 +241,39 @@ async function runRoutePlanning() {
     );
 
     try {
+        // ★ 先把用户输入的站名规范化（模糊匹配 / 别名 / 去括号），
+        //   后续渲染使用图里的真实站名，避免"嘉禾"这类部分输入导致显示不一致
+        await loadRouteGraph();
+        const resolvedStartNode = resolveGraphStationNode(start, 'start');
+        const resolvedEndNode   = resolveGraphStationNode(end, 'end');
+
+        // ★ 解析失败 → 明确提示站名不存在
+        if (!resolvedStartNode) {
+            resultsEl.innerHTML =
+                `<div class="route-error">起点「${escapeHtml(start)}」不存在，请检查站名后重试</div>`;
+            return;
+        }
+        if (!resolvedEndNode) {
+            resultsEl.innerHTML =
+                `<div class="route-error">终点「${escapeHtml(end)}」不存在，请检查站名后重试</div>`;
+            return;
+        }
+
+        const displayStart = resolvedStartNode.replace(/\|(开始|结束)$/, '');
+        const displayEnd   = resolvedEndNode.replace(/\|(开始|结束)$/, '');
+
+        // 用规范化后的站名重跑一遍校验（用户输入可能有别名，之前是原始串比较）
+        if (displayStart === displayEnd) {
+            resultsEl.innerHTML = `<div class="route-error">起点和终点不能相同</div>`;
+            return;
+        }
+
         // ★ 反向规划：先算出最晚出发时刻
         let actualDepartMin = departMin;
         if (_routeArriveMode) {
             const targetArriveMin = departMin;
             const found = await findLatestDepartureForArrival(
-                start, end, targetArriveMin, sortMode,
+                displayStart, displayEnd, targetArriveMin, sortMode,
                 maxTransferMin, avoidOutOfStation
             );
 
@@ -311,7 +338,7 @@ async function runRoutePlanning() {
 
         _routeActiveDepartMin = actualDepartMin;
 
-        const r = await planRoutes(start, end, actualDepartMin, sortMode,
+        const r = await planRoutes(displayStart, displayEnd, actualDepartMin, sortMode,
             maxTransferMin, avoidOutOfStation, _routeArriveMode);
 
         // ★ 到达模式：过滤掉到达时间超过目标的路径
@@ -383,7 +410,7 @@ async function runRoutePlanning() {
 
         // 到达模式下 planner 已只返回 3 条，直接渲染；rank 已由 planner 内排序后分配
         resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>
-            renderRouteCard(item, idx, start, end)
+            renderRouteCard(item, idx, displayStart, displayEnd)
         ).join('');
 
         // 卡片展开/收起

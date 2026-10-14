@@ -139,6 +139,44 @@ function _isLine3NorthStation(station) {
     return false;
 }
 
+/**
+ * 计算路径在 station 站的 boarding 时刻（分钟）。
+ * 从路径起点 (_routeActiveDepartMin) 开始，沿 path.nodes 累加各边权重，
+ * 直到遇到 station 在该线路上的第一个"站台"节点。
+ *
+ * 若 station 就是起点 → 返回值等于 _routeActiveDepartMin。
+ * 用于判断末班车时，应使用"在本站的 boarding 时刻"，而不是整个路径的出发时刻。
+ */
+function getBoardingTimeAtStation(path, station, lineName) {
+    const normLine = (n) => {
+        if (n === '3号线北') return '3号线';
+        if (n === '佛山3号线北') return '佛山3号线';
+        return n;
+    };
+    const targetLine = normLine(lineName);
+
+    let t = (_routeActiveDepartMin != null) ? _routeActiveDepartMin : 0;
+
+    for (let i = 0; i < path.nodes.length - 1; i++) {
+        const v = path.nodes[i + 1];
+        const vParts = v.split('|');
+
+        // 到达目标线路、目标站的"站台"节点 → 该时刻即 boarding 时刻
+        if (vParts.length >= 4
+            && normLine(vParts[0]) === targetLine
+            && isSameStation(vParts[1], station)
+            && vParts[3] === '站台') {
+            const w = routeGetEdgeWeight(path.nodes[i], v);
+            if (w != null) t += w / 60;
+            return t;
+        }
+
+        const w = routeGetEdgeWeight(path.nodes[i], v);
+        if (w != null) t += w / 60;
+    }
+    return t;
+}
+
 /* ==========================================
    从路径中提取指定线路、指定站的上车方向
    ========================================== */
@@ -150,7 +188,6 @@ function getSegmentDirection(path, station, lineName) {
     }
 
     // 1. 读原始方向字段（兼容 3号线 / 3号线北）
-    let rawDirection = null;
     const normLine = (n) => {
         if (n === '3号线北') return '3号线';
         if (n === '佛山3号线北') return '佛山3号线';
@@ -158,24 +195,45 @@ function getSegmentDirection(path, station, lineName) {
     };
     const targetLine = normLine(lineName);
 
-    for (const node of path.nodes) {
-        const parts = node.split('|');
+    // 1a. 先找到该站在路径中的第一个"站台"节点
+    let stationPlatformIdx = -1;
+    for (let i = 0; i < path.nodes.length; i++) {
+        const parts = path.nodes[i].split('|');
         if (parts.length >= 4
             && normLine(parts[0]) === targetLine
             && isSameStation(parts[1], station)
             && parts[3] === '站台') {
+            stationPlatformIdx = i;
+            break;
+        }
+    }
+    if (stationPlatformIdx < 0) return null;
+
+    // 1b. 从站台节点往后，找"下一个不同站的到站"节点，取它的方向字段。
+    //     原因：换乘大站（如体育西路）有多个方向的站台节点，
+    //     单纯取第一个匹配的"站台"可能取到错误方向。
+    //     而"下一站到站"的方向字段准确反映了列车本段实际运行方向。
+    let rawDirection = null;
+    for (let i = stationPlatformIdx + 1; i < path.nodes.length; i++) {
+        const parts = path.nodes[i].split('|');
+        if (parts.length >= 4
+            && normLine(parts[0]) === targetLine
+            && !isSameStation(parts[1], station)
+            && parts[3] === '到站') {
             rawDirection = parts[2];
             break;
         }
     }
+    // 1c. 兜底：若无下一站到站节点（如该站就是本线终点），用站台自身的方向
+    if (!rawDirection) {
+        const parts = path.nodes[stationPlatformIdx].split('|');
+        rawDirection = parts[2];
+    }
     if (!rawDirection) return null;
 
-    // 优先用"当前规划所用出发时刻"
-    let currentMin = _routeActiveDepartMin;
-    if (currentMin == null) {
-        currentMin = (typeof getRouteDepartMin === 'function')
-            ? getRouteDepartMin() : null;
-    }
+    // ★ 用"在该站的 boarding 时刻"判断末班车是否仍运营，而不是整个路径的出发时刻
+    // 例：用户在 23:05 出发，23:16 才到石壁，用 23:05 判断会误以为还能赶上 23:08 的末班车
+    const currentMin = getBoardingTimeAtStation(path, station, lineName);
 
     /* ============================================================
        3 号线 · 四个方向的专用分支
@@ -430,10 +488,7 @@ function get11LineDirectionFromPath(path, startStation) {
         ? lineDirectionTime['11号线']?.[startStation] : null;
     if (!data) return rawDir;
 
-    let currentMin = (typeof _routeActiveDepartMin !== 'undefined' && _routeActiveDepartMin != null)
-        ? _routeActiveDepartMin
-        : (typeof getRouteDepartMin === 'function' ? getRouteDepartMin() : null);
-    if (currentMin == null) return rawDir;
+    const currentMin = getBoardingTimeAtStation(path, startStation, '11号线');
 
     const isOuter = rawDir.includes('外环');
     const isInner = rawDir.includes('内环');
@@ -571,12 +626,17 @@ function renderRouteCard(item, idx, startName, endName) {
         ? parseRouteSegments(item.path) : [];
 
     // 检测 3→3 虚拟换乘
+    // 只有"南段北向 → 北段北向（机场北方向）"才需要虚拟换乘；
+    // "南段北向 → 支线（天河客运站方向）"是同一趟车继续行驶，不需要换乘。
     const virtualSplitAfter = new Set();
     for (let i = 0; i < segs.length - 1; i++) {
         if (segs[i].fullLine === '3号线'
             && segs[i + 1].fullLine === '3号线'
             && segs[i].toStation === '体育西路') {
-            virtualSplitAfter.add(i);
+            const nextDir = segs[i + 1].rawDirection || '';
+            if (nextDir.includes('机场北')) {
+                virtualSplitAfter.add(i);
+            }
         }
     }
 
@@ -625,18 +685,34 @@ function renderRouteCard(item, idx, startName, endName) {
         for (let si = 0; si < segs.length - 1; si++) {
             if (virtualSplitAfter.has(si)) {
                 // ★ 虚拟 3→3 换乘：根据下一段的目的地判断方向
-                //   北向（往林和西/嘉禾望岗/机场北等）→ 硬编码展示北段所有折返终点
-                //   南向（往珠江新城/番禺广场等）→ 往海傍
+                //   北段（林和西/广州东站/机场北等）→ 北向终点
+                //   支线（石牌桥/岗顶/华师/五山/天河客运站）→ 天河客运站
+                //   南段（珠江新城/番禺广场/海傍等）→ 海傍
                 const nextSeg = segs[si + 1];
                 const nextTo = nextSeg ? nextSeg.toStation : null;
-                const isNorthbound = !!nextTo && (
-                    (typeof LINE3_NORTH_STATIONS !== 'undefined'
+
+                // 3号线支线站集合
+                const LINE3_BRANCH_STATIONS_LOCAL = new Set([
+                    '石牌桥', '岗顶', '华师', '五山', '天河客运站'
+                ]);
+
+                // 判断目的地所属段
+                let virtualDir = '海傍方向';   // 默认南向
+                if (nextTo) {
+                    const inNorth = (typeof LINE3_NORTH_STATIONS !== 'undefined')
                         && (LINE3_NORTH_STATIONS.has(nextTo)
-                            || (nextTo === '机场北' && LINE3_NORTH_STATIONS.has('机场北（T2）'))))
-                );
-                const virtualDir = isNorthbound
-                    ? '机场北（T2） / 嘉禾望岗 / 同和方向'
-                    : '海傍方向';
+                            || (nextTo === '机场北' && LINE3_NORTH_STATIONS.has('机场北（T2）')));
+                    const inBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextTo);
+
+                    if (inNorth) {
+                        virtualDir = '机场北（T2） / 嘉禾望岗 / 同和方向';
+                    } else if (inBranch) {
+                        virtualDir = '天河客运站方向';
+                    } else {
+                        // 南段或未识别 → 往南
+                        virtualDir = '海傍方向';
+                    }
+                }
 
                 boardingPoints.push({
                     station: '体育西路',

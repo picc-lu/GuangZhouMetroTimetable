@@ -191,8 +191,25 @@ function parseRouteSegments(path, departMin) {
         }
     }
 
-    // 3. 计算 shortName / 颜色
-    merged.forEach(s => {
+    // 3. 合并零长度段（fromStation === toStation 的过渡段）
+    // 场景：体育西路同时有 3号线南段与北段的站台节点，
+    // 两条 segKey 不同（south / north）会产生一个只含单站的零长度段，
+    // 后续被 virtualSplitAfter 误判为虚拟 3→3 换乘，插入多余的换乘指引。
+    const compacted = [];
+    for (let i = 0; i < merged.length; i++) {
+        const cur = merged[i];
+        if (cur.fromStation === cur.toStation
+            && i + 1 < merged.length
+            && merged[i + 1].fullLine === cur.fullLine) {
+            // 把零长度段并入下一段（下一段的起点改为当前段的起点）
+            merged[i + 1].fromStation = cur.fromStation;
+            continue;
+        }
+        compacted.push(cur);
+    }
+
+    // 4. 计算 shortName / 颜色
+    compacted.forEach(s => {
         let sn = s.fullLine
             .replace(/号线北$/, '')
             .replace(/号线$/, '')
@@ -206,7 +223,7 @@ function parseRouteSegments(path, departMin) {
             : '#ffffff';
     });
 
-    return merged;
+    return compacted;
 }
 
 /** 该方向是否属于 3 号线"向北"（体育西路方向 / 机场北方向 / 天河客运站方向） */

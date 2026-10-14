@@ -124,13 +124,14 @@ function resolveGraphStationNode(rawName, kind) {
         return stripped + suffix;
     }
 
-    // 4. 包含关系匹配：图里某个站点名与本名互为包含（取最短的）
+    // 4. 前缀匹配：输入是某个站名的前缀（如"嘉禾" → "嘉禾望岗"）
+    //    不再接受"输入是站名的子串/后缀"（如"村" → "芳村"），避免误匹配
     const candidates = [];
     for (const n of ROUTE_GRAPH.nodes) {
         if (!n.endsWith(suffix)) continue;
         const stationName = n.slice(0, -suffix.length);
         if (stationName === name) return n;
-        if (stationName.includes(name) || name.includes(stationName)) {
+        if (stationName.startsWith(name) && name.length >= 2) {
             candidates.push(stationName);
         }
     }
@@ -288,13 +289,10 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     return {results: finalResults, rejected, totalPaths: paths.length};
 }
 
-/* ==========================================
-   线路重复检查：过滤掉多次经过同一线路的路径
-   跳过：3号线、11号线（环线）
-   ========================================== */
 const REPEAT_CHECK_SKIP_LINES = new Set([
     '3号线',
     '11号线',
+    '12号线'
 ]);
 
 /**
