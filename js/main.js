@@ -24,13 +24,11 @@ document.getElementById('apply-custom-time').addEventListener('click', () => {
     const d = new Date();
     d.setHours(h, m, 0, 0);
     currentCustomTime = d;
-    console.log(`[事件] 应用自定义时间：${h}:${m}`);
     renderAllLines();
 });
 
 // 抽出一个可复用的处理函数
 function applySystemTime() {
-    console.log('[事件] 应用系统时间');
     currentCustomTime = null;
     renderAllLines();
 }
@@ -52,23 +50,15 @@ if (systemTimePanel) {
 
 document.getElementById('line-filter').addEventListener('change', applyFilter);
 document.getElementById('select-all').addEventListener('click', () => {
-    console.log('[事件] 全选线路');
     const select = document.getElementById('line-filter');
     for (let opt of select.options) opt.selected = true;
     applyFilter();
 });
 document.getElementById('deselect-all').addEventListener('click', () => {
-    console.log('[事件] 清空线路');
     const select = document.getElementById('line-filter');
     for (let opt of select.options) opt.selected = false;
     applyFilter();
 });
-
-// document.getElementById('size-select').addEventListener('change', (e) => {
-//     console.log(`[事件] 行高调整为：${e.target.value}`);
-//     rowHeight = parseInt(e.target.value, 10);
-//     renderAllLines();
-// });
 
 // 初始化时间选择器、时钟、整分刷新
 initTimeSelectors();
@@ -110,7 +100,6 @@ function showYesterdayDataNotice() {
 
 // ========== 新增：强制获取最新数据 ==========
 function forceFetchLatestData() {
-    console.log('[5:00定时] 强制获取最新数据');
     (async () => {
         try {
             isFetchingData = true;
@@ -143,7 +132,6 @@ function scheduleForceRefreshAt5AM() {
         next5.setDate(next5.getDate() + 1);
     }
     const delay = next5 - now;
-    console.log(`[定时] 下一次强制刷新时间：${next5.toLocaleString()}（约 ${Math.round(delay / 1000 / 60)} 分钟后）`);
 
     systemTimeoutId = setTimeout(() => {
         forceFetchLatestData();
@@ -158,7 +146,6 @@ const now = new Date();
     const cached = await loadDataFromCache();
 
     if (cached) {
-        console.log('[初始化] 命中当日缓存，使用缓存数据');
         LINE_STATIONS = cached.lineStations;
         rawServiceRecords = cached.serviceRecords;
 
@@ -181,7 +168,6 @@ const now = new Date();
         // ====== 后台重试上次失败的站点 ======
         const cachedFailed = Array.isArray(cached.failedStations) ? cached.failedStations : [];
         if (cachedFailed.length > 0) {
-            console.log(`[初始化] 缓存中有 ${cachedFailed.length} 个站点上次获取失败，后台重试中...`);
             // 延迟一点，先让页面渲染完首屏
             setTimeout(() => {
                 fetchServiceTimes(cachedFailed).catch(err => {
@@ -191,7 +177,6 @@ const now = new Date();
         }
     } else {
         // ...原逻辑不变，注释修正为 2:00~3:59
-        console.log('[初始化] 无当日缓存，拉取最新数据');
         try {
             _gzCompletedStations = new Set();
             await fetchLineStations();
@@ -219,7 +204,6 @@ initRouteUI();
 
 // 绑定获取数据按钮事件
 document.getElementById('fetch-data-btn').addEventListener('click', async () => {
-    console.log('[事件] 用户点击“获取最新首末时间数据”');
     try {
         const btn = document.getElementById('fetch-data-btn');
         btn.disabled = true;
@@ -233,7 +217,6 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
 
         const cached = await loadDataFromCache();
         if (cached) {
-            console.log('[事件] 使用缓存数据');
             LINE_STATIONS = cached.lineStations;
             rawServiceRecords = cached.serviceRecords;
             populateLineFilter();

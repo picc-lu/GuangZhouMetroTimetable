@@ -247,27 +247,3 @@ function isThroughTrainAvailable(station, timeMin) {
     if (!tt || !tt.stationMap || !tt.stationMap.has(station)) return false;
     return timeMin < tt.stationMap.get(station);   // 严格小于
 }
-
-/**
- * 3 号线南北段分类。
- *  - 站点在 LINE3_NORTH_STATIONS → 'north'
- *  - 体育西路：看下一站，若下一站是北段站 → 'north'，否则 'south'
- *  - 其余（含南段、支线） → 'south'
- */
-function classifyLine3Station(station, nextStation) {
-    if (station === '体育西路') {
-        if (nextStation && isLine3NorthStation(nextStation)) return 'north';
-        return 'south';
-    }
-    if (isLine3NorthStation(station)) return 'north';
-    return 'south';
-}
-
-function isLine3NorthStation(station) {
-    if (!station) return false;
-    if (LINE3_NORTH_STATIONS.has(station)) return true;
-    // 别名：机场北 vs 机场北（T2）
-    if (station === '机场北' && LINE3_NORTH_STATIONS.has('机场北（T2）')) return true;
-    if (station === '机场北（T2）' && LINE3_NORTH_STATIONS.has('机场北')) return true;
-    return false;
-}

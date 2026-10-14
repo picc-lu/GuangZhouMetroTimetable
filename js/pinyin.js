@@ -170,26 +170,3 @@ function buildStationPinyinIndex() {
         STATION_PINYIN_INDEX[st] = stationToPinyin(st);
     }
 }
-
-/**
- * 扫描当前所有站名，列出 PINYIN_DICT 未收录的汉字。
- * 用法：控制台执行 auditPinyinDict()，会打印出可直接粘贴补丁的字典片段。
- */
-function auditPinyinDict() {
-    if (Object.keys(STATION_INDEX).length === 0 && Object.keys(LINE_STATIONS).length > 0) {
-        buildStationIndex();
-    }
-    const missing = new Set();
-    for (const st of Object.keys(STATION_INDEX)) {
-        for (const ch of st) {
-            if (/[\u4e00-\u9fa5]/.test(ch) && !PINYIN_DICT[ch]) {
-                missing.add(ch);
-            }
-        }
-    }
-    const arr = [...missing].sort();
-    console.log(`[拼音] 未收录汉字 ${arr.length} 个：\n${arr.join('')}`);
-    console.log('[拼音] 补丁模板（请自行填写拼音）：');
-    console.log(arr.map(c => `'${c}': '',`).join(' '));
-    return arr;
-}

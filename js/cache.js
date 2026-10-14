@@ -36,7 +36,6 @@ function getServiceDate(date = new Date()) {
 
 async function saveDataToCache(lineStations, serviceRecords, failedStations = []) {
     const serviceDate = getServiceDate();
-    console.log(`[缓存] 正在保存数据到 IndexedDB...（失败站点 ${failedStations.length} 个）`);
     try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -53,14 +52,12 @@ async function saveDataToCache(lineStations, serviceRecords, failedStations = []
             tx.onerror = () => reject(tx.error);
             tx.onabort = () => reject(tx.error);
         });
-        console.log(`[缓存] 保存成功，运营日：${serviceDate}，失败站点：${failedStations.length}`);
     } catch (e) {
         console.error('[缓存] 保存失败：', e);
     }
 }
 
 async function loadDataFromCache() {
-    console.log('[缓存] 尝试从 IndexedDB 加载数据...');
     try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readonly');
@@ -71,20 +68,16 @@ async function loadDataFromCache() {
         });
 
         if (!data) {
-            console.log('[缓存] 无缓存数据');
             return null;
         }
         if (data.version !== CACHE_VERSION) {
-            console.log(`[缓存] 版本不符（缓存 ${data.version}，当前 ${CACHE_VERSION}），已清除`);
             await clearCache();
             return null;
         }
         const currentServiceDate = getServiceDate();
         if (data.serviceDate === currentServiceDate) {
-            console.log(`[缓存] 命中运营日缓存 (${data.serviceDate})`);
             return data;
         }
-        console.log(`[缓存] 运营日不符（缓存 ${data.serviceDate}，当前 ${currentServiceDate}），已清除`);
         await clearCache();
         return null;
     } catch (e) {

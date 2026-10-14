@@ -70,13 +70,6 @@ function loadRouteGraph() {
             ROUTE_GRAPH.version = data.version || '';
             ROUTE_GRAPH.throughTrains = buildThroughTrains(throughData);  // ★ 新增
             ROUTE_GRAPH.loaded = true;
-            console.log(
-                `[路径] 图加载完成：${nodes.size} 节点，${data.edges.length} 边，${guides.size} 条换乘指引，版本 ${ROUTE_GRAPH.version}`
-            );
-            const ttKeys = Object.keys(ROUTE_GRAPH.throughTrains || {});
-            if (ttKeys.length > 0) {
-                console.log(`[路径] 贯通车数据已加载：${ttKeys.join(', ')}`);
-            }
         })
         .catch(err => {
             ROUTE_GRAPH.loading = null;
@@ -216,7 +209,6 @@ function loadShortServices() {
             SHORT_SERVICES.loaded = true;
             const lines = Object.keys(SHORT_SERVICES.data);
             if (lines.length > 0) {
-                console.log(`[路径] 短线车数据已加载：${lines.join(', ')}`);
             }
             return SHORT_SERVICES.data;
         })

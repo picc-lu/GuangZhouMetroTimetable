@@ -34,13 +34,6 @@ function getContrastColor(hexColor) {
     return luminance > 140 ? '#000000' : '#ffffff';
 }
 
-function getExtraFontSize(text) {
-    const len = text.length;
-    if (len <= 2) return 20;
-    if (len <= 4) return 18;
-    return 15;
-}
-
 function initDragScroll() {
     const scrollAreas = document.querySelectorAll('.scroll-area');
     scrollAreas.forEach(area => {

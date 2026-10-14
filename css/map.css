@@ -217,10 +217,6 @@
     width: 100%;
 }
 
-.down-arrow {
-    transform: scaleX(-1);
-}
-
 /* ---- 时间胶囊 ---- */
 .time-meta {
     font-size: 12px;

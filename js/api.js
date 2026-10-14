@@ -237,7 +237,6 @@ function updateFetchErrorBadge() {
         toast.addEventListener('click', () => {
             if (failedStations.length === 0) return;
             const toRetry = failedStations.slice();
-            console.log('[重试] 重试失败站点：', toRetry);
             toast.style.display = 'none';
             fetchServiceTimes(toRetry);
         });

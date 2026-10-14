@@ -1,8 +1,5 @@
 // ========== Yen K 短路 ==========
 
-const YEN_MAX_K = 50;
-const YEN_TARGET = 10;
-
 function yenKShortestPaths(startNode, endNode, K, globalBannedEdges = null) {
     const result = [];
     if (K <= 0) return result;

@@ -286,7 +286,6 @@ function parseLine11Record(rec, fullCounter) {
         } else if (LINE11_TERMINAL_STATIONS.some(k => to.includes(k))) {
             type = 'terminal';
         } else {
-            console.log(`[解析-11号线] 无法识别类型，忽略：`, { station, to, remark });
             return;
         }
 
@@ -300,14 +299,12 @@ function parseLine11Record(rec, fullCounter) {
             } else if (count === 2) {
                 dir = 'down';
             } else {
-                console.log(`[解析-11号线] 多余全程记录，忽略：`, { station, to });
                 return;
             }
         } else {
             if (to.includes('龙潭')) dir = 'up';
             else if (to.includes('赤沙')) dir = 'down';
             else {
-                console.log(`[解析-11号线] 无法确定区间方向，忽略：`, { station, to });
                 return;
             }
         }
@@ -332,7 +329,6 @@ function parseLine11Record(rec, fullCounter) {
 
 function parseTimeRecords(records, options = {}) {
     const { skipRender = false, append = false } = options;
-    console.log(`[解析] 开始解析运营时间记录，总数：${records.length}（${append ? '增量' : '全量'}）`);
 
     if (!append) {
         lineDirectionTime = {};

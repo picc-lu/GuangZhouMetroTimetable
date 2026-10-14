@@ -83,15 +83,13 @@
 
 [data-theme="dark"] .time-panel,
 [data-theme="dark"] .system-time-area,
-[data-theme="dark"] .filter-area,
-[data-theme="dark"] .size-control {
+[data-theme="dark"] .filter-area{
     background: #1a2030;
     border-color: #2d3748;
 }
 
 [data-theme="dark"] .time-panel label,
-[data-theme="dark"] .filter-area label,
-[data-theme="dark"] .size-control label {
+[data-theme="dark"] .filter-area label{
     background: #232b3d;
     color: #cbd5e1;
 }

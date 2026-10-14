@@ -312,17 +312,6 @@
     filter: brightness(1.1);
 }
 
-/* 换乘线路内的分割线 */
-.v-transfer-divider {
-    display: inline-block;
-    margin: 0 4px;
-    font-weight: 300;
-    opacity: 0.8;
-    font-size: 12px;
-    vertical-align: middle;
-    transform: scaleY(0.8);
-}
-
 /* 已停止运营的换乘标签 */
 .v-transfer-badge.inactive {
     opacity: 0.6;
@@ -647,13 +636,6 @@
     margin: 0;
 }
 
-.v-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-}
-
 .v-legend-up {
     color: var(--up-color, #0369a1);
     display: flex;
@@ -746,29 +728,4 @@
 
 .v-multi-terminals .v-time-block {
     padding: 4px 6px;
-}
-
-/* ==========================================
-   短线车折返站标记（弹窗内）
-   ========================================== */
-.v-short-service-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1.3;
-    color: #78350f;
-    background: #fef3c7;
-    border: 1px solid #fcd34d;
-    white-space: nowrap;
-    letter-spacing: 0.2px;
-    cursor: help;
-}
-
-[data-theme="dark"] .v-short-service-badge {
-    background: #3a2a10;
-    color: #fbbf24;
-    border-color: #92400e;
 }

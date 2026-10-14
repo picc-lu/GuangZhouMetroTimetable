@@ -442,15 +442,6 @@ function refreshRouteTimeTriggers() {
     _routeOverlay.querySelector('#route-minute-trigger').textContent = String(m).padStart(2, '0');
 }
 
-/** 真实系统时间（分钟），不受主界面自定义时间影响 */
-function getRealCurrentMinutes() {
-    const d = new Date();
-    let h = d.getHours();
-    let m = d.getMinutes();
-    if (h >= 0 && h <= 1) return (24 + h) * 60 + m;
-    return h * 60 + m;
-}
-
 function getRouteDepartMin() {
     let min;
     if (_routeDepartMin !== null) {

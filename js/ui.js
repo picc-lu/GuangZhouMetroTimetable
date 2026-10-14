@@ -1,11 +1,9 @@
 // ========== 界面辅助函数 ==========
 
 function populateLineFilter() {
-    console.log('[筛选] 开始 populateLineFilter');
     const select = document.getElementById('line-filter');
     select.innerHTML = '';
     const allLines = Object.keys(LINE_STATIONS).filter(line => LINE_COLORS[line]);
-    console.log('[筛选] 所有有颜色的线路：', allLines);
     allLines.forEach(line => {
         const option = document.createElement('option');
         option.value = line;
@@ -15,7 +13,6 @@ function populateLineFilter() {
     });
     selectedLines.clear();
     allLines.forEach(line => selectedLines.add(line));
-    console.log('[筛选] 最终 selectedLines：', Array.from(selectedLines));
 
     if (typeof buildStationIndex === 'function') buildStationIndex();
 }
@@ -31,7 +28,6 @@ function applyFilter() {
 }
 
 function populateLineButtons() {
-    console.log('[按钮] 开始 populateLineButtons');
     const container = document.getElementById('line-buttons-row');
     if (!container) return;
     container.innerHTML = '';
@@ -39,7 +35,6 @@ function populateLineButtons() {
     const lines = Object.entries(LINE_STATIONS)
         .filter(([line]) => LINE_COLORS[line] && selectedLines.has(line))
         .map(([line]) => line);
-    console.log('[按钮] 生成的线路按钮：', lines);
 
     // ====== 新增：以“广佛线”为界，拆分成两行 ======
     const splitIndex = lines.indexOf('广佛线');
@@ -733,22 +728,6 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
     }
 
     html += '</div>';
-
-    // 3号线警告框：悬浮固定在弹窗底部
-    // let fixedNotice = modalOverlay.querySelector('.v-fixed-notice');
-    // if (line === "3号线") {
-    //     if (!fixedNotice) {
-    //         fixedNotice = document.createElement('div');
-    //         fixedNotice.className = 'v-fixed-notice';
-    //         modalOverlay.querySelector('.modal-container').appendChild(fixedNotice);
-    //     }
-    //     fixedNotice.innerHTML = '⚠️ 在一日较晚时候，<strong>海傍~珠江新城</strong>无直达<strong>机场北</strong>的列车时，可乘坐<strong>天河客运站</strong>方向的列车，并在<strong>体育西路</strong>换乘<strong>机场北</strong>方向的列车。';
-    //     fixedNotice.style.display = 'block';
-    //     contentDiv.style.paddingBottom = '230px';
-    // } else {
-    //     if (fixedNotice) fixedNotice.style.display = 'none';
-    //     contentDiv.style.paddingBottom = '90px';
-    // }
 
     // ====== 新增：恢复进度条显示状态 ======
     const refreshBar = document.querySelector('.modal-refresh-bar');

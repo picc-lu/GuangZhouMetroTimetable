@@ -64,8 +64,7 @@
         gap: 2px !important;
     }
 
-    .system-time-area,
-    .size-control {
+    .system-time-area {
         flex: 1 1 0% !important;
         min-width: 0 !important;
         width: auto !important;
@@ -87,21 +86,6 @@
 
     /* ---------- 筛选/尺寸控件 ---------- */
     .filter-area {
-        display: none !important;
-    }
-
-    .size-control label {
-        padding: 2px 6px !important;
-        font-size: 12px !important;
-    }
-
-    .size-control select {
-        padding: 4px 6px !important;
-        font-size: 12px !important;
-    }
-
-    /* ---------- 隐藏数据获取行 ---------- */
-    .controls-row-2 {
         display: none !important;
     }
 
