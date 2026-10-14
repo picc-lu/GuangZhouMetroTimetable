@@ -120,9 +120,9 @@ async function findLatestDepartureForArrival(start, end, targetArriveMin,
         const t = midIdx * STEP;
 
         const r = await planRoutes(start, end, t, sortMode,
-            maxTransferMin, avoidOutOfStation);
+            maxTransferMin, avoidOutOfStation, true);
         const ok = r.results && r.results.length > 0
-            && r.results.some(item => Math.round(item.arriveMin) <= targetArriveMin);
+            && r.results.every(item => Math.floor(item.arriveMin) <= targetArriveMin);
 
         if (ok) {
             bestIdx = midIdx;
@@ -312,7 +312,20 @@ async function runRoutePlanning() {
         _routeActiveDepartMin = actualDepartMin;
 
         const r = await planRoutes(start, end, actualDepartMin, sortMode,
-            maxTransferMin, avoidOutOfStation);
+            maxTransferMin, avoidOutOfStation, _routeArriveMode);
+
+        // ★ 到达模式：过滤掉到达时间超过目标的路径
+        if (_routeArriveMode && r.results && r.results.length > 0) {
+            const targetArriveMin = departMin;   // departMin 在这里就是目标到达时刻
+            r.results = r.results.filter(item =>
+                Math.floor(item.arriveMin) <= targetArriveMin
+            );
+            // 过滤后若为空 → 走空结果引导
+            if (r.results.length === 0) {
+                // 手动触发空结果渲染
+                r.results = [];
+            }
+        }
 
         if (r.error) {
             resultsEl.innerHTML = `<div class="route-error">${escapeHtml(r.error)}</div>`;
@@ -367,13 +380,8 @@ async function runRoutePlanning() {
 
         // 反向规划模式：顶部加一条"建议出发"提示
         let headlineHtml = '';
-        if (_routeArriveMode && _routeLastArrivedAt != null) {
-            headlineHtml = `<div class="route-arrive-headline">
-                ✅ 最晚 <b>${fmtHM(_routeLastArrivedAt)}</b> 抵达站台候车，
-                可于 <b>${fmtHM(departMin)}</b> 前到达
-            </div>`;
-        }
 
+        // 到达模式下 planner 已只返回 3 条，直接渲染；rank 已由 planner 内排序后分配
         resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>
             renderRouteCard(item, idx, start, end)
         ).join('');

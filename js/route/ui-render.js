@@ -510,6 +510,38 @@ function routeShortLineName(line) {
     return name;
 }
 
+/**
+ * 生成卡片右侧的时间块。
+ *  - 出发模式：单行"xx:xx 到达"
+ *  - 到达模式：两行"xx:xx 候车 / xx:xx 到达"（候车时刻取自全局建议出发时刻）
+ */
+function buildArriveBlockHtml(item) {
+    const arriveTime = fmtHM(item.arriveMin);
+
+    if (_routeArriveMode && _routeLastArrivedAt != null) {
+        const boardingTime = fmtHM(_routeLastArrivedAt);
+        return `
+            <div class="route-arrive">
+                <div class="route-arrive-line">
+                    <span class="route-arrive-time">${boardingTime}</span>
+                    <span class="route-arrive-label">候车</span>
+                </div>
+                <div class="route-arrive-line">
+                    <span class="route-arrive-time">${arriveTime}</span>
+                    <span class="route-arrive-label">到达</span>
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="route-arrive">
+            <div class="route-arrive-time">${arriveTime}</div>
+            <div class="route-arrive-label">到达</div>
+        </div>
+    `;
+}
+
 function renderRouteCard(item, idx, startName, endName) {
     const rank = item.rank || (idx + 1);
     const transferStations = item.interchanges.map(o => o.key.split('|')[0]).filter(Boolean);
@@ -753,10 +785,7 @@ function renderRouteCard(item, idx, startName, endName) {
                         <span>🚏 ${escapeHtml(transferText)}</span>
                     </div>
                 </div>
-                <div class="route-arrive">
-                    <div class="route-arrive-time">${fmtHM(item.arriveMin)}</div>
-                    <div class="route-arrive-label">到达</div>
-                </div>
+                ${buildArriveBlockHtml(item)}
             </div>
             <div class="route-detail">
                 ${warningHtml}

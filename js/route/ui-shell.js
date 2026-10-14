@@ -500,10 +500,7 @@ function routeMetaText() {
     const mode = _routeDepartMin !== null ? '自定义时间' : '系统时间';
 
     if (_routeArriveMode) {
-        if (_routeLastArrivedAt != null) {
-            return `目标到达 ${fmtHM(min)} · 建议出发 ${fmtHM(_routeLastArrivedAt)}（${mode}）`;
-        }
-        return `目标到达 ${fmtHM(min)}（${mode}）`;
+        return `目标到达 ${fmtHM(min)}（${mode}） · 仅显示 3 个结果`;
     }
     return `出发时刻 ${fmtHM(min)}（${mode}）`;
 }

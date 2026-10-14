@@ -966,6 +966,38 @@
     flex-shrink: 0;
 }
 
+/* 到达模式下的两行显示（候车 / 到达） */
+.route-arrive-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 5px;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.route-arrive-line + .route-arrive-line {
+    margin-top: 4px;
+}
+
+/* 两行模式下的小号标签 */
+.route-arrive-line .route-arrive-label {
+    font-size: 10.5px;
+}
+
+/* 移动端微调：两行模式保持紧凑 */
+@media (max-width: 768px) {
+    .route-arrive-line .route-arrive-time {
+        font-size: 15px;
+    }
+    .route-arrive-line .route-arrive-label {
+        font-size: 10px;
+    }
+    .route-arrive-line + .route-arrive-line {
+        margin-top: 3px;
+    }
+}
+
 .route-arrive-time {
     font-size: 17px;
     font-weight: 800;

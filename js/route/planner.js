@@ -1,8 +1,14 @@
 // ========== 路径规划主逻辑（含末班车可达性检查 + 排序模式） ==========
 
-const PLAN_TARGET    = 5;
-const PLAN_MAX_K     = PLAN_TARGET * 5;
-const PLAN_MAX_CHECK = PLAN_TARGET * 3;
+// 出发模式：5 条
+const PLAN_TARGET       = 5;
+const PLAN_MAX_K        = PLAN_TARGET * 5;
+const PLAN_MAX_CHECK    = PLAN_TARGET * 3;
+
+// 到达模式：3 条（UI 只展示 3 条，直接少查避免浪费）
+const PLAN_TARGET_ARRIVE    = 3;
+const PLAN_MAX_K_ARRIVE     = PLAN_TARGET_ARRIVE * 5;
+const PLAN_MAX_CHECK_ARRIVE = PLAN_TARGET_ARRIVE * 3;
 
 const LINE_NAME_ALIASES = {
     '3号线': ['3号线', '3号线北'],
@@ -145,8 +151,13 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {number} departMin
  * @param {'fastest'|'conservative'} sortMode
  */
-async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false) {
+async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false) {
     await loadRouteGraph();
+
+    // ★ 到达模式用更小的上限，避免浪费计算
+    const TARGET    = arriveMode ? PLAN_TARGET_ARRIVE    : PLAN_TARGET;
+    const MAX_K     = arriveMode ? PLAN_MAX_K_ARRIVE     : PLAN_MAX_K;
+    const MAX_CHECK = arriveMode ? PLAN_MAX_CHECK_ARRIVE : PLAN_MAX_CHECK;
 
     const startNode = resolveGraphStationNode(startStation, 'start');
     const endNode   = resolveGraphStationNode(endStation,   'end');
@@ -156,8 +167,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     // 站外换乘禁边
     const globalBannedEdges = avoidOutOfStation ? getOutOfStationBannedEdges() : null;
 
-    const paths = yenKShortestPaths(startNode, endNode, PLAN_MAX_K, globalBannedEdges);
-
+    const paths = yenKShortestPaths(startNode, endNode, MAX_K, globalBannedEdges);
     const results = [];
     const rejected = [];
     let checkedCount = 0;
@@ -252,7 +262,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         });
 
         checkedCount++;
-        if (checkedCount >= PLAN_MAX_CHECK) break;
+        if (checkedCount >= MAX_CHECK) break;
     }
 
     if (sortMode === 'conservative') {
@@ -261,7 +271,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         results.sort((a, b) => a.totalCost - b.totalCost);
     }
 
-    const finalResults = results.slice(0, PLAN_TARGET);
+    const finalResults = results.slice(0, TARGET);
 
     // 到达时间（显示到分钟）相同 → 并列同一名次
     let lastArrive = null;
