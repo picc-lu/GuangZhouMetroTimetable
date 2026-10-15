@@ -596,3 +596,13 @@
     border-color: #3a6aa0;
     box-shadow: 0 4px 8px rgba(93, 160, 255, 0.18);
 }
+
+[data-theme="dark"] .banner {
+    background-color: #131a26;
+    background-image:
+            radial-gradient(circle 100px at 5% 100%, var(--banner-c3, #1a2030) 0%, transparent 100%),
+            radial-gradient(circle 100px at 95% 0%, var(--banner-c4, #1a2030) 0%, transparent 100%);
+    color: #e2e8f0;
+    border-bottom-color: #2d3748;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}

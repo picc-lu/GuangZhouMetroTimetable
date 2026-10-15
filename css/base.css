@@ -21,18 +21,25 @@ html, body {
 }
 
 .banner {
-    background: #c5192d;
-    color: white;
+    position: relative;
+    overflow: hidden;
+    /* 白色主底 + 左右两侧径向渐变色，颜色在向中间延伸时迅速淡出 */
+    background-color: #ffffff;
+    background-image:
+            radial-gradient(circle 100px at 5% 100%, var(--banner-c1) 0%, transparent 100%),
+            radial-gradient(circle 100px at 95% 0%, var(--banner-c2) 0%, transparent 100%);
+    color: #1f2b3c;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
     padding: 16px 0;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 1000;
     letter-spacing: 2px;
-    border-bottom: 4px solid #9a1221;
-    box-shadow: 0 4px 10px rgba(197, 25, 45, 0.2);
+    border-bottom: 2px solid #e2e8f0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    transition: background 0.3s ease;
 }
 
 /* ==========================================

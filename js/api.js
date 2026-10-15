@@ -1,5 +1,6 @@
 // ========== API 请求函数 ==========
-
+const AUTO_RETRY_MAX = 10;   // 自动重试最大次数
+let _autoRetryCount = 0;
 /** 带重试的fetch */
 async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeoutMs = 8000) {
     for (let i = 0; i < retries; i++) {
@@ -99,6 +100,11 @@ async function fetchServiceTimes(stationsToFetch = null) {
     Object.values(LINE_STATIONS).forEach(stations => stations.forEach(s => allStationsSet.add(s)));
 
     const isRetry = Array.isArray(stationsToFetch);
+    if (isRetry) {
+        _autoRetryCount++;
+    } else {
+        _autoRetryCount = 0;
+    }
     const uniqueStations = isRetry
         ? stationsToFetch.filter(s => allStationsSet.has(s))
         : Array.from(allStationsSet);
@@ -161,7 +167,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
         const encodedStation = encodeURIComponent(station);
         const url = `${serviceTimeUrl}/${encodedStation}`;
         try {
-            const data = await requestWithRetry(url, { method: 'POST' }, 1, 3000);
+            const data = await requestWithRetry(url, { method: 'POST' }, 1, 1000);
             const records = data.businessObject || [];
             records.forEach(rec => {
                 const normalized = {};
@@ -214,6 +220,14 @@ async function fetchServiceTimes(stationsToFetch = null) {
         await saveDataToCache(LINE_STATIONS, rawServiceRecords, failedStations);
     } else {
         console.warn('[缓存] 无任何成功记录，跳过保存');
+    }
+
+    // 自动重试失败站点
+    if (failedStations.length > 0 && _autoRetryCount < AUTO_RETRY_MAX) {
+        console.log(`[自动重试] 第 ${_autoRetryCount + 1} 次自动重试，失败站点：${failedStations.length} 个`);
+        await new Promise(r => setTimeout(r, 1000));
+        await fetchServiceTimes(failedStations);
+        return;
     }
 
     // 更新失败徽章

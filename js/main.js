@@ -1,6 +1,47 @@
 const versionEl = document.getElementById('version-display');
 versionEl.textContent = '线路版本: 2026-03-03 (内置)';
 
+function applyBannerColors() {
+    const banner = document.querySelector('.banner');
+    if (!banner) return;
+
+    const colors = Object.values(HARDCODED_COLORS);
+    if (colors.length < 2) return;
+
+    let c1 = colors[Math.floor(Math.random() * colors.length)];
+    let c2 = colors[Math.floor(Math.random() * colors.length)];
+    let attempts = 0;
+
+    while (attempts < 20) {
+        if (c1 !== c2) {
+            const h1 = hexToHslObj(c1).h;
+            const h2 = hexToHslObj(c2).h;
+            let diff = Math.abs(h1 - h2);
+            if (diff > 180) diff = 360 - diff;
+            if (diff > 40) break;
+        }
+        c2 = colors[Math.floor(Math.random() * colors.length)];
+        attempts++;
+    }
+
+    const hsl1 = hexToHslObj(c1);
+    const hsl2 = hexToHslObj(c2);
+
+    // 亮度调高到 80%~85%，饱和度 75%，确保在纯白背景下颜色鲜艳透亮不显脏
+    const soft1 = `hsl(${hsl1.h}, 30%, 85%)`;
+    const soft2 = `hsl(${hsl2.h}, 30%, 85%)`;
+
+    const soft3 = `hsl(${hsl1.h}, 30%, 25%)`;
+    const soft4 = `hsl(${hsl2.h}, 30%, 25%)`;
+
+    banner.style.setProperty('--banner-c1', soft1);
+    banner.style.setProperty('--banner-c2', soft2);
+    banner.style.setProperty('--banner-c3', soft3);
+    banner.style.setProperty('--banner-c4', soft4);
+}
+
+applyBannerColors();
+
 document.getElementById('apply-custom-time').addEventListener('click', () => {
     const hourSel = document.getElementById('hour-select');
     const minSel = document.getElementById('minute-select');
