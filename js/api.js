@@ -261,3 +261,33 @@ function updateFetchErrorBadge() {
     toast.title = failedStations.join('\n');
     toast.style.display = 'flex';
 }
+
+// ========== 票价查询（官方 API） ==========
+
+// 同一对起终点票价固定（广州地铁按最短路径计价），做 session 级缓存
+const _fareCache = new Map();
+
+/**
+ * 查询两地之间票价。
+ * @returns {Promise<number|null>}  元；失败返回 null
+ */
+async function fetchRouteFare(startStation, endStation) {
+    if (!startStation || !endStation) return null;
+    const key = `${startStation}|${endStation}`;
+    if (_fareCache.has(key)) return _fareCache.get(key);
+
+    const url = 'https://apis.gzmtr.com/app-map/metroweb/route/'
+        + encodeURIComponent(startStation) + '/'
+        + encodeURIComponent(endStation);
+
+    try {
+        const data = await requestWithRetry(url, { method: 'POST' }, 2, 5000);
+        const price = data?.businessObject?.price;
+        const fare = (typeof price === 'number' && price > 0) ? price : null;
+        _fareCache.set(key, fare);
+        return fare;
+    } catch (err) {
+        console.warn(`[票价] ${startStation} → ${endStation} 获取失败：`, err);
+        return null;   // 失败不缓存，下次可重试
+    }
+}

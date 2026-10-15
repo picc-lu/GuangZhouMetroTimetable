@@ -2318,6 +2318,24 @@
     gap: 10px;
 }
 
+.route-fare {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #b45309;
+    background: #fef3c7;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+
+[data-theme="dark"] .route-fare {
+    color: #fbbf24;
+    background: #3a2a10;
+}
+
 /* 删除 */
 [data-theme="dark"] .route-advanced {
     border-top-color: #2d3748;

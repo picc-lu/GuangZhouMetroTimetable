@@ -869,12 +869,13 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                    <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0)}</div>
+                     <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0)}</div>
                         <div class="route-sub">
                             <span>⏱ ${formatDuration(item.totalCost)}</span>
                             <span>换 ${item.interchanges.length} 次</span>
                             <span>${item.stationRoute.length + 2} 站</span>
                             <span>🚏 ${escapeHtml(transferText)}</span>
+                            ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
                             ${deltaHtml}
                         </div>
                 </div>

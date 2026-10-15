@@ -341,6 +341,19 @@ async function runRoutePlanning() {
         const r = await planRoutes(displayStart, displayEnd, actualDepartMin, sortMode,
             maxTransferMin, avoidOutOfStation, _routeArriveMode);
 
+        // 票价查询：同一对起终点票价固定，与具体路径无关
+        let fare = null;
+        if (!r.error && r.results && r.results.length > 0) {
+            try {
+                fare = await fetchRouteFare(displayStart, displayEnd);
+            } catch (_) {
+                fare = null;
+            }
+            if (fare != null) {
+                r.results.forEach(item => { item.fare = fare; });
+            }
+        }
+
         // ★ 到达模式：过滤掉到达时间超过目标的路径
         if (_routeArriveMode && r.results && r.results.length > 0) {
             const targetArriveMin = departMin;   // departMin 在这里就是目标到达时刻
