@@ -81,6 +81,11 @@ function ensureRouteOverlay() {
                                         <span class="route-sort-hint">按总耗时排序</span>
                                     </label>
                                     <label class="route-sort-option">
+                                        <input type="radio" name="route-sort" value="fewer-transfers">
+                                        <span class="route-sort-label">换乘少优先</span>
+                                        <span class="route-sort-hint">减少换乘次数</span>
+                                    </label>
+                                    <label class="route-sort-option">
                                         <input type="radio" name="route-sort" value="conservative">
                                         <span class="route-sort-label">保守优先</span>
                                         <span class="route-sort-hint">末班车时间充裕优先</span>
@@ -282,6 +287,13 @@ function ensureRouteOverlay() {
             if (maxTransferInput.value === '') maxTransferInput.value = '5';
         });
     }
+
+    // 排序方式切换 → 同步更新底部 meta 文案
+    ov.querySelectorAll('input[name="route-sort"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            setRouteMeta(routeMetaText());
+        });
+    });
 
     ov.querySelector('#route-go').addEventListener('click', runRoutePlanning);
     ov.querySelector('.route-close').addEventListener('click', closeRoutePlanner);
@@ -490,10 +502,20 @@ function routeMetaText() {
     const min = getRouteDepartMin();
     const mode = _routeDepartMin !== null ? '自定义时间' : '系统时间';
 
+    const sortRadio = _routeOverlay
+        ? _routeOverlay.querySelector('input[name="route-sort"]:checked')
+        : null;
+    const sortMode = sortRadio ? sortRadio.value : 'fastest';
+
     if (_routeArriveMode) {
         return `目标到达 ${fmtHM(min)}（${mode}） · 仅显示 3 个结果`;
     }
-    return `出发时刻 ${fmtHM(min)}（${mode}）`;
+
+    let extra = '';
+    if (sortMode === 'fewer-transfers') {
+        extra = ' · 最多显示 5 个结果，排除比最优慢 >30 分钟的结果';
+    }
+    return `出发时刻 ${fmtHM(min)}（${mode}）${extra}`;
 }
 
 function setRouteMeta(text) {

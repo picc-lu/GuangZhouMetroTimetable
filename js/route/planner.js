@@ -2,13 +2,19 @@
 
 // 出发模式：5 条
 const PLAN_TARGET       = 5;
-const PLAN_MAX_K        = PLAN_TARGET * 5;
-const PLAN_MAX_CHECK    = PLAN_TARGET * 3;
+const PLAN_MAX_K        = PLAN_TARGET * 10;
+const PLAN_MAX_CHECK    = PLAN_TARGET * 6;
 
 // 到达模式：3 条（UI 只展示 3 条，直接少查避免浪费）
 const PLAN_TARGET_ARRIVE    = 3;
 const PLAN_MAX_K_ARRIVE     = PLAN_TARGET_ARRIVE * 5;
 const PLAN_MAX_CHECK_ARRIVE = PLAN_TARGET_ARRIVE * 3;
+
+// 换乘少模式：最多展示 5 条，需要更大候选池让 Yen 枚举到换乘更少的路径
+const PLAN_TARGET_FEWER_TRANSFERS     = 5;
+const PLAN_MAX_K_FEWER_TRANSFERS      = 100;
+const PLAN_MAX_CHECK_FEWER_TRANSFERS  = 75;
+const FEWER_TRANSFERS_MAX_DELTA_SEC   = 30 * 60;   // 超过 30 分钟的换乘少方案直接过滤
 
 const LINE_NAME_ALIASES = {
     '3号线': ['3号线', '3号线北'],
@@ -150,15 +156,26 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {string} startStation
  * @param {string} endStation
  * @param {number} departMin
- * @param {'fastest'|'conservative'} sortMode
+ * @param {'fastest'|'conservative'|'fewer-transfers'} sortMode
  */
 async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false) {
     await loadRouteGraph();
 
-    // ★ 到达模式用更小的上限，避免浪费计算
-    const TARGET    = arriveMode ? PLAN_TARGET_ARRIVE    : PLAN_TARGET;
-    const MAX_K     = arriveMode ? PLAN_MAX_K_ARRIVE     : PLAN_MAX_K;
-    const MAX_CHECK = arriveMode ? PLAN_MAX_CHECK_ARRIVE : PLAN_MAX_CHECK;
+    // ★ 不同模式使用不同上限
+    let TARGET, MAX_K, MAX_CHECK;
+    if (arriveMode) {
+        TARGET    = PLAN_TARGET_ARRIVE;
+        MAX_K     = PLAN_MAX_K_ARRIVE;
+        MAX_CHECK = PLAN_MAX_CHECK_ARRIVE;
+    } else if (sortMode === 'fewer-transfers') {
+        TARGET    = PLAN_TARGET_FEWER_TRANSFERS;
+        MAX_K     = PLAN_MAX_K_FEWER_TRANSFERS;
+        MAX_CHECK = PLAN_MAX_CHECK_FEWER_TRANSFERS;
+    } else {
+        TARGET    = PLAN_TARGET;
+        MAX_K     = PLAN_MAX_K;
+        MAX_CHECK = PLAN_MAX_CHECK;
+    }
 
     const startNode = resolveGraphStationNode(startStation, 'start');
     const endNode   = resolveGraphStationNode(endStation,   'end');
@@ -210,7 +227,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             continue;
         }
 
-        // ====== 新增：检测是否多次经过同一线路 ======
+        // ====== 检测是否多次经过同一线路 ======
         const repeatedLine = checkLineRepeat(p);
         if (repeatedLine) {
             rejected.push({
@@ -234,7 +251,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         const startMargin = (check.boardingMargins && check.boardingMargins.length > 0)
             ? check.boardingMargins[0] : null;
 
-        // ====== 新增：单次换乘步行时长过滤 ======
+        // ====== 单次换乘步行时长过滤 ======
         const interchanges = parseInterchangeKeys(p, departMin);
         if (maxTransferMin != null && maxTransferMin >= 0 && interchanges.length > 0) {
             const longTransfer = interchanges.find(o => o.walkMin > maxTransferMin);
@@ -255,7 +272,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             stationRoute,
             route: parseInterchangeRoute(p, true),
             interchangeCost: parseInterchangeTimeCost(p),
-            interchanges,                                     // ← 复用上面已算好的
+            interchanges,
             warnings: checkThreeLineCrossSegment(p, departMin),
             urgentCount,
             boardingMargins: check.boardingMargins,
@@ -266,15 +283,50 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         if (checkedCount >= MAX_CHECK) break;
     }
 
+    // ====== 全局最快（所有可行路径的最小总耗时）作为过滤基准 ======
+    const globalFastestCost = results.length > 0
+        ? Math.min(...results.map(r => r.totalCost))
+        : null;
+
+    // ====== 排序 ======
     if (sortMode === 'conservative') {
         results.sort((a, b) => a.urgentCount - b.urgentCount || a.totalCost - b.totalCost);
+    } else if (sortMode === 'fewer-transfers') {
+        results.sort((a, b) =>
+            a.interchanges.length - b.interchanges.length
+            || a.totalCost - b.totalCost
+        );
     } else {
         results.sort((a, b) => a.totalCost - b.totalCost);
     }
 
-    const finalResults = results.slice(0, TARGET);
+    // ====== 选前 N 条 ======
+    let finalResults;
+    let viewOptimalCost = null;
 
-    // 到达时间（显示到分钟）相同 → 并列同一名次
+    if (sortMode === 'fewer-transfers') {
+        const minTransfers = results[0].interchanges.length;
+        const candidates = results.filter(r =>
+            r.interchanges.length === minTransfers
+            && globalFastestCost != null
+            && (r.totalCost - globalFastestCost) <= FEWER_TRANSFERS_MAX_DELTA_SEC
+        );
+        finalResults = candidates.slice(0, PLAN_TARGET_FEWER_TRANSFERS);
+        if (finalResults.length > 0) {
+            viewOptimalCost = Math.min(...finalResults.map(r => r.totalCost));
+        }
+    } else {
+        finalResults = results.slice(0, TARGET);
+    }
+
+    // ====== 打上 Δ（相对本视图最优） ======
+    if (viewOptimalCost != null) {
+        finalResults.forEach(item => {
+            item.deltaFromViewOptimal = item.totalCost - viewOptimalCost;
+        });
+    }
+
+    // 并列名次
     let lastArrive = null;
     let currentRank = 0;
     finalResults.forEach((item, idx) => {

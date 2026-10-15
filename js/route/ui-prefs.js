@@ -68,7 +68,7 @@ function applyRoutePrefs(ov) {
     if (!prefs) return;
 
     // 排序模式
-    if (prefs.sortMode === 'conservative' || prefs.sortMode === 'fastest') {
+    if (['conservative', 'fastest', 'fewer-transfers'].includes(prefs.sortMode)) {
         const radio = ov.querySelector(`input[name="route-sort"][value="${prefs.sortMode}"]`);
         if (radio) radio.checked = true;
     }

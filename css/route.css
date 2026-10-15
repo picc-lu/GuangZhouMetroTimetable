@@ -941,6 +941,16 @@
     color: #64748b;
 }
 
+.route-delta {
+    color: #d97706;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+[data-theme="dark"] .route-delta {
+    color: #fbbf24;
+}
+
 .route-arrive {
     text-align: right;
     flex-shrink: 0;

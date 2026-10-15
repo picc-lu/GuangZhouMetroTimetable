@@ -210,11 +210,17 @@ function parseRouteSegments(path, departMin) {
 
     // 4. 计算 shortName / 颜色
     compacted.forEach(s => {
-        let sn = s.fullLine
-            .replace(/号线北$/, '')
-            .replace(/号线$/, '')
-            .replace(/线$/, '');
-        if (sn.includes('佛山')) sn = sn.replace(/佛山/g, '佛');
+        let sn;
+        // 14 号线支线 / 知识城支线 → 统一简写为「14支」
+        if (/^14号线(支线|\(知识城\))$/.test(s.fullLine)) {
+            sn = '14支';
+        } else {
+            sn = s.fullLine
+                .replace(/号线北$/, '')
+                .replace(/号线$/, '')
+                .replace(/线$/, '');
+            if (sn.includes('佛山')) sn = sn.replace(/佛山/g, '佛');
+        }
         s.shortName = sn;
 
         s.color = (typeof LINE_COLORS !== 'undefined' && LINE_COLORS[s.fullLine]) || '#888';

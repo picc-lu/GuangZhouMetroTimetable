@@ -359,6 +359,33 @@ async function runRoutePlanning() {
             hideAllRouteLegends();
             return;
         }
+        if (r.results.length === 0 && sortMode === 'fewer-transfers') {
+            hideAllRouteLegends();
+            resultsEl.innerHTML = `
+                <div class="route-empty">
+                    <div class="route-empty-title">换乘少的方案时间代价较大</div>
+                    <div class="route-empty-detail">
+                        已过滤比最优慢 30 分钟以上的换乘少方案，当前没有可用的换乘少路径。
+                    </div>
+                    <div class="route-suggest-actions">
+                        <button type="button" class="route-suggest-btn" data-action="switch-to-fastest">
+                            切回最快方案
+                        </button>
+                    </div>
+                </div>
+            `;
+            resultsEl.querySelectorAll('.route-suggest-btn[data-action="switch-to-fastest"]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const radio = _routeOverlay.querySelector('input[name="route-sort"][value="fastest"]');
+                    if (radio) {
+                        radio.checked = true;
+                        runRoutePlanning();
+                    }
+                });
+            });
+            return;
+        }
         if (r.results.length === 0) {
             let html = `<div class="route-empty">`;
             html += `<div class="route-empty-title">当前时刻没有可用的路径</div>`;
@@ -410,7 +437,7 @@ async function runRoutePlanning() {
 
         // 到达模式下 planner 已只返回 3 条，直接渲染；rank 已由 planner 内排序后分配
         resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>
-            renderRouteCard(item, idx, displayStart, displayEnd)
+            renderRouteCard(item, idx, displayStart, displayEnd, sortMode)
         ).join('');
 
         // 卡片展开/收起

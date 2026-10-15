@@ -13,6 +13,15 @@ function formatDuration(seconds) {
     return `${r}秒`;
 }
 
+function formatDelta(seconds) {
+    const s = Math.max(0, Math.round(seconds));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    if (m === 0) return `${r}秒`;
+    if (r === 0) return `${m}分`;
+    return `${m}分${r}秒`;
+}
+
 function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
     const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(path) : [];
     if (segs.length === 0) return '';
@@ -597,9 +606,16 @@ function buildArriveBlockHtml(item) {
     `;
 }
 
-function renderRouteCard(item, idx, startName, endName) {
+function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
     const rank = item.rank || (idx + 1);
     const transferStations = item.interchanges.map(o => o.key.split('|')[0]).filter(Boolean);
+
+    let deltaHtml = '';
+    if (sortMode === 'fewer-transfers'
+        && item.deltaFromViewOptimal != null
+        && item.deltaFromViewOptimal > 0) {
+        deltaHtml = `<span class="route-delta">比最优慢 ${formatDelta(item.deltaFromViewOptimal)}</span>`;
+    }
 
     // 换乘路径：显示换乘站；直达路径：显示乘车方向（如"往龙潭"）
     let transferText;
@@ -854,12 +870,13 @@ function renderRouteCard(item, idx, startName, endName) {
             <div class="route-card-head">
                 <div class="route-summary">
                     <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0)}</div>
-                    <div class="route-sub">
-                        <span>⏱ ${formatDuration(item.totalCost)}</span>
-                        <span>换 ${item.interchanges.length} 次</span>
-                        <span>${item.stationRoute.length + 2} 站</span>
-                        <span>🚏 ${escapeHtml(transferText)}</span>
-                    </div>
+                        <div class="route-sub">
+                            <span>⏱ ${formatDuration(item.totalCost)}</span>
+                            <span>换 ${item.interchanges.length} 次</span>
+                            <span>${item.stationRoute.length + 2} 站</span>
+                            <span>🚏 ${escapeHtml(transferText)}</span>
+                            ${deltaHtml}
+                        </div>
                 </div>
                 ${buildArriveBlockHtml(item)}
             </div>
