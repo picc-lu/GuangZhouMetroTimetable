@@ -88,7 +88,7 @@ function ensureRouteOverlay() {
                                     <label class="route-sort-option">
                                         <input type="radio" name="route-sort" value="conservative">
                                         <span class="route-sort-label">保守优先</span>
-                                        <span class="route-sort-hint">末班车时间充裕优先</span>
+                                        <span class="route-sort-hint">末班车时间充裕</span>
                                     </label>
                                 </div>
 

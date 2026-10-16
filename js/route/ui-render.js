@@ -521,11 +521,11 @@ function get11LineDirectionFromPath(path, startStation) {
     return rawDir;
 }
 
-/** 把 "芳村方向" 格式化成 " · 往芳村方向" */
+/** 把 "芳村方向" 格式化成 "往芳村" */
 function formatDirectionText(direction) {
     if (!direction) return '';
     const name = direction.replace(/方向$/, '');
-    return `<span class="route-guide-direction">· 往${escapeHtml(name)}</span>`;
+    return `<span class="route-guide-direction">往${escapeHtml(name)}</span>`;
 }
 
 /**
@@ -824,15 +824,22 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
         // ---- 渲染 ----
         guideHtml = `<div class="route-guide">` + boardingPoints.map((bp, bpIdx) => {
             const stationHtml = `<span class="route-guide-station">${escapeHtml(bp.station)}</span>`;
-            const changeHtml = bp.toShort
-                ? `<span class="route-guide-change">${escapeHtml(bp.toShort)}${formatDirectionText(bp.direction)}</span>`
-                : '';
-            const noteHtml = bp.note
-                ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>`
-                : '';
-            const doorHtml = bp.door
-                ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>`
-                : '';
+
+            // 提取线路文本
+            const baseLineText = bp.fromShort ? `${bp.fromShort}→${bp.toShort}` : bp.toShort;
+            // 提取方向文本（去掉“方向”二字）
+            const dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
+
+            let changeHtml = '';
+            let dirHtml = '';
+            const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
+            const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
+
+            // 核心逻辑：无论是否有备注，线路和方向始终分开显示，不再合并
+            changeHtml = `<span class="route-guide-change">${escapeHtml(baseLineText)}</span>`;
+            if (dirName) {
+                dirHtml = `<span class="route-guide-direction">往${escapeHtml(dirName)}</span>`;
+            }
 
             const arriveStr = (bp.timeMin != null && !isNaN(bp.timeMin)) ? fmtHM(bp.timeMin) : '';
             const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
@@ -881,6 +888,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                     ${stationHtml}
                     ${changeHtml}
                     ${noteHtml}
+                    ${dirHtml}
                     ${doorHtml}
                 </div>
                 ${timeHtml}

@@ -3,6 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script>
+        (function() {
+            const THEME_KEY = 'gz_metro_theme';
+            const saved = localStorage.getItem(THEME_KEY);
+            let theme = 'light';
+            if (saved === 'dark' || saved === 'light') {
+                theme = saved;
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                theme = 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
     <meta name="description"
           content="广州地铁运营时间展示 - 实时查询广州地铁各线路首末班车时间，支持自定义时间模拟，含APM、佛山地铁等线路。">
     <meta name="keywords" content="广州地铁,运营时间,首末班车,广州地铁线路图,APM,佛山地铁">

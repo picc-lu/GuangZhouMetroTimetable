@@ -328,9 +328,9 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         for (const cnt of sortedCounts) {
             for (const r of byTransferCount.get(cnt)) {
                 finalResults.push(r);
-                if (finalResults.length >= PLAN_TARGET_FEWER_TRANSFERS) break;
+                if (finalResults.length >= TARGET) break;
             }
-            if (finalResults.length >= PLAN_TARGET_FEWER_TRANSFERS) break;
+            if (finalResults.length >= TARGET) break;
         }
         if (finalResults.length > 0) {
             viewOptimalCost = Math.min(...finalResults.map(r => r.totalCost));

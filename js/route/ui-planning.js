@@ -35,13 +35,15 @@ function buildRouteSuggestions(r, currentCfg) {
         });
     }
 
-    // 3. 末班车已收 → 建议提前出发
+    // 3. 首末班车问题 → 建议调整时间
     const lastTrainReason = uniqueReasons.find(x =>
         x.includes('已无运营') || x.includes('已停运') || x.includes('末班车')
     );
     if (lastTrainReason) {
         const targetMin = getRouteDepartMin();
+
         if (_routeArriveMode) {
+            // 到达模式：建议目标到达时间延后
             const later = targetMin + 30;
             if (later <= 26 * 60) {
                 suggestions.push({
@@ -51,13 +53,28 @@ function buildRouteSuggestions(r, currentCfg) {
                 });
             }
         } else {
-            const earlier = targetMin - 30;
-            if (earlier >= 5 * 60) {
-                suggestions.push({
-                    action: 'earlier-depart',
-                    label: `提前 30 分钟出发（${fmtHM(earlier)}）`,
-                    value: 30,
-                });
+            // 出发模式：区分是"太早"还是"太晚"
+            // 以 6:00 作为分界线，早于 6:00 认为是太早
+            if (targetMin < 6 * 60) {
+                // 太早：建议延后 30 分钟出发
+                const later = targetMin + 30;
+                if (later <= 26 * 60) {
+                    suggestions.push({
+                        action: 'later-depart',
+                        label: `延后 30 分钟出发（${fmtHM(later)}）`,
+                        value: 30,
+                    });
+                }
+            } else {
+                // 太晚：建议提前 30 分钟出发
+                const earlier = targetMin - 30;
+                if (earlier >= 5 * 60) {
+                    suggestions.push({
+                        action: 'earlier-depart',
+                        label: `提前 30 分钟出发（${fmtHM(earlier)}）`,
+                        value: 30,
+                    });
+                }
             }
         }
     }
@@ -94,11 +111,12 @@ function applyRouteSuggestion(action, value) {
         refreshRouteTimeTriggers();
         setRouteMeta(routeMetaText());
 
-    } else if (action === 'later-arrive') {
+    } else if (action === 'later-arrive' || action === 'later-depart') {
         const delta = parseInt(value, 10) || 30;
         _routeDepartMin = getRouteDepartMin() + delta;
         refreshRouteTimeTriggers();
         setRouteMeta(routeMetaText());
+
     }
 
     setTimeout(() => runRoutePlanning(), 80);

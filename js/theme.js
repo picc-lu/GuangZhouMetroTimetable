@@ -27,9 +27,6 @@
         applyTheme(next);
     }
 
-    // 尽早应用主题，避免白屏闪烁
-    applyTheme(getPreferredTheme());
-
     // DOM 就绪后绑定按钮
     function bindButton() {
         const btn = document.getElementById('theme-toggle');

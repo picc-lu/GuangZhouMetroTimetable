@@ -120,13 +120,27 @@
 }
 
 @keyframes routeFieldShake {
-    0%, 100% { transform: translateX(0); }
-    15% { transform: translateX(-5px); }
-    30% { transform: translateX(5px); }
-    45% { transform: translateX(-4px); }
-    60% { transform: translateX(4px); }
-    75% { transform: translateX(-2px); }
-    90% { transform: translateX(2px); }
+    0%, 100% {
+        transform: translateX(0);
+    }
+    15% {
+        transform: translateX(-5px);
+    }
+    30% {
+        transform: translateX(5px);
+    }
+    45% {
+        transform: translateX(-4px);
+    }
+    60% {
+        transform: translateX(4px);
+    }
+    75% {
+        transform: translateX(-2px);
+    }
+    90% {
+        transform: translateX(2px);
+    }
 }
 
 [data-theme="dark"] .route-field.input-error {
@@ -278,26 +292,54 @@
    交换按钮：左右文字滑动动画
    ========================================== */
 @keyframes route-swap-left-out {
-    0%   { opacity: 1; transform: translateX(0); }
-    100% { opacity: 0; transform: translateX(24px); }
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(24px);
+    }
 }
+
 @keyframes route-swap-left-in {
-    0%   { opacity: 0; transform: translateX(-24px); }
-    100% { opacity: 1; transform: translateX(0); }
+    0% {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
+
 @keyframes route-swap-right-out {
-    0%   { opacity: 1; transform: translateX(0); }
-    100% { opacity: 0; transform: translateX(-24px); }
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
 }
+
 @keyframes route-swap-right-in {
-    0%   { opacity: 0; transform: translateX(24px); }
-    100% { opacity: 1; transform: translateX(0); }
+    0% {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* 阶段 1：文字向中间滑出并淡出 */
 .route-stops.swap-out .route-field:not(.route-field-end) .route-input {
     animation: route-swap-left-out 0.22s ease forwards;
 }
+
 .route-stops.swap-out .route-field-end .route-input {
     animation: route-swap-right-out 0.22s ease forwards;
 }
@@ -306,17 +348,19 @@
 .route-stops.swap-in .route-field:not(.route-field-end) .route-input {
     animation: route-swap-left-in 0.22s ease forwards;
 }
+
 .route-stops.swap-in .route-field-end .route-input {
     animation: route-swap-right-in 0.22s ease forwards;
 }
 
-/* ==========================================
-   排序单选（卡片式）
-   ========================================== */
 .route-sort-row {
     flex: 1 1 100%;
     display: flex;
     gap: 8px;
+    padding: 4px;           /* 为选中时的外发光阴影留出空间 */
+    margin: -4px;           /* 使用负外边距抵消 padding，保证折叠动画和布局位置不变 */
+    width: calc(100% + 8px);/* 补偿负边距带来的宽度减少 */
+    box-sizing: border-box;
 }
 
 .route-sort-option {
@@ -332,6 +376,10 @@
     cursor: pointer;
     user-select: none;
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+    align-items: center;       /* 水平居中 */
+    justify-content: center;   /* 垂直居中 */
+    text-align: center;        /* 确保文字居中 */
 }
 
 .route-sort-option input[type="radio"] {
@@ -359,7 +407,8 @@
 .route-sort-option:has(input:checked) {
     border-color: #2b7de9;
     background: #f0f6ff;
-    box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.12);
+    /* 修改为 inset 内阴影 */
+    box-shadow: inset 0 0 0 3px rgba(43, 125, 233, 0.12);
 }
 
 .route-sort-option:has(input:checked) .route-sort-label {
@@ -581,7 +630,7 @@
     flex: 1 1 100%;
     gap: 6px;
     position: relative;
-    justify-content: flex-start;   /* ★ 内容左对齐，不铺满 */
+    justify-content: flex-start; /* ★ 内容左对齐，不铺满 */
 }
 
 .route-time-trigger {
@@ -711,7 +760,7 @@
     box-shadow: 0 8px 24px rgba(31, 43, 60, 0.15);
     max-height: 340px;
     overflow-y: auto;
-    z-index: 3000;             /* 高于 .route-overlay 的 2500 */
+    z-index: 3000; /* 高于 .route-overlay 的 2500 */
     display: none;
     scrollbar-width: thin;
     scrollbar-color: #c2cfde #f1f5f9;
@@ -992,9 +1041,11 @@
     .route-arrive-line .route-arrive-time {
         font-size: 15px;
     }
+
     .route-arrive-line .route-arrive-label {
         font-size: 10px;
     }
+
     .route-arrive-line + .route-arrive-line {
         margin-top: 3px;
     }
@@ -1222,8 +1273,8 @@
 }
 
 .route-guide-change {
-    background: #e0f2fe;
-    color: #0369a1;
+    background: #eceff3;
+    color: #475569;
     padding: 2px 8px;
     border-radius: 6px;
     font-size: 12px;
@@ -1231,14 +1282,16 @@
     flex-shrink: 0;
 }
 
+/* 在 route.css 中找到 .route-guide-direction 并修改 */
 .route-guide-direction {
-    margin-left: 4px;
-    font-weight: 600;
-    opacity: 0.85;
-}
-
-[data-theme="dark"] .route-guide-direction {
-    opacity: 0.75;
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
 }
 
 .route-guide-note {
@@ -1377,7 +1430,7 @@
    顶部工具栏按钮
    ========================================== */
 .route-plan-btn {
-    background: #e0efff;                    /* ★ 淡蓝色底 */
+    background: #e0efff; /* ★ 淡蓝色底 */
     border: 2px solid #b8d4f0;
     border-radius: 40px;
     height: 40px;
@@ -1389,7 +1442,7 @@
     gap: 6px;
     transition: all 0.15s;
     flex-shrink: 0;
-    color: #1f4d8a;                          /* ★ 深蓝色文字 */
+    color: #1f4d8a; /* ★ 深蓝色文字 */
     font-size: 13px;
     font-weight: 700;
     font-family: inherit;
@@ -1582,7 +1635,8 @@
 [data-theme="dark"] .route-sort-option:has(input:checked) {
     border-color: #5da0ff;
     background: #1e3a5f;
-    box-shadow: 0 0 0 3px rgba(93, 160, 255, 0.18);
+    /* 修改为 inset 内阴影 */
+    box-shadow: inset 0 0 0 3px rgba(93, 160, 255, 0.18);
 }
 
 [data-theme="dark"] .route-sort-option:has(input:checked) .route-sort-label {
@@ -1762,11 +1816,6 @@
 
 [data-theme="dark"] .route-guide-station {
     color: #e2e8f0;
-}
-
-[data-theme="dark"] .route-guide-change {
-    background: #1e3a5f;
-    color: #93c5fd;
 }
 
 [data-theme="dark"] .route-guide-note {
@@ -1995,6 +2044,7 @@
         font-size: 15px;
         padding: 6px 2px;
     }
+
     .route-time-panel.rows-3,
     .route-time-panel.rows-2 {
         gap: 3px;
@@ -2084,7 +2134,7 @@
     color: #1f2b3c;
     cursor: pointer;
     outline: none;
-    min-width: 118px;          /* ★ 容纳 "中等 · 1.5 m/s" */
+    min-width: 118px; /* ★ 容纳 "中等 · 1.5 m/s" */
     transition: border-color 0.15s, box-shadow 0.15s;
     box-sizing: border-box;
 }
@@ -2179,7 +2229,7 @@
     padding: 2px;
     margin-left: 8px;
     flex-shrink: 0;
-    isolation: isolate;   /* 让 z-index 只在内部作用 */
+    isolation: isolate; /* 让 z-index 只在内部作用 */
 }
 
 /* 滑块 */
@@ -2258,12 +2308,12 @@
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;   /* ★ 让切换按钮靠右 */
+    align-items: flex-end; /* ★ 让切换按钮靠右 */
     margin-top: 4px;
 }
 
 .route-advanced-toggle {
-    display: inline-flex;    /* ★ 宽度自适应 */
+    display: inline-flex; /* ★ 宽度自适应 */
     width: auto;
     align-items: center;
     justify-content: center;
@@ -2309,7 +2359,7 @@
 
 .route-advanced-body {
     width: 100%;
-    align-self: stretch;      /* ★ 抵消父级 flex-end 的收缩 */
+    align-self: stretch; /* ★ 抵消父级 flex-end 的收缩 */
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -2323,7 +2373,7 @@
 }
 
 .route-advanced-inner {
-    min-height: 0;             /* grid 行高过渡必需 */
+    min-height: 0; /* grid 行高过渡必需 */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -2407,7 +2457,9 @@
 [data-theme="dark"] .route-station-ctrl-count {
     background: #b91c1c;
     color: #fee2e2;
-}/* ==========================================
+}
+
+/* ==========================================
    车站管制警告（紧凑版）
    ========================================== */
 .route-station-ctrl {
