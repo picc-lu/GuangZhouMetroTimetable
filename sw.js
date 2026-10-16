@@ -1,5 +1,5 @@
 // 版本号变更时触发缓存更新（改 constants.js 里的 APP_VERSION 即可）
-const CACHE_NAME = `gz-metro-v1.1.16`;
+const CACHE_NAME = `gz-metro-v1.1.17`;
 const ASSETS = [
     './',
     './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
     './js/store.js',
     './js/pinyin.js',
     './data/GZCoords.js',
+    './data/mapData.js',
     './js/utils.js',
     './js/coords.js',
     './js/nearby.js',

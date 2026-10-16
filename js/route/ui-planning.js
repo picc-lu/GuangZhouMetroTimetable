@@ -343,6 +343,23 @@ async function runRoutePlanning() {
 
         // 票价查询：同一对起终点票价固定，与具体路径无关
         let fare = null;
+        // 车站管制：与具体路径无关，全局拉一次
+        let stationCtrl = null;
+        if (!r.error) {
+            try {
+                stationCtrl = await fetchStationControllers();
+            } catch (_) {
+                stationCtrl = null;
+            }
+            if (stationCtrl && r.results && r.results.length > 0) {
+                r.results.forEach(item => {
+                    item.stationWarnings = extractStationWarnings(item.path, stationCtrl);
+                });
+            }
+        }
+
+        // 起终点异常提醒（即使没有结果也要提示）
+        updateStartEndWarning(stationCtrl, displayStart, displayEnd);
         if (!r.error && r.results && r.results.length > 0) {
             try {
                 fare = await fetchRouteFare(displayStart, displayEnd);
@@ -535,4 +552,82 @@ async function runRoutePlanning() {
         resultsEl.classList.remove('is-loading');
         setRouteMeta(routeMetaText());
     }
+}
+
+/**
+ * 从路径里提取命中的车站管制事件（按站名去重）。
+ * @param {Object} path  路径对象（含 nodes）
+ * @param {Object} stationCtrl  { 站名: { type, typeText } }
+ * @returns {Array<{station, type, typeText}>}
+ */
+function extractStationWarnings(path, stationCtrl) {
+    const warnings = [];
+    const seen = new Set();
+    for (const node of path.nodes) {
+        const parts = node.split('|');
+        if (parts.length < 2) continue;
+        const name = parts[1];
+        if (name === '开始' || name === '结束') continue;
+        if (seen.has(name)) continue;
+        seen.add(name);
+        const ctrl = stationCtrl[name];
+        if (ctrl) {
+            warnings.push({
+                station: name,
+                type: ctrl.type,
+                typeText: ctrl.typeText,
+            });
+        }
+    }
+    return warnings;
+}
+
+/**
+ * 渲染"起终点异常"横幅。
+ * 起点或终点命中车站管制时显示，位于规划按钮和结果列表之间。
+ * 起点与终点为同一类型时合并到一行。
+ */
+function updateStartEndWarning(stationCtrl, startName, endName) {
+    const wrap = _routeOverlay?.querySelector('#route-startend-warning');
+    if (!wrap) return;
+
+    if (!stationCtrl) {
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+        return;
+    }
+
+    const startCtrl = stationCtrl[startName];
+    const endCtrl   = stationCtrl[endName];
+
+    if (!startCtrl && !endCtrl) {
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+        return;
+    }
+
+    // 按 typeText 分组
+    const groups = new Map();   // typeText → [{role, name}]
+    if (startCtrl) {
+        if (!groups.has(startCtrl.typeText)) groups.set(startCtrl.typeText, []);
+        groups.get(startCtrl.typeText).push({ role: '起点', name: startName });
+    }
+    if (endCtrl) {
+        if (!groups.has(endCtrl.typeText)) groups.set(endCtrl.typeText, []);
+        groups.get(endCtrl.typeText).push({ role: '终点', name: endName });
+    }
+
+    wrap.innerHTML = [...groups.entries()].map(([typeText, entries]) => {
+        const body = entries.map(e =>
+            `<span class="route-sew-tag">${escapeHtml(e.role)}</span>` +
+            `<span class="route-sew-name">${escapeHtml(e.name)}</span>`
+        ).join('<span class="route-sew-sep">·</span>');
+
+        return `<div class="route-sew-item">
+            <span class="route-sew-type">${escapeHtml(typeText)}</span>
+            <span class="route-sew-body">${body}</span>
+        </div>`;
+    }).join('');
+
+    wrap.style.display = 'flex';
 }

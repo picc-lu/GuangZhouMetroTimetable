@@ -637,6 +637,30 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
         }).join('') + `</div>`;
     }
 
+    // 车站管制警告：按类型分组，每类一行
+    let stationCtrlHtml = '';
+    if (item.stationWarnings && item.stationWarnings.length > 0) {
+        const grouped = new Map();
+        for (const w of item.stationWarnings) {
+            if (!grouped.has(w.typeText)) grouped.set(w.typeText, []);
+            grouped.get(w.typeText).push(w.station);
+        }
+
+        stationCtrlHtml = `<div class="route-station-ctrl">` +
+            [...grouped.entries()].map(([typeText, stations]) => {
+                const list = stations.map(s => escapeHtml(s)).join(' · ');
+                return `<div class="route-station-ctrl-item">
+                    <span class="route-station-ctrl-icon">⛔</span>
+                    <span class="route-station-ctrl-text">
+                        <b>${escapeHtml(typeText)}</b>
+                        <span class="route-station-ctrl-count">${stations.length} 站</span>
+                        ${list}
+                    </span>
+                </div>`;
+            }).join('') +
+            `</div>`;
+    }
+
     // ---- 换乘指引 ----
     const segs = (typeof parseRouteSegments === 'function')
         ? parseRouteSegments(item.path) : [];
@@ -883,6 +907,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             </div>
             <div class="route-detail">
                 ${warningHtml}
+                ${stationCtrlHtml}
                 ${guideHtml}
                 ${buildStationListHtml(startName, endName, item.stationRoute)}
             </div>

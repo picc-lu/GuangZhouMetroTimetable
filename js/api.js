@@ -291,3 +291,70 @@ async function fetchRouteFare(startStation, endStation) {
         return null;   // 失败不缓存，下次可重试
     }
 }
+
+// ========== 车站管制查询（官方 API） ==========
+
+const STATION_CTRL_API = 'https://ydyc.gzmtr.cn:19090/interface/info?equipmentType=pc';
+const STATION_CTRL_CACHE_TTL = 60 * 1000;   // 60 秒内复用
+const _stationCtrlCache = { data: null, ts: 0 };
+
+const STATION_CTRL_TYPE_TEXT = {
+    'NOSTOP': '停止对外服务',
+    'FLOWCONTROL': '客流控制',
+    'TRANSFERONLY': '仅保留换乘',
+    // 未知 type 会原样显示，方便排查
+};
+
+/** 清洗 mapData 里的站名（去括号、去 *# 标记、去空格） */
+function cleanMapDataStationName(name) {
+    if (!name) return '';
+    return String(name)
+        .replace(/\*#/g, '')
+        .replace(/[（(][^）)]*[）)]/g, '')
+        .replace(/\s+/g, '');
+}
+
+/**
+ * 拉取车站管制数据。
+ * @returns {Promise<Object|null>}  { 站名: { type, typeText, rawStationNo } }；失败返回 null
+ */
+async function fetchStationControllers() {
+    const now = Date.now();
+    if (_stationCtrlCache.data && (now - _stationCtrlCache.ts) < STATION_CTRL_CACHE_TTL) {
+        return _stationCtrlCache.data;
+    }
+
+    try {
+        const resp = await fetch(STATION_CTRL_API, { method: 'GET', mode: 'cors' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const json = await resp.json();
+        if (!json.state) throw new Error('接口 state=false');
+
+        const list = json?.data?.info?.stationController || [];
+        const map = {};
+
+        for (const item of list) {
+            const stationNo = item.StationNo;
+            const type = item.type;
+            const rawName = MAPDATA?.stationName?.ch?.[stationNo]?.name || '';
+            const name = cleanMapDataStationName(rawName);
+            if (!name) {
+                console.warn(`[车站管制] 无法解析 StationNo=${stationNo} 的站名`);
+                continue;
+            }
+            map[name] = {
+                type,
+                typeText: STATION_CTRL_TYPE_TEXT[type] || type,
+                rawStationNo: stationNo,
+            };
+        }
+
+        _stationCtrlCache.data = map;
+        _stationCtrlCache.ts = now;
+        console.log(`[车站管制] 获取成功，共 ${Object.keys(map).length} 个站点`, map);
+        return map;
+    } catch (err) {
+        console.warn('[车站管制] 获取失败：', err);
+        return null;
+    }
+}

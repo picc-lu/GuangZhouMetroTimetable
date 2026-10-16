@@ -134,6 +134,7 @@ function ensureRouteOverlay() {
                     </button>
                 </div>
                 <div class="route-meta" id="route-meta" style="display:none">正在加载线路图…</div>
+                <div class="route-startend-warning" id="route-startend-warning" style="display:none"></div>
                 <div class="route-legend" id="route-legend" style="display:none">
                     <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                         <path d="M12 2 L22 20 L2 20 Z"
