@@ -39,7 +39,7 @@ html, body {
     letter-spacing: 2px;
     border-bottom: 2px solid #e2e8f0;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-    transition: background 0.3s ease;
+    transition: background 0.4s ease, color 0.3s ease;
 }
 
 /* ==========================================
@@ -52,7 +52,7 @@ html, body {
     padding: 20px 28px;
     background: linear-gradient(135deg, #fefefe 0%, #f0f6ff 100%);
     border: 1px solid #d4e2f5;
-    border-left: 5px solid #2b7de9;   /* 蓝色强调条 */
+    border-left: 5px solid #2b7de9;
     border-radius: 14px;
     box-shadow: 0 4px 16px rgba(43, 125, 233, 0.08);
     display: flex;
@@ -63,7 +63,6 @@ html, body {
     overflow: hidden;
 }
 
-/* 顶部左侧小装饰 */
 .notice-area::before {
     content: '';
     position: absolute;
@@ -76,7 +75,6 @@ html, body {
     pointer-events: none;
 }
 
-/* 每个提示项 */
 .notice-item {
     display: flex;
     align-items: center;
@@ -90,43 +88,40 @@ html, body {
     padding-left: 4px;
 }
 
-/* 圆点图标 */
 .notice-item::before {
     content: '';
     display: inline-block;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #2b7de9;                             /* 深蓝 */
+    background: #2b7de9;
     flex-shrink: 0;
     box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15);
 }
 
 .notice-item.warn::before {
-    background: #5da0ff;                             /* 浅蓝 */
+    background: #5da0ff;
     box-shadow: 0 0 0 3px rgba(93, 160, 255, 0.20);
 }
 
-/* 高亮文字 */
 .notice-area b,
 .notice-area strong {
     color: #2b7de9;
     font-weight: 700;
 }
 
-/* 顶部小图标条（可选装饰） */
 .notice-area::after {
     content: 'ⓘ 温馨提示';
     position: absolute;
     top: 0;
-    left: 0;                          /* 紧贴卡片内侧左上角 */
+    left: 0;
     background: #2b7de9;
     color: #fff;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     padding: 5px 14px 5px 12px;
-    border-radius: 9px 0 12px 0;      /* 与卡片内侧圆角对齐（14-5=9） */
+    border-radius: 9px 0 12px 0;
     box-shadow: 0 2px 6px rgba(43, 125, 233, 0.25);
 }
 
@@ -312,105 +307,171 @@ html, body {
 }
 
 /* ==========================================
-   Service Worker 更新提示
+   SW 更新提示（居中弹窗）
    ========================================== */
 .sw-update-toast {
     position: fixed;
-    left: 50%;
-    bottom: 24px;
-    transform: translateX(-50%);
-    background: rgba(31, 43, 60, 0.95);
-    color: #fff;
-    padding: 14px 20px;
-    border-radius: 16px;
-    font-size: 16px;              /* 14 → 16 */
-    font-weight: 600;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2000;
     display: flex;
     align-items: center;
-    gap: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    z-index: 2000;
-    white-space: nowrap;          /* 关键：禁止整体换行 */
-    max-width: none;
-    animation: swToastIn 0.3s ease-out;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: swOverlayIn 0.2s ease-out;
 }
 
-.sw-update-toast > span {
-    white-space: nowrap;          /* 文字部分也不换行 */
-    line-height: 1.2;
+@keyframes swOverlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
-@keyframes swToastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+.sw-update-panel {
+    background: #ffffff;
+    border-radius: 18px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: swPanelIn 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes swPanelIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.sw-update-title {
+    padding: 20px 22px 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2b3c;
+    text-align: center;
+}
+
+.sw-update-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 22px 8px;
+}
+
+.sw-update-version {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.sw-update-tag {
+    display: inline-block;
+    background: #2b7de9;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 8px;
+    letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+}
+
+.sw-update-date {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.sw-update-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #475569;
+}
+
+.sw-update-list li {
+    margin-bottom: 4px;
+    padding-left: 2px;
+}
+
+.sw-update-list li::marker {
+    color: #2b7de9;
+}
+
+.sw-update-empty {
+    text-align: center;
+    font-size: 13.5px;
+    color: #64748b;
+    padding: 8px 0 12px;
+}
+
+.sw-update-actions {
+    display: flex;
+    gap: 10px;
+    padding: 12px 22px 20px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.sw-update-btn,
+.sw-update-btn-cancel {
+    flex: 1;
+    padding: 11px 0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.sw-update-btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.sw-update-btn-cancel:hover {
+    background: #e2e8f0;
 }
 
 .sw-update-btn {
     background: #2b7de9;
-    color: #fff;
-    border: none;
-    border-radius: 22px;
-    padding: 8px 20px;
-    font-size: 15px;              /* 13 → 15 */
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    white-space: nowrap;          /* 关键：按钮文字不换行 */
-    flex-shrink: 0;
-    transition: background 0.15s;
-}
-.sw-update-btn:hover { background: #1a6bd5; }
-
-.sw-update-close {
-    background: transparent;
-    color: #94a3b8;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    line-height: 1;
-    flex-shrink: 0;
-}
-.sw-update-close:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
-
-/* 窄屏：保证不换行的前提下略微收紧内边距 */
-@media (max-width: 480px) {
-    .sw-update-toast {
-        bottom: 76px;
-        padding: 12px 14px;
-        font-size: 15px;
-        gap: 10px;
-    }
-    .sw-update-btn {
-        padding: 7px 16px;
-        font-size: 14px;
-    }
-    .sw-update-close {
-        font-size: 16px;
-        padding: 3px 6px;
-    }
+    color: #ffffff;
 }
 
-/* ==========================================
-   SW 更新过渡动画（Toast 淡出 + 全屏遮罩）
-   ========================================== */
-
-/* Toast 淡出状态 */
-.sw-update-toast.sw-toast-fading {
-    opacity: 0;
-    transform: translateX(-50%) translateY(12px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
+.sw-update-btn:hover {
+    background: #1a6bd5;
 }
 
+.sw-update-btn:active,
+.sw-update-btn-cancel:active {
+    transform: scale(0.97);
+}
+
+/* 动画期间禁用 */
 .sw-update-btn:disabled,
-.sw-update-close:disabled {
+.sw-update-btn-cancel:disabled {
     opacity: 0.55;
     cursor: not-allowed;
 }
 
-/* 全屏遮罩 */
+/* Toast 淡出（startSwUpdateAnimation 触发） */
+.sw-update-toast.sw-toast-fading {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* ==========================================
+   SW 更新过渡动画（全屏遮罩 + spinner）
+   ========================================== */
 .sw-update-overlay {
     position: fixed;
     inset: 0;
@@ -432,7 +493,6 @@ html, body {
     opacity: 1;
 }
 
-/* iOS 风格 spinner */
 .sw-update-spinner {
     width: 42px;
     height: 42px;

@@ -304,25 +304,46 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     let finalResults;
     let viewOptimalCost = null;
 
+    if (results.length === 0) {
+        // 无任何可行路径（例如时间过晚、末班车检查全部不通过）
+        return {results: [], rejected, totalPaths: paths.length, feasibleCount: 0};
+    }
+
     if (sortMode === 'fewer-transfers') {
-        const minTransfers = results[0].interchanges.length;
-        const candidates = results.filter(r =>
-            r.interchanges.length === minTransfers
-            && globalFastestCost != null
-            && (r.totalCost - globalFastestCost) <= FEWER_TRANSFERS_MAX_DELTA_SEC
-        );
-        finalResults = candidates.slice(0, PLAN_TARGET_FEWER_TRANSFERS);
+        // 按换乘次数从少到多分层填充，每层内部按 totalCost（results 已排好）
+        // 过滤：比全局最快慢超过 30 分钟的排除
+        const byTransferCount = new Map();
+        for (const r of results) {
+            if (globalFastestCost != null
+                && (r.totalCost - globalFastestCost) > FEWER_TRANSFERS_MAX_DELTA_SEC) {
+                continue;
+            }
+            const cnt = r.interchanges.length;
+            if (!byTransferCount.has(cnt)) byTransferCount.set(cnt, []);
+            byTransferCount.get(cnt).push(r);
+        }
+        const sortedCounts = [...byTransferCount.keys()].sort((a, b) => a - b);
+
+        finalResults = [];
+        for (const cnt of sortedCounts) {
+            for (const r of byTransferCount.get(cnt)) {
+                finalResults.push(r);
+                if (finalResults.length >= PLAN_TARGET_FEWER_TRANSFERS) break;
+            }
+            if (finalResults.length >= PLAN_TARGET_FEWER_TRANSFERS) break;
+        }
         if (finalResults.length > 0) {
             viewOptimalCost = Math.min(...finalResults.map(r => r.totalCost));
         }
     } else {
+        // 最快优先 / 保守优先：取前 N
         finalResults = results.slice(0, TARGET);
     }
 
-    // ====== 打上 Δ（相对本视图最优） ======
-    if (viewOptimalCost != null) {
+    // ====== 打上 Δ（相对全局最快，即最快优先的首位） ======
+    if (globalFastestCost != null) {
         finalResults.forEach(item => {
-            item.deltaFromViewOptimal = item.totalCost - viewOptimalCost;
+            item.deltaFromFastest = item.totalCost - globalFastestCost;
         });
     }
 
@@ -338,7 +359,12 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         item.rank = currentRank;
     });
 
-    return {results: finalResults, rejected, totalPaths: paths.length};
+    return {
+        results: finalResults,
+        rejected,
+        totalPaths: paths.length,
+        feasibleCount: results.length,   // 通过末班车检查的路径数
+    };
 }
 
 const REPEAT_CHECK_SKIP_LINES = new Set([

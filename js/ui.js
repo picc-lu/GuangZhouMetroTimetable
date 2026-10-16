@@ -1,5 +1,27 @@
 // ========== 界面辅助函数 ==========
 
+// ========== 手工换乘映射（有轨电车 ↔ 地铁，需出闸） ==========
+let MANUAL_TRANSFERS = {};
+let _transferLoadPromise = null;
+
+function loadManualTransfers() {
+    if (_transferLoadPromise) return _transferLoadPromise;
+    _transferLoadPromise = fetch('./data/transfers.json')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            MANUAL_TRANSFERS = data || {};
+            console.log('[换乘] 手工换乘映射已加载', MANUAL_TRANSFERS);
+        })
+        .catch(err => {
+            console.warn('[换乘] 加载失败，使用空映射：', err);
+            MANUAL_TRANSFERS = {};
+        });
+    return _transferLoadPromise;
+}
+
 function populateLineFilter() {
     const select = document.getElementById('line-filter');
     select.innerHTML = '';
@@ -333,26 +355,6 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
 
     const lineColor = LINE_COLORS[line] || '#888';
     const currentMin = getCurrentMinutes();
-
-    // ====== 新增：人工换乘映射表 ======
-    const MANUAL_TRANSFERS = {
-        "海珠有轨1号线": {
-            "广州塔（有轨）": "广州塔",
-            "万胜围（有轨）": "万胜围"
-        },
-        "黄埔有轨1号线": {
-            "地铁长平": "长平",
-            "地铁水西": "水西",
-            "市民广场": "萝岗",
-            "地铁香雪": "香雪"
-        },
-        "黄埔有轨2号线": {
-            "地铁香雪": "香雪"
-        },
-        "南海有轨1号线": {
-            "虫雷 岗（有轨）": "虫雷 岗" // 注：广佛线的站名实际是“礌岗”，若需显示“虫雷岗”可自行改为 "虫雷岗"
-        }
-    };
 
     // ====== 计算双向主题色：色相偏移 + 加深，保证可读性 ======
     function hexToHsl(hex) {

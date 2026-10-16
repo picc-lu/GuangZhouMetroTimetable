@@ -776,14 +776,25 @@
     font-weight: 600;
 }
 
-/* ==========================================
-   结果区
-   ========================================== */
 .route-meta {
     font-size: 12px;
     color: #64748b;
     margin: 4px 0 12px;
     text-align: center;
+    white-space: normal;
+    line-height: 1.55;
+    word-break: break-word;
+}
+
+.route-meta-sub {
+    display: inline-block;
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 11.5px;
+}
+
+[data-theme="dark"] .route-meta-sub {
+    color: #64748b;
 }
 
 .route-results {
@@ -942,13 +953,14 @@
 }
 
 .route-delta {
-    color: #d97706;
-    font-weight: 700;
-    letter-spacing: 0.2px;
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 11.5px;
+    letter-spacing: 0;
 }
 
 [data-theme="dark"] .route-delta {
-    color: #fbbf24;
+    color: #64748b;
 }
 
 .route-arrive {

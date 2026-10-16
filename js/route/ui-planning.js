@@ -70,7 +70,10 @@ function applyRouteSuggestion(action, value) {
 
     if (action === 'disable-max-transfer') {
         const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
-        if (mtc) { mtc.checked = false; mtc.dispatchEvent(new Event('change')); }
+        if (mtc) {
+            mtc.checked = false;
+            mtc.dispatchEvent(new Event('change'));
+        }
 
     } else if (action === 'set-max-transfer') {
         const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
@@ -109,7 +112,7 @@ async function findLatestDepartureForArrival(start, end, targetArriveMin,
     const STEP = 5;   // 5 分钟粒度
     const EARLIEST = Math.max(5 * 60, targetArriveMin - 4 * 60);
 
-    const loIdx = Math.floor(EARLIEST   / STEP);
+    const loIdx = Math.floor(EARLIEST / STEP);
     const hiIdx = Math.floor(targetArriveMin / STEP);
 
     let bestIdx = -1;
@@ -152,18 +155,18 @@ async function runRoutePlanning() {
     const end = endInput.value.trim();
 
     const startField = startInput.closest('.route-field');
-    const endField   = endInput.closest('.route-field');
+    const endField = endInput.closest('.route-field');
 
     // 清除上一次的错误状态
     if (startField) startField.classList.remove('input-error');
-    if (endField)   endField.classList.remove('input-error');
+    if (endField) endField.classList.remove('input-error');
 
     // 漏填 → 给对应输入框加红框抖动，不显示下方区域
     const missingStart = !start;
-    const missingEnd   = !end;
+    const missingEnd = !end;
 
     if (missingStart && startField) startField.classList.add('input-error');
-    if (missingEnd   && endField)   endField.classList.add('input-error');
+    if (missingEnd && endField) endField.classList.add('input-error');
 
     if (missingStart || missingEnd) {
         _routeOverlay.querySelector('#route-meta').style.display = 'none';
@@ -245,7 +248,7 @@ async function runRoutePlanning() {
         //   后续渲染使用图里的真实站名，避免"嘉禾"这类部分输入导致显示不一致
         await loadRouteGraph();
         const resolvedStartNode = resolveGraphStationNode(start, 'start');
-        const resolvedEndNode   = resolveGraphStationNode(end, 'end');
+        const resolvedEndNode = resolveGraphStationNode(end, 'end');
 
         // ★ 解析失败 → 明确提示站名不存在
         if (!resolvedStartNode) {
@@ -260,7 +263,7 @@ async function runRoutePlanning() {
         }
 
         const displayStart = resolvedStartNode.replace(/\|(开始|结束)$/, '');
-        const displayEnd   = resolvedEndNode.replace(/\|(开始|结束)$/, '');
+        const displayEnd = resolvedEndNode.replace(/\|(开始|结束)$/, '');
 
         // 用规范化后的站名重跑一遍校验（用户输入可能有别名，之前是原始串比较）
         if (displayStart === displayEnd) {
@@ -289,7 +292,7 @@ async function runRoutePlanning() {
                 const suggestions = [];
                 const later30 = targetArriveMin + 30;
                 const later60 = targetArriveMin + 60;
-                const LIMIT   = 26 * 60;
+                const LIMIT = 26 * 60;
 
                 if (later30 <= LIMIT) {
                     suggestions.push({
@@ -367,7 +370,9 @@ async function runRoutePlanning() {
                 fare = null;
             }
             if (fare != null) {
-                r.results.forEach(item => { item.fare = fare; });
+                r.results.forEach(item => {
+                    item.fare = fare;
+                });
             }
         }
 
@@ -389,8 +394,28 @@ async function runRoutePlanning() {
             hideAllRouteLegends();
             return;
         }
-        if (r.results.length === 0 && sortMode === 'fewer-transfers') {
+        if (r.results.length === 0 && sortMode === 'fewer-transfers' && r.feasibleCount > 0) {
             hideAllRouteLegends();
+
+            // 判断空结果真实原因
+            const rejectedList = r.rejected || [];
+            const allNoService = rejectedList.length > 0
+                && rejectedList.every(x => (x.reason || '').includes('已无运营'));
+
+            if (allNoService) {
+                // 全部因运营结束被拒 → 显示运营结束提示，不显示换乘少提示
+                resultsEl.innerHTML = `
+                    <div class="route-empty">
+                        <div class="route-empty-title">当前时刻已结束运营</div>
+                        <div class="route-empty-detail">
+                            所选时刻已超出该线路运营时间，请调整出发时间后重试。
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 其余情况（含换乘少方案时间代价大）→ 原换乘少提示
             resultsEl.innerHTML = `
                 <div class="route-empty">
                     <div class="route-empty-title">换乘少的方案时间代价较大</div>
@@ -488,9 +513,9 @@ async function runRoutePlanning() {
                 if (!card) return;
 
                 const collapsedEl = card.querySelector('.route-stations-collapsed');
-                const fullEl      = card.querySelector('.route-stations-full');
-                const toggleWrap  = card.querySelector('.route-stations-toggle-wrap');
-                const toggleBtn   = toggleWrap ? toggleWrap.querySelector('.route-stations-toggle') : null;
+                const fullEl = card.querySelector('.route-stations-full');
+                const toggleWrap = card.querySelector('.route-stations-toggle-wrap');
+                const toggleBtn = toggleWrap ? toggleWrap.querySelector('.route-stations-toggle') : null;
                 if (!collapsedEl || !fullEl || !toggleWrap) return;
 
                 collapsedEl.style.display = 'none';
@@ -598,7 +623,7 @@ function updateStartEndWarning(stationCtrl, startName, endName) {
     }
 
     const startCtrl = stationCtrl[startName];
-    const endCtrl   = stationCtrl[endName];
+    const endCtrl = stationCtrl[endName];
 
     if (!startCtrl && !endCtrl) {
         wrap.style.display = 'none';
@@ -610,11 +635,11 @@ function updateStartEndWarning(stationCtrl, startName, endName) {
     const groups = new Map();   // typeText → [{role, name}]
     if (startCtrl) {
         if (!groups.has(startCtrl.typeText)) groups.set(startCtrl.typeText, []);
-        groups.get(startCtrl.typeText).push({ role: '起点', name: startName });
+        groups.get(startCtrl.typeText).push({role: '起点', name: startName});
     }
     if (endCtrl) {
         if (!groups.has(endCtrl.typeText)) groups.set(endCtrl.typeText, []);
-        groups.get(endCtrl.typeText).push({ role: '终点', name: endName });
+        groups.get(endCtrl.typeText).push({role: '终点', name: endName});
     }
 
     wrap.innerHTML = [...groups.entries()].map(([typeText, entries]) => {

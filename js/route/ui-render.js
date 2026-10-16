@@ -612,9 +612,9 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
 
     let deltaHtml = '';
     if (sortMode === 'fewer-transfers'
-        && item.deltaFromViewOptimal != null
-        && item.deltaFromViewOptimal > 0) {
-        deltaHtml = `<span class="route-delta">比最优慢 ${formatDelta(item.deltaFromViewOptimal)}</span>`;
+        && item.deltaFromFastest != null
+        && item.deltaFromFastest > 0) {
+        deltaHtml = `<span class="route-delta">比最快优先慢 ${formatDelta(item.deltaFromFastest)}</span>`;
     }
 
     // 换乘路径：显示换乘站；直达路径：显示乘车方向（如"往龙潭"）
@@ -896,7 +896,6 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                      <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0)}</div>
                         <div class="route-sub">
                             <span>⏱ ${formatDuration(item.totalCost)}</span>
-                            <span>换 ${item.interchanges.length} 次</span>
                             <span>${item.stationRoute.length + 2} 站</span>
                             <span>🚏 ${escapeHtml(transferText)}</span>
                             ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}

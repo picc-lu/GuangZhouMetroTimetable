@@ -242,6 +242,7 @@ if (typeof loadShortServices === 'function') loadShortServices();
 initStationSearch();
 initNearbyButton();
 initRouteUI();
+loadManualTransfers();   // ★ 新增：后台加载手工换乘映射
 
 // 绑定获取数据按钮事件
 document.getElementById('fetch-data-btn').addEventListener('click', async () => {

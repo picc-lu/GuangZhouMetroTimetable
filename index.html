@@ -214,20 +214,46 @@
         });
     }
 
-    function showSwUpdateToast(reg) {
+    async function showSwUpdateToast(reg) {
         if (document.getElementById('sw-update-toast')) return;
+
+        // 拉取 changelog（不缓存）
+        let latest = null;
+        try {
+            const resp = await fetch('./data/changelog.json', { cache: 'no-store' });
+            if (resp.ok) {
+                const data = await resp.json();
+                latest = (data.entries && data.entries[0]) || null;
+            }
+        } catch (_) { /* 拉不到就只显示通用提示 */ }
 
         const toast = document.createElement('div');
         toast.id = 'sw-update-toast';
         toast.className = 'sw-update-toast';
+
+        const bodyHtml = latest
+            ? `<div class="sw-update-version">
+               <span class="sw-update-tag">v${escapeHtml(latest.version)}</span>
+               ${latest.date ? `<span class="sw-update-date">${escapeHtml(latest.date)}</span>` : ''}
+           </div>
+           <ul class="sw-update-list">
+               ${(latest.items || []).map(t => `<li>${escapeHtml(t)}</li>`).join('')}
+           </ul>`
+            : `<div class="sw-update-empty">新版本已就绪，点击下方按钮立即体验</div>`;
+
         toast.innerHTML = `
-        <span>🎉 新版本已就绪</span>
-        <button type="button" class="sw-update-btn">立即刷新</button>
-        <button type="button" class="sw-update-close" aria-label="关闭">✕</button>
+        <div class="sw-update-panel">
+            <div class="sw-update-title">🎉 发现新版本</div>
+            <div class="sw-update-body">${bodyHtml}</div>
+            <div class="sw-update-actions">
+                <button type="button" class="sw-update-btn-cancel">稍后</button>
+                <button type="button" class="sw-update-btn">立即刷新</button>
+            </div>
+        </div>
     `;
         document.body.appendChild(toast);
 
-        toast.querySelector('.sw-update-close').addEventListener('click', () => toast.remove());
+        toast.querySelector('.sw-update-btn-cancel').addEventListener('click', () => toast.remove());
         toast.querySelector('.sw-update-btn').addEventListener('click', () => {
             startSwUpdateAnimation(reg);
         });
@@ -248,8 +274,8 @@
         _swUpdating = true;
 
         const toast = document.getElementById('sw-update-toast');
-        const btn = toast ? toast.querySelector('.sw-update-btn') : null;
-        const closeBtn = toast ? toast.querySelector('.sw-update-close') : null;
+        const btn      = toast ? toast.querySelector('.sw-update-btn') : null;
+        const closeBtn = toast ? toast.querySelector('.sw-update-btn-cancel') : null;   // ★ 改这里
 
         // 禁用按钮，防止重复触发
         if (btn) {

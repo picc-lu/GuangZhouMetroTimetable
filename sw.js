@@ -1,5 +1,5 @@
 // 版本号变更时触发缓存更新（改 constants.js 里的 APP_VERSION 即可）
-const CACHE_NAME = `gz-metro-v1.1.17`;
+const CACHE_NAME = `gz-metro-v1.1.18`;
 const ASSETS = [
     './',
     './index.html',
@@ -32,6 +32,7 @@ const ASSETS = [
     './data/metro-graph.json',
     './data/line3-through-train.json',
     './data/short-services.json',
+    './data/transfers.json',
     './css/route.css',
     './js/route/heap.js',
     './js/route/graph.js',
@@ -74,18 +75,19 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // API 请求交给浏览器处理（已有 localStorage 缓存和重试机制，不经过 SW）
+    // API 请求交给浏览器处理
     if (url.hostname === 'apis.gzmtr.com') return;
+    if (url.hostname === 'ydyc.gzmtr.cn') return;   // ★ 新增：车站管制 API
 
-    // 只处理 GET
+    // changelog 每次实时拉取，不走缓存
+    if (url.pathname.endsWith('/data/changelog.json')) return;   // ★ 新增
+
     if (event.request.method !== 'GET') return;
 
-    // 静态资源：Cache First
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
             return fetch(event.request).then(resp => {
-                // 只缓存同源成功响应
                 if (!resp || resp.status !== 200 || resp.type !== 'basic') return resp;
                 const clone = resp.clone();
                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));

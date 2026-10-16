@@ -512,16 +512,17 @@ function routeMetaText() {
         return `目标到达 ${fmtHM(min)}（${mode}） · 仅显示 3 个结果`;
     }
 
-    let extra = '';
+    const line1 = `出发时刻 ${fmtHM(min)}（${mode}）`;
     if (sortMode === 'fewer-transfers') {
-        extra = ' · 最多显示 5 个结果，排除比最优慢 >30 分钟的结果';
+        return line1
+            + `<br><span class="route-meta-sub">最多显示 5 个结果，仅显示比「最快优先」首位慢 30 分钟以内的结果</span>`;
     }
-    return `出发时刻 ${fmtHM(min)}（${mode}）${extra}`;
+    return line1;
 }
 
-function setRouteMeta(text) {
+function setRouteMeta(html) {
     const el = _routeOverlay && _routeOverlay.querySelector('#route-meta');
-    if (el) el.textContent = text;
+    if (el) el.innerHTML = html;
 }
 
 /** 隐藏所有图例（5 分钟紧急 + 3 号线跨段） */

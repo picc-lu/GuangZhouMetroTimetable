@@ -8,9 +8,13 @@
 }
 
 [data-theme="dark"] .banner {
-    background: #8b1a2b;
-    border-bottom-color: #6b101f;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    background-color: #131a26;
+    background-image:
+            radial-gradient(circle 100px at 5% 100%, var(--banner-c3, #1a2030) 0%, transparent 100%),
+            radial-gradient(circle 100px at 95% 0%, var(--banner-c4, #1a2030) 0%, transparent 100%);
+    color: #e2e8f0;
+    border-bottom-color: #2d3748;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .notice-area {
@@ -83,13 +87,15 @@
 
 [data-theme="dark"] .time-panel,
 [data-theme="dark"] .system-time-area,
-[data-theme="dark"] .filter-area{
+[data-theme="dark"] .filter-area,
+[data-theme="dark"] .size-control {
     background: #1a2030;
     border-color: #2d3748;
 }
 
 [data-theme="dark"] .time-panel label,
-[data-theme="dark"] .filter-area label{
+[data-theme="dark"] .filter-area label,
+[data-theme="dark"] .size-control label {
     background: #232b3d;
     color: #cbd5e1;
 }
@@ -164,7 +170,6 @@
 
 [data-theme="dark"] .line-container {
     background: #1a2030;
-    /* border-color 由 --line-color 控制，保留线路色边框 */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
@@ -305,7 +310,7 @@
     border-left-color: #2d3748;
 }
 
-/* 3号线提示卡片（如果用内联） */
+/* 3号线提示卡片 */
 [data-theme="dark"] .modal-content > div[style*="color: #333"] {
     color: #cbd5e1 !important;
 }
@@ -344,7 +349,7 @@
     color: #48484a !important;
 }
 
-/* 时间卡片的默认未激活颜色（lineActive=false 时的字体） */
+/* 时间卡片的默认未激活颜色 */
 [data-theme="dark"] .v-card .v-time-line {
     color: var(--up-color, #cbd5e1);
 }
@@ -559,8 +564,41 @@
     border-top-color: #2d3748;
 }
 
-[data-theme="dark"] .sw-update-toast {
-    background: rgba(35, 43, 61, 0.96);
+/* ==========================================
+   SW 更新弹窗（夜间模式）
+   ========================================== */
+[data-theme="dark"] .sw-update-panel {
+    background: #1a2030;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .sw-update-title {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .sw-update-list {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .sw-update-empty {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .sw-update-actions {
+    border-top-color: #2d3748;
+}
+
+[data-theme="dark"] .sw-update-btn-cancel {
+    background: #2d3748;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .sw-update-btn-cancel:hover {
+    background: #3a4559;
+}
+
+[data-theme="dark"] .sw-update-date {
+    color: #64748b;
 }
 
 [data-theme="dark"] .sw-update-overlay {
@@ -595,14 +633,4 @@
     background: #264a74;
     border-color: #3a6aa0;
     box-shadow: 0 4px 8px rgba(93, 160, 255, 0.18);
-}
-
-[data-theme="dark"] .banner {
-    background-color: #131a26;
-    background-image:
-            radial-gradient(circle 100px at 5% 100%, var(--banner-c3, #1a2030) 0%, transparent 100%),
-            radial-gradient(circle 100px at 95% 0%, var(--banner-c4, #1a2030) 0%, transparent 100%);
-    color: #e2e8f0;
-    border-bottom-color: #2d3748;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
