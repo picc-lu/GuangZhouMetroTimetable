@@ -493,7 +493,7 @@ async function runRoutePlanning() {
 
         const hasUrgent = r.results.some(item =>
             (item.boardingMargins || []).some(m =>
-                m != null && m !== 'unknown' && m >= 0 && m <= 5
+                m != null && m !== 'unknown' && m >= 0 && m <= 15
             )
         );
         const legendEl = _routeOverlay.querySelector('#route-legend');

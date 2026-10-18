@@ -1,6 +1,53 @@
 // ========== API 请求函数 ==========
 const AUTO_RETRY_MAX = 10;   // 自动重试最大次数
 let _autoRetryCount = 0;
+// 票价缓存键名
+const FARE_CACHE_KEY = 'gz_metro_fare_cache';
+
+/** 获取当前运营日（凌晨 5:00 为分界点） */
+function getFareServiceDate() {
+    const d = new Date();
+    if (d.getHours() < 5) d.setDate(d.getDate() - 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/** 读取本地持久化缓存 */
+function loadFareCache() {
+    try {
+        const raw = localStorage.getItem(FARE_CACHE_KEY);
+        if (!raw) return {};
+        const obj = JSON.parse(raw);
+        if (obj.serviceDate !== getFareServiceDate()) {
+            localStorage.removeItem(FARE_CACHE_KEY);
+            return {};
+        }
+        return obj.data || {};
+    } catch (_) {
+        return {};
+    }
+}
+
+/** 写入本地持久化缓存 */
+function saveFareCache(data) {
+    try {
+        localStorage.setItem(FARE_CACHE_KEY, JSON.stringify({
+            serviceDate: getFareServiceDate(),
+            data: data
+        }));
+    } catch (_) {}
+}
+
+// 内存中的镜像，避免频繁解析 localStorage
+let _fareCacheMemory = null;
+function getFareCache() {
+    if (!_fareCacheMemory) {
+        _fareCacheMemory = loadFareCache();
+    }
+    return _fareCacheMemory;
+}
 /** 带重试的fetch */
 async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeoutMs = 8000) {
     for (let i = 0; i < retries; i++) {
@@ -274,7 +321,10 @@ const _fareCache = new Map();
 async function fetchRouteFare(startStation, endStation) {
     if (!startStation || !endStation) return null;
     const key = `${startStation}|${endStation}`;
-    if (_fareCache.has(key)) return _fareCache.get(key);
+    const cache = getFareCache();
+
+    // 检查缓存
+    if (cache[key] !== undefined) return cache[key];
 
     const url = 'https://apis.gzmtr.com/app-map/metroweb/route/'
         + encodeURIComponent(startStation) + '/'
@@ -284,7 +334,10 @@ async function fetchRouteFare(startStation, endStation) {
         const data = await requestWithRetry(url, { method: 'POST' }, 2, 5000);
         const price = data?.businessObject?.price;
         const fare = (typeof price === 'number' && price > 0) ? price : null;
-        _fareCache.set(key, fare);
+
+        // 写入内存与 localStorage
+        cache[key] = fare;
+        saveFareCache(cache);
         return fare;
     } catch (err) {
         console.warn(`[票价] ${startStation} → ${endStation} 获取失败：`, err);

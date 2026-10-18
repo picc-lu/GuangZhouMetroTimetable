@@ -656,3 +656,14 @@
     font-weight: 700;
     flex-shrink: 0;
 }
+
+/* 禁用的排序选项（夜间模式） */
+[data-theme="dark"] .route-sort-option.is-disabled {
+    background: #1a2030 !important;
+    border-color: #2d3748 !important;
+}
+
+[data-theme="dark"] .route-sort-option.is-disabled .route-sort-label,
+[data-theme="dark"] .route-sort-option.is-disabled .route-sort-hint {
+    color: #475569 !important;
+}

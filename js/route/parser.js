@@ -191,18 +191,81 @@ function parseRouteSegments(path, departMin) {
         }
     }
 
+    // 👇 ★ 新增 2.5：检测 3 号线跨南北段且无直达车的情况，强制拆分为两段 👇
+    const splitMerged = [];
+    for (let i = 0; i < merged.length; i++) {
+        const seg = merged[i];
+        if (seg.fullLine === '3号线') {
+            const isNorth = (st) => {
+                if (typeof _isLine3NorthStation === 'function') return _isLine3NorthStation(st);
+                if (typeof LINE3_NORTH_STATIONS !== 'undefined' && LINE3_NORTH_STATIONS.has(st)) return true;
+                if (st === '机场北' && typeof LINE3_NORTH_STATIONS !== 'undefined' && LINE3_NORTH_STATIONS.has('机场北（T2）')) return true;
+                return false;
+            };
+            const isSouth = (st) => (typeof LINE3_MAIN_SOUTH !== 'undefined' && LINE3_MAIN_SOUTH.has(st));
+            const isBranch = (st) => (typeof LINE3_BRANCH !== 'undefined' && LINE3_BRANCH.has(st));
+
+            const fromIsNorthOrBranch = isNorth(seg.fromStation) || isBranch(seg.fromStation);
+            const toIsSouth = isSouth(seg.toStation);
+            const fromIsSouth = isSouth(seg.fromStation);
+            const toIsNorthOrBranch = isNorth(seg.toStation) || isBranch(seg.toStation);
+
+            // 只要横跨了南北段（比如北段/支线 -> 南段，或者南段 -> 北段/支线）
+            const isCross = (fromIsNorthOrBranch && toIsSouth) || (fromIsSouth && toIsNorthOrBranch);
+
+            if (isCross) {
+                let needsSplit = false;
+                let currentMin = dt;
+                if (currentMin == null && typeof getRouteDepartMin === 'function') {
+                    currentMin = getRouteDepartMin();
+                }
+                currentMin = currentMin || 0;
+
+                if (fromIsNorthOrBranch && toIsSouth) {
+                    // 北/支线 -> 南段：出发时间 >= 22:51（1371分钟）时，无贯通车，强制拆分
+                    if (currentMin >= 1371) {
+                        needsSplit = true;
+                    }
+                } else if (fromIsSouth && toIsNorthOrBranch) {
+                    // 南段 -> 北/支线：如果没有贯通车（通过函数判断），强制拆分
+                    if (typeof isThroughTrainAvailable === 'function') {
+                        needsSplit = !isThroughTrainAvailable(seg.fromStation, currentMin);
+                    } else {
+                        needsSplit = true;
+                    }
+                }
+
+                if (needsSplit) {
+                    splitMerged.push({
+                        fullLine: '3号线',
+                        fromStation: seg.fromStation,
+                        toStation: '体育西路',
+                        rawDirection: seg.rawDirection
+                    });
+                    splitMerged.push({
+                        fullLine: '3号线',
+                        fromStation: '体育西路',
+                        toStation: seg.toStation,
+                        rawDirection: seg.rawDirection
+                    });
+                    continue;
+                }
+            }
+        }
+        splitMerged.push(seg);
+    }
+
     // 3. 合并零长度段（fromStation === toStation 的过渡段）
-    // 场景：体育西路同时有 3号线南段与北段的站台节点，
-    // 两条 segKey 不同（south / north）会产生一个只含单站的零长度段，
-    // 后续被 virtualSplitAfter 误判为虚拟 3→3 换乘，插入多余的换乘指引。
+    // 场景：体育西路同时有 3号线南段与北段的站台节点，或者跨线路时产生的伪节点，
+    // 会产生一个只含单站的零长度段，直接舍弃并顺延起点。
     const compacted = [];
     for (let i = 0; i < merged.length; i++) {
         const cur = merged[i];
-        if (cur.fromStation === cur.toStation
-            && i + 1 < merged.length
-            && merged[i + 1].fullLine === cur.fullLine) {
-            // 把零长度段并入下一段（下一段的起点改为当前段的起点）
-            merged[i + 1].fromStation = cur.fromStation;
+        if (cur.fromStation === cur.toStation) {
+            // 零长度段直接丢弃，把起点顺延给下一段（如果存在的话）
+            if (i + 1 < merged.length) {
+                merged[i + 1].fromStation = cur.fromStation;
+            }
             continue;
         }
         compacted.push(cur);

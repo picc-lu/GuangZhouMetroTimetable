@@ -25,10 +25,25 @@
       ]
     },
     "airportNorthToHaibang": {
-      "description": "机场北 → 海傍 贯通车（末班，待补数据）",
-      "calibration": null,
+      "description": "机场北 → 海傍 贯通车（末班，推算）",
+      "calibration": { "station": "林和西", "time": "22:51" },
       "keyTimes": {},
-      "stations": []
+      "stations": [
+        { "station": "机场北",        "line": "3号线", "time": "22:13", "timeMin": 1333 },
+        { "station": "机场南",        "line": "3号线", "time": "22:15", "timeMin": 1335 },
+        { "station": "高增",          "line": "3号线", "time": "22:18", "timeMin": 1338 },
+        { "station": "人和",          "line": "3号线", "time": "22:21", "timeMin": 1341 },
+        { "station": "龙归",          "line": "3号线", "time": "22:25", "timeMin": 1345 },
+        { "station": "嘉禾望岗",      "line": "3号线", "time": "22:29", "timeMin": 1349 },
+        { "station": "白云大道北",    "line": "3号线", "time": "22:33", "timeMin": 1353 },
+        { "station": "永泰",          "line": "3号线", "time": "22:35", "timeMin": 1355 },
+        { "station": "同和",          "line": "3号线", "time": "22:38", "timeMin": 1358 },
+        { "station": "京溪南方医院",  "line": "3号线", "time": "22:41", "timeMin": 1361 },
+        { "station": "梅花园",        "line": "3号线", "time": "22:43", "timeMin": 1363 },
+        { "station": "燕塘",          "line": "3号线", "time": "22:46", "timeMin": 1366 },
+        { "station": "广州东站",      "line": "3号线", "time": "22:49", "timeMin": 1369 },
+        { "station": "林和西",        "line": "3号线", "time": "22:51", "timeMin": 1371 }
+      ]
     }
   }
 }

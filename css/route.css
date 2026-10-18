@@ -2652,3 +2652,17 @@
 [data-theme="dark"] .route-empty-detail {
     color: #94a3b8;
 }
+
+/* 禁用的排序选项 */
+.route-sort-option.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: none !important;
+}
+
+.route-sort-option.is-disabled .route-sort-label,
+.route-sort-option.is-disabled .route-sort-hint {
+    color: #94a3b8 !important;
+}

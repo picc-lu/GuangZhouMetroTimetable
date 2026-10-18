@@ -29,7 +29,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
 
     return `<span class="route-segments">` + segs.map((s, i) => {
         const m = margins[i];
-        const isUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 5);
+        const isUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 15);
         const is3LineWarn = has3LineWarning && s.fullLine === '3号线';
 
         const urgentSvg = isUrgent
@@ -189,7 +189,7 @@ function getBoardingTimeAtStation(path, station, lineName) {
 /* ==========================================
    从路径中提取指定线路、指定站的上车方向
    ========================================== */
-function getSegmentDirection(path, station, lineName) {
+function getSegmentDirection(path, station, lineName, forcedEnd = null) {
     if (!lineName || !path || !path.nodes) return null;
 
     if (lineName === '11号线') {
@@ -254,37 +254,45 @@ function getSegmentDirection(path, station, lineName) {
     const inNorth = _isLine3NorthStation(station);
 
     // ---------- 分支 A：南段北向（珠江新城~海傍 → 往北） ----------
-    // Java 图南段站的北向字段是"机场北方向"（图未区分南北），
-    // Web 数据里 3 号线的终点只有 {天河客运站, 海傍}，
-    // 所以必须手动判断目的地是否越过体育西路。
     if (isL3 && inSouth && !inNorth
         && (rawDirection.includes('机场北') || rawDirection.includes('体育西路'))) {
-        const segEnd = getSegmentEndStation(path, station, lineName);
+        const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
         const arr3 = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS['3号线']) || [];
         const idxSegEnd = findStationIndex(arr3, segEnd);
         const idxTyxl   = findStationIndex(arr3, '体育西路');
         const notCrossTyx = idxSegEnd >= 0 && idxTyxl >= 0 && idxSegEnd <= idxTyxl;
 
-        // 目的地未越过体育西路 → 两种方向的车都能到
+        // 👇 新增：判断当前时刻是否还有开往机场北方向的贯通车 👇
+        const hasThrough = typeof isThroughTrainAvailable === 'function'
+            && isThroughTrainAvailable(station, currentMin);
+
         if (notCrossTyx) {
-            return '机场北 / 天河客运站方向';
+            // 如果目的地未越过体育西路（比如就是去体育西路），
+            // 如果有贯通车，两个方向都能上；如果没有贯通车，只能上往天河客运站的车。
+            if (hasThrough) {
+                return '机场北 / 天河客运站方向';
+            } else {
+                return '天河客运站方向';
+            }
         }
-        // 目的地越过体育西路 → 只有贯通车（往机场北）能到
-        if (typeof isThroughTrainAvailable === 'function'
-            && isThroughTrainAvailable(station, currentMin)) {
+
+        // 如果目的地越过了体育西路（去往北段），只有贯通车能到
+        if (hasThrough) {
             return '机场北方向';
         }
+
+        // 兜底：没有贯通车了，返回原始映射
         const resolved = resolveJavaDirectionToWeb(lineName, station, rawDirection);
         return resolved.dir;
     }
 
     // ---------- 分支 B：南段南向（体育西路~汉溪长隆 → 往南） ----------
-    // Web 数据里南向终点只记"海傍"，但实际有列车在大石 / 番禺广场折返。
     if (isL3 && (inSouth || station === '体育西路')
-        && rawDirection.includes('海傍')) {
-        const segEnd = getSegmentEndStation(path, station, lineName);
+        && (rawDirection.includes('海傍') || rawDirection.includes('体育西路'))) {
+        const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
         const SOUTH_TERMINALS = ['大石', '番禺广场', '海傍'];
         const idxSegEnd = LINE3_SOUTH_ORDER.indexOf(segEnd);
+
         if (idxSegEnd >= 0) {
             const targets = SOUTH_TERMINALS.filter(t => {
                 const idx = LINE3_SOUTH_ORDER.indexOf(t);
@@ -292,6 +300,7 @@ function getSegmentDirection(path, station, lineName) {
             });
             if (targets.length > 0) return targets.join(' / ') + '方向';
         }
+        // 如果没有匹配到具体的南段终点，或者未越过体育西路，返回完整的南向终点列表
         return SOUTH_TERMINALS.join(' / ') + '方向';
     }
 
@@ -299,7 +308,7 @@ function getSegmentDirection(path, station, lineName) {
     // 白天有全程车（终点机场北），晚间可能有短线车（终点同和 / 嘉禾望岗）。
     if (isL3 && inNorth && !inSouth
         && rawDirection.includes('机场北')) {
-        const segEnd = getSegmentEndStation(path, station, lineName);
+        const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
         const idxSegEnd = findStationIndex(LINE3_NORTH_ORDER, segEnd);
         if (idxSegEnd >= 0) {
             const NORTH_TERMINALS = ['机场北（T2）', '嘉禾望岗', '同和'];
@@ -317,7 +326,13 @@ function getSegmentDirection(path, station, lineName) {
     // 但实际有列车继续开到 大石 / 番禺广场 / 海傍。
     if (isL3 && inNorth && !inSouth
         && (rawDirection.includes('体育西路') || rawDirection.includes('海傍'))) {
-        const segEnd = getSegmentEndStation(path, station, lineName);
+        const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
+
+        // ★ 新增：如果本段目的地就是体育西路，说明不再继续往南，直接返回
+        if (segEnd === '体育西路') {
+            return '体育西路方向';
+        }
+
         // 目的地仍在北段内 → 全部南向终点都可到达
         const arrNorth = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS['3号线北']) || [];
         const idxSegEndNorth = findStationIndex(arrNorth, segEnd);
@@ -434,7 +449,6 @@ function getSegmentDirection(path, station, lineName) {
 function getSegmentEndStation(path, startStation, lineName) {
     let foundStart = false;
     let lastStation = null;
-    let startRawLine = null;   // ★ 记录起点所在的原始线路名（3号线 / 3号线北）
 
     // 归并：3号线北 视同 3号线（仅用于判断"是否同属 3 号线系统"）
     const normLine = (n) => {
@@ -460,11 +474,8 @@ function getSegmentEndStation(path, startStation, lineName) {
             if (isSameStation(st, startStation)) {
                 foundStart = true;
                 lastStation = st;
-                startRawLine = parts[0];   // ★ 记录原始行名
             }
         } else {
-            // ★ 原始行名改变（3号线 ↔ 3号线北）→ 到达该段结束
-            if (parts[0] !== startRawLine) break;
             if (!isSameStation(st, lastStation)) lastStation = st;
         }
     }
@@ -666,17 +677,13 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
         ? parseRouteSegments(item.path) : [];
 
     // 检测 3→3 虚拟换乘
-    // 只有"南段北向 → 北段北向（机场北方向）"才需要虚拟换乘；
-    // "南段北向 → 支线（天河客运站方向）"是同一趟车继续行驶，不需要换乘。
     const virtualSplitAfter = new Set();
     for (let i = 0; i < segs.length - 1; i++) {
         if (segs[i].fullLine === '3号线'
             && segs[i + 1].fullLine === '3号线'
             && segs[i].toStation === '体育西路') {
-            const nextDir = segs[i + 1].rawDirection || '';
-            if (nextDir.includes('机场北')) {
-                virtualSplitAfter.add(i);
-            }
+            // 👇 删掉原本对 nextDir 的限制，只要是在体育西路的 3->3 都算 👇
+            virtualSplitAfter.add(i);
         }
     }
 
@@ -702,7 +709,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
         const boardingPoints = [];
         const firstSeg = segs[0] || null;
         const firstDir = firstSeg
-            ? getSegmentDirection(item.path, startName, firstSeg.fullLine)
+            ? getSegmentDirection(item.path, startName, firstSeg.fullLine, firstSeg.toStation)
             : null;
 
         boardingPoints.push({
@@ -737,7 +744,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 ]);
 
                 // 判断目的地所属段
-                let virtualDir = '海傍方向';   // 默认南向
+                let virtualDir = '大石 / 番禺广场 / 海傍方向';
                 if (nextTo) {
                     const inNorth = (typeof LINE3_NORTH_STATIONS !== 'undefined')
                         && (LINE3_NORTH_STATIONS.has(nextTo)
@@ -749,8 +756,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                     } else if (inBranch) {
                         virtualDir = '天河客运站方向';
                     } else {
-                        // 南段或未识别 → 往南
-                        virtualDir = '海傍方向';
+                        virtualDir = '大石 / 番禺广场 / 海傍方向';
                     }
                 }
 
@@ -786,7 +792,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                     toShort:   routeShortLineName(toLine),
                     fullLine:  toLine,
                     lineShort: null,
-                    direction: getSegmentDirection(item.path, toStation, toLine),
+                    direction: getSegmentDirection(item.path, toStation, toLine, segs[si+1] ? segs[si+1].toStation : null),
                     note: g && g.detail ? g.detail : null,
                     door: null,
                     timeMin: o.timeMin,

@@ -146,7 +146,7 @@ function ensureRouteOverlay() {
                               stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
                         <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
                     </svg>
-                    <span>此标志表示到达该线路时，距离末班车小于 5 分钟，请慎重选择</span>
+                    <span>此标志表示到达该线路时，距离末班车小于 15 分钟，请慎重选择</span>
                 </div>
                 <div class="route-legend route-legend-3line" id="route-legend-3line" style="display:none">
                     <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -208,6 +208,7 @@ function ensureRouteOverlay() {
             const nowBtn = ov.querySelector('#route-now');
             if (nowBtn) nowBtn.style.display = _routeArriveMode ? 'none' : '';
             setRouteMeta(routeMetaText());
+            updateSortOptionStatus();
         });
     }
 
@@ -332,6 +333,7 @@ function ensureRouteOverlay() {
     });
 
     applyRoutePrefs(ov);
+    updateSortOptionStatus();
     return ov;
 }
 
@@ -368,6 +370,7 @@ function initRouteTimePickers(ov) {
         `<div class="route-time-cell" data-minute="${m}">${String(m).padStart(2, '0')}</div>`
     ).join('');
 
+    // 1. 选择小时
     hourPanel.querySelectorAll('.route-time-cell').forEach(cell => {
         cell.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -377,9 +380,11 @@ function initRouteTimePickers(ov) {
             hourTrigger.textContent = String(h).padStart(2, '0');
             hourPanel.style.display = 'none';
             setRouteMeta(routeMetaText());
+            updateSortOptionStatus(); // 👈 新增
         });
     });
 
+    // 2. 选择分钟
     minutePanel.querySelectorAll('.route-time-cell').forEach(cell => {
         cell.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -389,7 +394,18 @@ function initRouteTimePickers(ov) {
             minuteTrigger.textContent = String(m).padStart(2, '0');
             minutePanel.style.display = 'none';
             setRouteMeta(routeMetaText());
+            updateSortOptionStatus(); // 👈 新增
         });
+    });
+
+    // 3. 点击“现在”
+    ov.querySelector('#route-now').addEventListener('click', () => {
+        _routeDepartMin = null;
+        refreshRouteTimeTriggers();
+        setRouteMeta(routeMetaText());
+        updateSortOptionStatus(); // 👈 新增
+        hourPanel.style.display = 'none';
+        minutePanel.style.display = 'none';
     });
 
     hourTrigger.addEventListener('click', (e) => {
@@ -532,4 +548,38 @@ function hideAllRouteLegends() {
     const l2 = _routeOverlay.querySelector('#route-legend-3line');
     if (l1) l1.style.display = 'none';
     if (l2) l2.style.display = 'none';
+}
+
+/** 根据当前设置的时间，动态更新排序选项的禁用状态 */
+function updateSortOptionStatus() {
+    if (!_routeOverlay) return;
+
+    // 获取当前选定的时间（出发模式为出发时间，到达模式为目标到达时间）
+    const timeMin = getRouteDepartMin();
+
+    // 判断是否在 05:00 (300) ~ 21:00 (1260) 之间
+    const isDaytime = (timeMin >= 5 * 60 && timeMin < 21 * 60);
+
+    const consInput = _routeOverlay.querySelector('input[name="route-sort"][value="conservative"]');
+    if (!consInput) return;
+    const consLabel = consInput.closest('.route-sort-option');
+
+    if (isDaytime) {
+        // 白天：禁用
+        consInput.disabled = true;
+        consLabel.classList.add('is-disabled');
+
+        // 如果此时选中的正好是“保守优先”，自动切回“最快优先”
+        if (consInput.checked) {
+            const fastestRadio = _routeOverlay.querySelector('input[name="route-sort"][value="fastest"]');
+            if (fastestRadio) {
+                fastestRadio.checked = true;
+                setRouteMeta(routeMetaText()); // 刷新底部提示文字
+            }
+        }
+    } else {
+        // 夜间：恢复
+        consInput.disabled = false;
+        consLabel.classList.remove('is-disabled');
+    }
 }
