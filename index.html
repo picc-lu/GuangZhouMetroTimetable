@@ -246,13 +246,31 @@
         toast.id = 'sw-update-toast';
         toast.className = 'sw-update-toast';
 
+        // ★ 新增渲染工具函数：解析带标签的 item
+        const renderItems = (items) => {
+            return (items || []).map(item => {
+                if (typeof item === 'string') {
+                    return `<li>${escapeHtml(item)}</li>`;
+                }
+                const typeStr = item.type || '更新';
+                let typeClass = 'sw-tag-default';
+                if (typeStr.includes('新增')) typeClass = 'sw-tag-feat';
+                else if (typeStr.includes('修复')) typeClass = 'sw-tag-fix';
+                else if (typeStr.includes('优化')) typeClass = 'sw-tag-opt';
+                else if (typeStr.includes('调整') || typeStr.includes('改')) typeClass = 'sw-tag-update';
+
+                return `<li><span class="sw-update-type ${typeClass}">${escapeHtml(typeStr)}</span>${escapeHtml(item.text)}</li>`;
+            }).join('');
+        };
+
+        // 替换原本的 bodyHtml
         const bodyHtml = latest
             ? `<div class="sw-update-version">
                <span class="sw-update-tag">v${escapeHtml(latest.version)}</span>
                ${latest.date ? `<span class="sw-update-date">${escapeHtml(latest.date)}</span>` : ''}
            </div>
            <ul class="sw-update-list">
-               ${(latest.items || []).map(t => `<li>${escapeHtml(t)}</li>`).join('')}
+               ${renderItems(latest.items)}
            </ul>`
             : `<div class="sw-update-empty">新版本已就绪，点击下方按钮立即体验</div>`;
 

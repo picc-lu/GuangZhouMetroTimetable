@@ -388,6 +388,9 @@ html, body {
     font-weight: 600;
 }
 
+/* ==========================================
+   更新日志（列表 & 标签框）
+   ========================================== */
 .sw-update-list {
     margin: 0;
     padding-left: 20px;
@@ -397,13 +400,39 @@ html, body {
 }
 
 .sw-update-list li {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     padding-left: 2px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
 }
 
 .sw-update-list li::marker {
     color: #2b7de9;
 }
+
+/* 标签框基础样式 */
+.sw-update-type {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    line-height: 1.4;
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+
+/* 新增 - 绿色 */
+.sw-tag-feat { background: #dcfce7; color: #166534; }
+/* 修复 - 红色 */
+.sw-tag-fix { background: #fee2e2; color: #991b1b; }
+/* 优化 - 蓝色 */
+.sw-tag-opt { background: #e0f2fe; color: #0369a1; }
+/* 调整 - 橙色 */
+.sw-tag-update { background: #fef3c7; color: #92400e; }
+/* 默认 - 灰色 */
+.sw-tag-default { background: #f1f5f9; color: #475569; }
 
 .sw-update-empty {
     text-align: center;

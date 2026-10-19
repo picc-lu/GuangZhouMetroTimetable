@@ -16,11 +16,13 @@ function buildRouteSuggestions(r, currentCfg) {
             label: '关闭"单次换乘时间不超过"',
             value: '',
         });
-        if (currentCfg.maxTransferMin < 15) {
+        // ★ 动态计算：当前设置 + 1 分钟，最大不超过 60 分钟
+        if (currentCfg.maxTransferMin < 60) {
+            const nextLimit = currentCfg.maxTransferMin + 1;
             suggestions.push({
                 action: 'set-max-transfer',
-                label: `放宽到 15 分钟`,
-                value: 15,
+                label: `放宽到 ${nextLimit} 分钟`,
+                value: nextLimit,
             });
         }
     }
@@ -491,13 +493,30 @@ async function runRoutePlanning() {
         }
 
         // 渲染图例
-        const hasUrgent = r.results.some(item =>
-            (item.boardingMargins || []).some(m =>
-                m != null && m !== 'unknown' && m >= 0 && m <= 15
-            )
-        );
+        let hasUrgent5 = false;
+        let hasUrgent15 = false;
+
+        r.results.forEach(item => {
+            (item.boardingMargins || []).forEach(m => {
+                if (m != null && m !== 'unknown') {
+                    if (m >= 0 && m <= 5) hasUrgent5 = true;
+                    else if (m > 5 && m <= 15) hasUrgent15 = true;
+                }
+            });
+        });
+
         const legendEl = _routeOverlay.querySelector('#route-legend');
-        if (legendEl) legendEl.style.display = hasUrgent ? 'flex' : 'none';
+        if (legendEl) {
+            // 只要有任意一个警告，就显示外框
+            legendEl.style.display = (hasUrgent5 || hasUrgent15) ? 'flex' : 'none';
+        }
+
+        // 分别控制内部两行的显隐
+        const row15El = _routeOverlay.querySelector('#route-legend-row-15');
+        if (row15El) row15El.style.display = hasUrgent15 ? 'flex' : 'none';
+
+        const row5El = _routeOverlay.querySelector('#route-legend-row-5');
+        if (row5El) row5El.style.display = hasUrgent5 ? 'flex' : 'none';
 
         const has3LineWarning = r.results.some(item =>
             item.warnings && item.warnings.some(w => w.risky3LineFrom && w.risky3LineTo)

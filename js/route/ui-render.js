@@ -29,21 +29,26 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
 
     return `<span class="route-segments">` + segs.map((s, i) => {
         const m = margins[i];
-        const isUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 15);
+        const isExtremeUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 5);
+        const isUrgent = (m != null && m !== 'unknown' && m > 5 && m <= 15);
         const is3LineWarn = has3LineWarning && s.fullLine === '3号线';
 
-        const urgentSvg = isUrgent
-            ? `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
-                   <path d="M12 2 L22 20 L2 20 Z"
-                         fill="#f59e0b"
-                         stroke="#1f2b3c"
-                         stroke-width="1.8"
-                         stroke-linejoin="round"/>
-                   <line x1="12" y1="9" x2="12" y2="14"
-                         stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
+        let urgentSvg = '';
+        if (isExtremeUrgent) {
+            // 小于 5 分钟：红色实心警告
+            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
+                   <circle cx="12" cy="12" r="10" fill="#dc2626"/>
+                   <line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                   <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
+               </svg>`;
+        } else if (isUrgent) {
+            // 小于 15 分钟：黄色三角形警告
+            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
+                   <path d="M12 2 L22 20 L2 20 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+                   <line x1="12" y1="9" x2="12" y2="14" stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
                    <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
-               </svg>`
-            : '';
+               </svg>`;
+        }
 
         const warn3Svg = is3LineWarn
             ? `<svg class="route-segment-warn-3line" viewBox="0 0 24 24" aria-hidden="true">
@@ -54,7 +59,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
                </svg>`
             : '';
 
-        const badge = `<span class="route-segment-badge${isUrgent ? ' urgent' : ''}${is3LineWarn ? ' warn-3line' : ''}"
+        const badge = `<span class="route-segment-badge${(isUrgent || isExtremeUrgent) ? ' urgent' : ''}${is3LineWarn ? ' warn-3line' : ''}"
                             style="background:${s.color}; color:${s.textColor};">
                             ${escapeHtml(s.shortName)}${urgentSvg}${warn3Svg}
                        </span>`;
@@ -449,6 +454,29 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         }
     }
 
+    // ★ 新增：追加短路车终点（只要方向一致且能覆盖当前路径）
+    if (typeof getShortServicesOfLine === 'function') {
+        const shortServices = getShortServicesOfLine(lineName);
+        for (const svc of shortServices) {
+            const idxSvcStart = findStationIndex(lineStations, svc.start);
+            const idxSvcEnd = findStationIndex(lineStations, svc.end);
+            if (idxSvcStart >= 0 && idxSvcEnd >= 0) {
+                const svcIsForward = idxSvcEnd > idxSvcStart;
+                // 只有当运行方向与用户方向一致时才有效
+                if (svcIsForward === isForward) {
+                    // 短线车必须能覆盖用户的乘车区间（即短线终点在用户终点之后/同站）
+                    if ((isForward && idxSvcEnd >= idxEnd) || (!isForward && idxSvcEnd <= idxEnd)) {
+                        const cand = svc.end;
+                        if (!seen.has(cand)) {
+                            coveringTerminals.push(cand);
+                            seen.add(cand);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if (coveringTerminals.length === 0) return mappedDir;
 
     return coveringTerminals.join(' / ') + '方向';
@@ -715,7 +743,9 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
 
         let marginHtml = '';
         if (startMargin !== null && startMargin >= 0 && startMargin <= 15) {
-            marginHtml = `<span class="route-guide-margin urgent">剩${startMargin}分</span>`;
+            const m = Math.round(startMargin);
+            const text = m === 0 ? '即将结束运营' : `剩${m}分`;
+            marginHtml = `<span class="route-guide-margin urgent">${text}</span>`;
         }
 
         guideHtml = `<div class="route-guide">
@@ -881,7 +911,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             if (bp.marginMin != null && !isNaN(bp.marginMin)) {
                 const m = Math.round(bp.marginMin);
                 if (m >= 0 && m <= 15) {
-                    marginStr = `<span class="route-guide-margin urgent">剩${m}分</span>`;
+                    const text = m === 0 ? '即将结束运营' : `剩${m}分`;
+                    marginStr = `<span class="route-guide-margin urgent">${text}</span>`;
                 }
             }
 

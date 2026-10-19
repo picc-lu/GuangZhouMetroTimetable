@@ -150,17 +150,29 @@ function ensureRouteOverlay() {
                 <div class="route-meta" id="route-meta" style="display:none">正在加载线路图…</div>
                 <div class="route-startend-warning" id="route-startend-warning" style="display:none"></div>
                 <div class="route-legend" id="route-legend" style="display:none">
-                    <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                        <path d="M12 2 L22 20 L2 20 Z"
-                              fill="#f59e0b"
-                              stroke="#1f2b3c"
-                              stroke-width="1.8"
-                              stroke-linejoin="round"/>
-                        <line x1="12" y1="9" x2="12" y2="14"
-                              stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
-                        <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
-                    </svg>
-                    <span>此标志表示<u>到达该线路</u>时，距离末班车小于 15 分钟，请慎重选择</span>
+                    <!-- ★ 加上 ID -->
+                    <div class="route-legend-row" id="route-legend-row-15">
+                        <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                            <path d="M12 2 L22 20 L2 20 Z"
+                                  fill="#f59e0b"
+                                  stroke="#1f2b3c"
+                                  stroke-width="1.8"
+                                  stroke-linejoin="round"/>
+                            <line x1="12" y1="9" x2="12" y2="14"
+                                  stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
+                            <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
+                        </svg>
+                        <span>到达该线路时，距离末班车<u>小于 15 分钟</u></span>
+                    </div>
+                    <!-- ★ 加上 ID -->
+                    <div class="route-legend-row" id="route-legend-row-5">
+                        <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" fill="#dc2626"/>
+                            <line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                            <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
+                        </svg>
+                        <span>到达该线路时，距离末班车<u>小于 5 分钟</u>，请慎重选择</span>
+                    </div>
                 </div>
                 <div class="route-legend route-legend-3line" id="route-legend-3line" style="display:none">
                     <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">

@@ -197,8 +197,9 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         const stationRoute = parseStationRoute(p);
 
         const segs = parseRouteSegments(p);
+        // ★ 核心修复：加上 rawDirection，区分同起终点的内环/外环路径
         const semanticKey = segs
-            .map(s => `${s.fullLine}|${s.fromStation}→${s.toStation}`)
+            .map(s => `${s.fullLine}|${s.fromStation}→${s.toStation}|${s.rawDirection || ''}`)
             .join('>');
         if (semanticKeys.has(semanticKey)) {
             rejected.push({

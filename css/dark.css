@@ -667,3 +667,10 @@
 [data-theme="dark"] .route-sort-option.is-disabled .route-sort-hint {
     color: #475569 !important;
 }
+
+/* 夜间模式下的更新日志标签 */
+[data-theme="dark"] .sw-tag-feat { background: #14532d; color: #86efac; }
+[data-theme="dark"] .sw-tag-fix { background: #7f1d1d; color: #fca5a5; }
+[data-theme="dark"] .sw-tag-opt { background: #0c4a6e; color: #7dd3fc; }
+[data-theme="dark"] .sw-tag-update { background: #78350f; color: #fcd34d; }
+[data-theme="dark"] .sw-tag-default { background: #2d3748; color: #cbd5e1; }
