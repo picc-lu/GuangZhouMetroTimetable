@@ -246,12 +246,14 @@
         toast.id = 'sw-update-toast';
         toast.className = 'sw-update-toast';
 
-        // ★ 新增渲染工具函数：解析带标签的 item
+        // ★ 新增渲染工具函数：解析带标签的 item，兼容新旧格式
         const renderItems = (items) => {
             return (items || []).map(item => {
+                // 兼容旧版纯字符串格式
                 if (typeof item === 'string') {
                     return `<li>${escapeHtml(item)}</li>`;
                 }
+                // 处理新版对象格式
                 const typeStr = item.type || '更新';
                 let typeClass = 'sw-tag-default';
                 if (typeStr.includes('新增')) typeClass = 'sw-tag-feat';
