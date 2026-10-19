@@ -116,5 +116,9 @@ function applyRoutePrefs(ov) {
     const aoc = ov.querySelector('#route-avoid-outdoor-check');
     if (aoc) aoc.checked = !!prefs.avoidOutOfStation;
 
+    // ★ 新增：尽量不走客控中的换乘站
+    const acc = ov.querySelector('#route-avoid-ctrl-check');
+    if (acc) acc.checked = !!prefs.avoidCtrlTransfer;
+
     // 不再恢复 advancedOpen：每次打开弹窗都默认收起
 }

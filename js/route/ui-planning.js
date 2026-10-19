@@ -43,7 +43,7 @@ function buildRouteSuggestions(r, currentCfg) {
         const targetMin = getRouteDepartMin();
 
         if (_routeArriveMode) {
-            // 到达模式：建议目标到达时间延后
+            // 到达模式：目标到达太晚，建议延后
             const later = targetMin + 30;
             if (later <= 26 * 60) {
                 suggestions.push({
@@ -56,7 +56,6 @@ function buildRouteSuggestions(r, currentCfg) {
             // 出发模式：区分是"太早"还是"太晚"
             // 以 6:00 作为分界线，早于 6:00 认为是太早
             if (targetMin < 6 * 60) {
-                // 太早：建议延后 30 分钟出发
                 const later = targetMin + 30;
                 if (later <= 26 * 60) {
                     suggestions.push({
@@ -66,7 +65,6 @@ function buildRouteSuggestions(r, currentCfg) {
                     });
                 }
             } else {
-                // 太晚：建议提前 30 分钟出发
                 const earlier = targetMin - 30;
                 if (earlier >= 5 * 60) {
                     suggestions.push({
@@ -91,7 +89,6 @@ function applyRouteSuggestion(action, value) {
             mtc.checked = false;
             mtc.dispatchEvent(new Event('change'));
         }
-
     } else if (action === 'set-max-transfer') {
         const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
         const mti = _routeOverlay.querySelector('#route-max-transfer-min');
@@ -100,23 +97,19 @@ function applyRouteSuggestion(action, value) {
             mtc.dispatchEvent(new Event('change'));
             mti.value = String(value);
         }
-
     } else if (action === 'allow-outdoor') {
         const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
         if (aoc) aoc.checked = false;
-
     } else if (action === 'earlier-depart') {
         const delta = parseInt(value, 10) || 30;
         _routeDepartMin = getRouteDepartMin() - delta;
         refreshRouteTimeTriggers();
         setRouteMeta(routeMetaText());
-
     } else if (action === 'later-arrive' || action === 'later-depart') {
         const delta = parseInt(value, 10) || 30;
         _routeDepartMin = getRouteDepartMin() + delta;
         refreshRouteTimeTriggers();
         setRouteMeta(routeMetaText());
-
     }
 
     setTimeout(() => runRoutePlanning(), 80);
@@ -126,7 +119,7 @@ function applyRouteSuggestion(action, value) {
    反向规划：给定目标到达时刻，二分查找最晚出发时刻
    ========================================== */
 async function findLatestDepartureForArrival(start, end, targetArriveMin,
-                                             sortMode, maxTransferMin, avoidOutOfStation) {
+                                             sortMode, maxTransferMin, avoidOutOfStation, avoidCtrlStations) {
     const STEP = 5;   // 5 分钟粒度
     const EARLIEST = Math.max(5 * 60, targetArriveMin - 4 * 60);
 
@@ -140,8 +133,9 @@ async function findLatestDepartureForArrival(start, end, targetArriveMin,
         const midIdx = Math.floor((L + R) / 2);
         const t = midIdx * STEP;
 
+        // 传入新增的 avoidCtrlStations 参数
         const r = await planRoutes(start, end, t, sortMode,
-            maxTransferMin, avoidOutOfStation, true);
+            maxTransferMin, avoidOutOfStation, true, avoidCtrlStations);
         const ok = r.results && r.results.length > 0
             && r.results.every(item => Math.floor(item.arriveMin) <= targetArriveMin);
 
@@ -157,7 +151,7 @@ async function findLatestDepartureForArrival(start, end, targetArriveMin,
 }
 
 /* ==========================================
-   规划
+   规划主流程
    ========================================== */
 async function runRoutePlanning() {
     if (!_routeOverlay) return;
@@ -223,6 +217,13 @@ async function runRoutePlanning() {
     const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
     if (aoc) avoidOutOfStation = aoc.checked;
 
+    // ★ 读取"尽量不走客控中的换乘站"
+    let avoidCtrlTransfer = false;
+    const acc = _routeOverlay.querySelector('#route-avoid-ctrl-check');
+    if (acc && !isTimeFarFromNow()) {
+        avoidCtrlTransfer = acc.checked;
+    }
+
     // 读取步行速度
     let walkSpeed = 1.5;
     const wssEl = _routeOverlay.querySelector('#route-walk-speed');
@@ -235,7 +236,7 @@ async function runRoutePlanning() {
         ROUTE_GRAPH.userWalkSpeed = walkSpeed;
     }
 
-    const advWrapEl = _routeOverlay.querySelector('#route-advanced');
+    // 保存偏好
     saveRoutePrefs({
         sortMode,
         maxTransferChecked: !!(mtc && mtc.checked),
@@ -243,9 +244,9 @@ async function runRoutePlanning() {
             ? (parseInt(mti.value, 10) || 0)
             : 5,
         avoidOutOfStation,
+        avoidCtrlTransfer,
         walkSpeed,
         arriveMode: _routeArriveMode,
-        // ★ 不再持久化 advancedOpen：每次打开弹窗都默认收起
     });
 
     // 把起终点推进历史
@@ -262,40 +263,52 @@ async function runRoutePlanning() {
     );
 
     try {
-        // ★ 先把用户输入的站名规范化（模糊匹配 / 别名 / 去括号），
-        //   后续渲染使用图里的真实站名，避免"嘉禾"这类部分输入导致显示不一致
+        // 先把用户输入的站名规范化（模糊匹配 / 别名 / 去括号）
         await loadRouteGraph();
         const resolvedStartNode = resolveGraphStationNode(start, 'start');
         const resolvedEndNode = resolveGraphStationNode(end, 'end');
 
-        // ★ 解析失败 → 明确提示站名不存在
         if (!resolvedStartNode) {
-            resultsEl.innerHTML =
-                `<div class="route-error">起点「${escapeHtml(start)}」不存在，请检查站名后重试</div>`;
+            resultsEl.innerHTML = `<div class="route-error">起点「${escapeHtml(start)}」不存在，请检查站名后重试</div>`;
             return;
         }
         if (!resolvedEndNode) {
-            resultsEl.innerHTML =
-                `<div class="route-error">终点「${escapeHtml(end)}」不存在，请检查站名后重试</div>`;
+            resultsEl.innerHTML = `<div class="route-error">终点「${escapeHtml(end)}」不存在，请检查站名后重试</div>`;
             return;
         }
 
         const displayStart = resolvedStartNode.replace(/\|(开始|结束)$/, '');
         const displayEnd = resolvedEndNode.replace(/\|(开始|结束)$/, '');
 
-        // 用规范化后的站名重跑一遍校验（用户输入可能有别名，之前是原始串比较）
         if (displayStart === displayEnd) {
             resultsEl.innerHTML = `<div class="route-error">起点和终点不能相同</div>`;
             return;
         }
 
-        // ★ 反向规划：先算出最晚出发时刻
+        // 反向规划：先算出最晚出发时刻
         let actualDepartMin = departMin;
+        let ctrlStationsForPlanner = null; // 传给底层 planner 的站名数组
+
+        // 如果时间离现在超过 2 小时，客控失效，跳过请求
+        const timeFarFromNow = isTimeFarFromNow();
+        let stationCtrl = null;
+
+        if (!timeFarFromNow) {
+            try {
+                stationCtrl = await fetchStationControllers();
+                if (avoidCtrlTransfer && stationCtrl) {
+                    ctrlStationsForPlanner = Object.keys(stationCtrl);
+                }
+            } catch (_) {
+                console.warn('获取客控数据失败，忽略此选项');
+            }
+        }
+
         if (_routeArriveMode) {
             const targetArriveMin = departMin;
             const found = await findLatestDepartureForArrival(
                 displayStart, displayEnd, targetArriveMin, sortMode,
-                maxTransferMin, avoidOutOfStation
+                maxTransferMin, avoidOutOfStation, ctrlStationsForPlanner
             );
 
             if (found == null) {
@@ -313,18 +326,10 @@ async function runRoutePlanning() {
                 const LIMIT = 26 * 60;
 
                 if (later30 <= LIMIT) {
-                    suggestions.push({
-                        action: 'later-arrive',
-                        label: `目标到达延后 30 分钟（${fmtHM(later30)}）`,
-                        value: 30,
-                    });
+                    suggestions.push({ action: 'later-arrive', label: `目标到达延后 30 分钟（${fmtHM(later30)}）`, value: 30 });
                 }
                 if (later60 <= LIMIT) {
-                    suggestions.push({
-                        action: 'later-arrive',
-                        label: `目标到达延后 1 小时（${fmtHM(later60)}）`,
-                        value: 60,
-                    });
+                    suggestions.push({ action: 'later-arrive', label: `目标到达延后 1 小时（${fmtHM(later60)}）`, value: 60 });
                 }
 
                 if (suggestions.length > 0) {
@@ -359,28 +364,23 @@ async function runRoutePlanning() {
 
         _routeActiveDepartMin = actualDepartMin;
 
+        // 调用底层规划
         const r = await planRoutes(displayStart, displayEnd, actualDepartMin, sortMode,
-            maxTransferMin, avoidOutOfStation, _routeArriveMode);
+            maxTransferMin, avoidOutOfStation, _routeArriveMode, ctrlStationsForPlanner);
 
         // 票价查询：同一对起终点票价固定，与具体路径无关
         let fare = null;
-        // 车站管制：与具体路径无关，全局拉一次
-        let stationCtrl = null;
-        if (!r.error) {
-            try {
-                stationCtrl = await fetchStationControllers();
-            } catch (_) {
-                stationCtrl = null;
-            }
-            if (stationCtrl && r.results && r.results.length > 0) {
-                r.results.forEach(item => {
-                    item.stationWarnings = extractStationWarnings(item.path, stationCtrl);
-                });
-            }
+
+        // 此时 stationCtrl 已经拉取过了（或者因时间过远为 null）
+        if (!r.error && stationCtrl && r.results && r.results.length > 0) {
+            r.results.forEach(item => {
+                item.stationWarnings = extractStationWarnings(item.path, stationCtrl);
+            });
         }
 
         // 起终点异常提醒（即使没有结果也要提示）
         updateStartEndWarning(stationCtrl, displayStart, displayEnd);
+
         if (!r.error && r.results && r.results.length > 0) {
             try {
                 fare = await fetchRouteFare(displayStart, displayEnd);
@@ -394,15 +394,13 @@ async function runRoutePlanning() {
             }
         }
 
-        // ★ 到达模式：过滤掉到达时间超过目标的路径
+        // 到达模式：过滤掉到达时间超过目标的路径
         if (_routeArriveMode && r.results && r.results.length > 0) {
-            const targetArriveMin = departMin;   // departMin 在这里就是目标到达时刻
+            const targetArriveMin = departMin;
             r.results = r.results.filter(item =>
                 Math.floor(item.arriveMin) <= targetArriveMin
             );
-            // 过滤后若为空 → 走空结果引导
             if (r.results.length === 0) {
-                // 手动触发空结果渲染
                 r.results = [];
             }
         }
@@ -412,16 +410,16 @@ async function runRoutePlanning() {
             hideAllRouteLegends();
             return;
         }
+
+        // 换乘少特殊处理
         if (r.results.length === 0 && sortMode === 'fewer-transfers' && r.feasibleCount > 0) {
             hideAllRouteLegends();
 
-            // 判断空结果真实原因
             const rejectedList = r.rejected || [];
             const allNoService = rejectedList.length > 0
                 && rejectedList.every(x => (x.reason || '').includes('已无运营'));
 
             if (allNoService) {
-                // 全部因运营结束被拒 → 显示运营结束提示，不显示换乘少提示
                 resultsEl.innerHTML = `
                     <div class="route-empty">
                         <div class="route-empty-title">当前时刻已结束运营</div>
@@ -433,7 +431,6 @@ async function runRoutePlanning() {
                 return;
             }
 
-            // 其余情况（含换乘少方案时间代价大）→ 原换乘少提示
             resultsEl.innerHTML = `
                 <div class="route-empty">
                     <div class="route-empty-title">换乘少的方案时间代价较大</div>
@@ -459,6 +456,8 @@ async function runRoutePlanning() {
             });
             return;
         }
+
+        // 通用空结果处理
         if (r.results.length === 0) {
             let html = `<div class="route-empty">`;
             html += `<div class="route-empty-title">当前时刻没有可用的路径</div>`;
@@ -491,6 +490,7 @@ async function runRoutePlanning() {
             return;
         }
 
+        // 渲染图例
         const hasUrgent = r.results.some(item =>
             (item.boardingMargins || []).some(m =>
                 m != null && m !== 'unknown' && m >= 0 && m <= 15
@@ -505,10 +505,9 @@ async function runRoutePlanning() {
         const legend3LineEl = _routeOverlay.querySelector('#route-legend-3line');
         if (legend3LineEl) legend3LineEl.style.display = has3LineWarning ? 'flex' : 'none';
 
-        // 反向规划模式：顶部加一条"建议出发"提示
         let headlineHtml = '';
 
-        // 到达模式下 planner 已只返回 3 条，直接渲染；rank 已由 planner 内排序后分配
+        // 渲染卡片
         resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>
             renderRouteCard(item, idx, displayStart, displayEnd, sortMode)
         ).join('');
@@ -599,9 +598,6 @@ async function runRoutePlanning() {
 
 /**
  * 从路径里提取命中的车站管制事件（按站名去重）。
- * @param {Object} path  路径对象（含 nodes）
- * @param {Object} stationCtrl  { 站名: { type, typeText } }
- * @returns {Array<{station, type, typeText}>}
  */
 function extractStationWarnings(path, stationCtrl) {
     const warnings = [];
@@ -627,8 +623,6 @@ function extractStationWarnings(path, stationCtrl) {
 
 /**
  * 渲染"起终点异常"横幅。
- * 起点或终点命中车站管制时显示，位于规划按钮和结果列表之间。
- * 起点与终点为同一类型时合并到一行。
  */
 function updateStartEndWarning(stationCtrl, startName, endName) {
     const wrap = _routeOverlay?.querySelector('#route-startend-warning');

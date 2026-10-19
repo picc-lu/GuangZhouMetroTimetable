@@ -53,3 +53,23 @@ function enableSelectAllOnFocus(inputEl) {
         }, 0);
     });
 }
+
+/** 判断当前选择的规划时间是否距离现实时间 >= 2小时 */
+function isTimeFarFromNow() {
+    // 如果是系统当前时间，肯定不远，返回 false
+    if (_routeDepartMin === null) return false;
+
+    // 获取当前真实时间的分钟数（0~1439）
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    // 处理跨天情况：0:00~1:59 算作 24:00 之后（+1440）
+    const normalizedNow = nowMin < 120 ? nowMin + 1440 : nowMin;
+    const normalizedTarget = _routeDepartMin < 120 ? _routeDepartMin + 1440 : _routeDepartMin;
+
+    // 计算绝对差值（分钟）
+    const diff = Math.abs(normalizedTarget - normalizedNow);
+
+    // 相差大于等于 120 分钟（2小时）则返回 true
+    return diff >= 120;
+}

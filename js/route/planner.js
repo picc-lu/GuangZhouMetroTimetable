@@ -158,7 +158,8 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {number} departMin
  * @param {'fastest'|'conservative'|'fewer-transfers'} sortMode
  */
-async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false) {
+// 增加第 8 个参数
+async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false, avoidCtrlStations = null) {
     await loadRouteGraph();
 
     // ★ 不同模式使用不同上限
@@ -289,16 +290,48 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         : null;
 
     // ====== 排序 ======
-    if (sortMode === 'conservative') {
-        results.sort((a, b) => a.urgentCount - b.urgentCount || a.totalCost - b.totalCost);
-    } else if (sortMode === 'fewer-transfers') {
-        results.sort((a, b) =>
-            a.interchanges.length - b.interchanges.length
-            || a.totalCost - b.totalCost
-        );
-    } else {
-        results.sort((a, b) => a.totalCost - b.totalCost);
-    }
+    const ctrlSet = avoidCtrlStations ? new Set(avoidCtrlStations) : null;
+
+    // 辅助函数：判断该路径的“换乘站”是否在客控名单中
+    const isCtrlTransfer = (item) => {
+        if (!ctrlSet || ctrlSet.size === 0) return false;
+        // 遍历这条路径的所有换乘站，只要有一个在客控里就返回 true
+        return item.interchanges.some(o => {
+            const stName = o.key.split('|')[0];
+            return ctrlSet.has(stName);
+        });
+    };
+
+    results.sort((a, b) => {
+        // 1. 最高优先级：避开客控换乘站（false 排在 true 前面）
+        if (ctrlSet && ctrlSet.size > 0) {
+            const aIsCtrl = isCtrlTransfer(a);
+            const bIsCtrl = isCtrlTransfer(b);
+            if (aIsCtrl !== bIsCtrl) {
+                return aIsCtrl ? 1 : -1;
+            }
+        }
+
+        // 2. 次级优先级：用户选择的排序模式
+        if (sortMode === 'conservative') {
+            const getRiskScore = (item) => {
+                let score = 0;
+                (item.boardingMargins || []).forEach(m => {
+                    if (m != null && m !== 'unknown') {
+                        if (m < 3) score += 100;
+                        else if (m < 8) score += 30;
+                        else if (m < 15) score += 10;
+                    }
+                });
+                return score;
+            };
+            return getRiskScore(a) - getRiskScore(b) || a.totalCost - b.totalCost;
+        } else if (sortMode === 'fewer-transfers') {
+            return a.interchanges.length - b.interchanges.length || a.totalCost - b.totalCost;
+        } else {
+            return a.totalCost - b.totalCost;
+        }
+    });
 
     // ====== 选前 N 条 ======
     let finalResults;

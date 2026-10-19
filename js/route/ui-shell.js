@@ -107,6 +107,16 @@ function ensureRouteOverlay() {
                                     </label>
                                     <label class="route-extra-option">
                                         <span class="route-switch">
+                                            <input type="checkbox" id="route-avoid-ctrl-check">
+                                            <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
+                                        </span>
+                                        <span class="route-extra-option-label">
+                                            <span class="route-extra-option-title">尽量不走客控中的换乘站</span>
+                                            <span class="route-extra-option-sub">优先展示避开客控站的路线</span>
+                                        </span>
+                                    </label>
+                                    <label class="route-extra-option">
+                                        <span class="route-switch">
                                             <input type="checkbox" id="route-avoid-outdoor-check">
                                             <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
                                         </span>
@@ -146,7 +156,7 @@ function ensureRouteOverlay() {
                               stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
                         <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
                     </svg>
-                    <span>此标志表示到达该线路时，距离末班车小于 15 分钟，请慎重选择</span>
+                    <span>此标志表示<u>到达该线路</u>时，距离末班车小于 15 分钟，请慎重选择</span>
                 </div>
                 <div class="route-legend route-legend-3line" id="route-legend-3line" style="display:none">
                     <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -209,6 +219,7 @@ function ensureRouteOverlay() {
             if (nowBtn) nowBtn.style.display = _routeArriveMode ? 'none' : '';
             setRouteMeta(routeMetaText());
             updateSortOptionStatus();
+            updateCtrlOptionStatus();
         });
     }
 
@@ -334,6 +345,7 @@ function ensureRouteOverlay() {
 
     applyRoutePrefs(ov);
     updateSortOptionStatus();
+    updateCtrlOptionStatus();
     return ov;
 }
 
@@ -380,7 +392,8 @@ function initRouteTimePickers(ov) {
             hourTrigger.textContent = String(h).padStart(2, '0');
             hourPanel.style.display = 'none';
             setRouteMeta(routeMetaText());
-            updateSortOptionStatus(); // 👈 新增
+            updateSortOptionStatus();
+            updateCtrlOptionStatus();
         });
     });
 
@@ -394,7 +407,8 @@ function initRouteTimePickers(ov) {
             minuteTrigger.textContent = String(m).padStart(2, '0');
             minutePanel.style.display = 'none';
             setRouteMeta(routeMetaText());
-            updateSortOptionStatus(); // 👈 新增
+            updateSortOptionStatus();
+            updateCtrlOptionStatus();
         });
     });
 
@@ -403,7 +417,8 @@ function initRouteTimePickers(ov) {
         _routeDepartMin = null;
         refreshRouteTimeTriggers();
         setRouteMeta(routeMetaText());
-        updateSortOptionStatus(); // 👈 新增
+        updateSortOptionStatus();
+        updateCtrlOptionStatus();
         hourPanel.style.display = 'none';
         minutePanel.style.display = 'none';
     });
@@ -581,5 +596,26 @@ function updateSortOptionStatus() {
         // 夜间：恢复
         consInput.disabled = false;
         consLabel.classList.remove('is-disabled');
+    }
+}
+
+/** 根据时间距离，动态更新“不走客控”选项的状态 */
+function updateCtrlOptionStatus() {
+    if (!_routeOverlay) return;
+
+    const farFromNow = isTimeFarFromNow();
+    const ctrlCheck = _routeOverlay.querySelector('#route-avoid-ctrl-check');
+
+    if (ctrlCheck) {
+        if (farFromNow) {
+            // 距离现在太久，客控数据无效，禁用并取消勾选
+            ctrlCheck.disabled = true;
+            ctrlCheck.checked = false;
+            ctrlCheck.closest('.route-extra-option').classList.add('is-disabled');
+        } else {
+            // 恢复可用
+            ctrlCheck.disabled = false;
+            ctrlCheck.closest('.route-extra-option').classList.remove('is-disabled');
+        }
     }
 }

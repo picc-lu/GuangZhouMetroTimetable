@@ -257,6 +257,15 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
     if (isL3 && inSouth && !inNorth
         && (rawDirection.includes('机场北') || rawDirection.includes('体育西路'))) {
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
+
+        // ★ 新增：如果终点在支线，只能坐“天河客运站方向”的车
+        const LINE3_BRANCH_STATIONS_LOCAL = new Set([
+            '石牌桥', '岗顶', '华师', '五山', '天河客运站'
+        ]);
+        if (segEnd && LINE3_BRANCH_STATIONS_LOCAL.has(segEnd)) {
+            return '天河客运站方向';
+        }
+
         const arr3 = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS['3号线']) || [];
         const idxSegEnd = findStationIndex(arr3, segEnd);
         const idxTyxl   = findStationIndex(arr3, '体育西路');
@@ -678,12 +687,22 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
 
     // 检测 3→3 虚拟换乘
     const virtualSplitAfter = new Set();
+    const LINE3_BRANCH_STATIONS_LOCAL = new Set([
+        '石牌桥', '岗顶', '华师', '五山', '天河客运站'
+    ]);
+
     for (let i = 0; i < segs.length - 1; i++) {
         if (segs[i].fullLine === '3号线'
             && segs[i + 1].fullLine === '3号线'
             && segs[i].toStation === '体育西路') {
-            // 👇 删掉原本对 nextDir 的限制，只要是在体育西路的 3->3 都算 👇
-            virtualSplitAfter.add(i);
+
+            // 如果下一段去往的是支线，说明是同一趟车继续开，不需要虚拟换乘
+            const nextSeg = segs[i + 1];
+            const isToBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextSeg.toStation);
+
+            if (!isToBranch) {
+                virtualSplitAfter.add(i);
+            }
         }
     }
 
