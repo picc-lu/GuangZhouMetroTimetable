@@ -302,8 +302,29 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         });
     };
 
+    // 提取计算安全分的函数（连乘积，体现“每个危险环节都会累计风险”）
+    const getSafetyScore = (item) => {
+        let score = 1;
+        let hasMargin = false;
+
+        // 遍历所有上车点（包含起点和所有换乘站）
+        (item.boardingMargins || []).forEach(m => {
+            if (m != null && m !== 'unknown' && !isNaN(m)) {
+                hasMargin = true;
+                // 将余量限制在 [0, 15] 之间并归一化，余量 >= 15 按 1 计算，不产生额外加成
+                const val = Math.max(0, Math.min(m, 15)) / 15;
+                // 连乘：任何一个环节极度危险，都会大幅拉低总分
+                score *= val;
+            }
+        });
+
+        // 如果没有有效数据，给 1 分（最高）
+        if (!hasMargin) return 1;
+        return score;
+    };
+
     results.sort((a, b) => {
-        // 1. 最高优先级：避开客控换乘站（false 排在 true 前面）
+        // 1. 最高优先级：避开客控换乘站
         if (ctrlSet && ctrlSet.size > 0) {
             const aIsCtrl = isCtrlTransfer(a);
             const bIsCtrl = isCtrlTransfer(b);
@@ -314,18 +335,16 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
 
         // 2. 次级优先级：用户选择的排序模式
         if (sortMode === 'conservative') {
-            const getRiskScore = (item) => {
-                let score = 0;
-                (item.boardingMargins || []).forEach(m => {
-                    if (m != null && m !== 'unknown') {
-                        if (m < 3) score += 100;
-                        else if (m < 8) score += 30;
-                        else if (m < 15) score += 10;
-                    }
-                });
-                return score;
-            };
-            return getRiskScore(a) - getRiskScore(b) || a.totalCost - b.totalCost;
+            const scoreA = getSafetyScore(a);
+            const scoreB = getSafetyScore(b);
+
+            // ★ 相乘结果大的排前面（按得分降序）
+            if (Math.abs(scoreA - scoreB) > 0.00001) {
+                return scoreB - scoreA;
+            }
+
+            // 分数完全相同时，总耗时短的排前面
+            return a.totalCost - b.totalCost;
         } else if (sortMode === 'fewer-transfers') {
             return a.interchanges.length - b.interchanges.length || a.totalCost - b.totalCost;
         } else {

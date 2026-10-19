@@ -105,16 +105,20 @@ function ensureRouteOverlay() {
                                                maxlength="2" value="5" disabled>
                                         <span>分钟</span>
                                     </label>
-                                    <label class="route-extra-option">
-                                        <span class="route-switch">
-                                            <input type="checkbox" id="route-avoid-ctrl-check">
-                                            <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
-                                        </span>
-                                        <span class="route-extra-option-label">
-                                            <span class="route-extra-option-title">尽量不走客控中的换乘站</span>
-                                            <span class="route-extra-option-sub">优先展示避开客控站的路线</span>
-                                        </span>
-                                    </label>
+                                    <div class="route-extra-row">
+                                        <label class="route-extra-option" id="route-avoid-ctrl-label">
+                                            <span class="route-switch">
+                                                <input type="checkbox" id="route-avoid-ctrl-check">
+                                                <span class="route-switch-track"><span class="route-switch-thumb"></span></span>
+                                            </span>
+                                            <span class="route-extra-option-label">
+                                                <span class="route-extra-option-title">尽量不走客控中的换乘站</span>
+                                                <span class="route-extra-option-sub">优先展示避开客控站的路线</span>
+                                            </span>
+                                        </label>
+                                        <!-- ★ 提示文字放在框外右边 -->
+                                        <span class="route-extra-reason" id="route-avoid-ctrl-reason"></span>
+                                    </div>
                                     <label class="route-extra-option">
                                         <span class="route-switch">
                                             <input type="checkbox" id="route-avoid-outdoor-check">
@@ -530,7 +534,7 @@ function closeRoutePlanner() {
     unlockBodyScroll();
 }
 
-function routeMetaText() {
+function routeMetaText(showFewerDetail = false) {
     const min = getRouteDepartMin();
     const mode = _routeDepartMin !== null ? '自定义时间' : '系统时间';
 
@@ -544,9 +548,10 @@ function routeMetaText() {
     }
 
     const line1 = `出发时刻 ${fmtHM(min)}（${mode}）`;
-    if (sortMode === 'fewer-transfers') {
+    // ★ 修改此处：仅当传入 showFewerDetail = true 时才显示副标题，并更新文案
+    if (sortMode === 'fewer-transfers' && showFewerDetail) {
         return line1
-            + `<br><span class="route-meta-sub">最多显示 5 个结果，仅显示比「最快优先」首位慢 30 分钟以内的结果</span>`;
+            + `<br><span class="route-meta-sub">最多显示 5 个比「最快优先」首位慢 30 分钟以内的结果</span>`;
     }
     return line1;
 }
@@ -603,19 +608,39 @@ function updateSortOptionStatus() {
 function updateCtrlOptionStatus() {
     if (!_routeOverlay) return;
 
-    const farFromNow = isTimeFarFromNow();
     const ctrlCheck = _routeOverlay.querySelector('#route-avoid-ctrl-check');
+    const label = _routeOverlay.querySelector('#route-avoid-ctrl-label');
+    const reasonEl = _routeOverlay.querySelector('#route-avoid-ctrl-reason');
 
-    if (ctrlCheck) {
-        if (farFromNow) {
-            // 距离现在太久，客控数据无效，禁用并取消勾选
-            ctrlCheck.disabled = true;
-            ctrlCheck.checked = false;
-            ctrlCheck.closest('.route-extra-option').classList.add('is-disabled');
-        } else {
-            // 恢复可用
-            ctrlCheck.disabled = false;
-            ctrlCheck.closest('.route-extra-option').classList.remove('is-disabled');
-        }
+    if (!ctrlCheck || !label || !reasonEl) return;
+
+    const isFar = isTimeFarFromNow();
+
+    if (isFar) {
+        ctrlCheck.disabled = true;
+        ctrlCheck.checked = false;
+        label.classList.add('is-disabled');
+
+        const now = new Date();
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        const startMin = nowMin;
+        // 到达模式 3小时，出发模式 2小时
+        const limitMinutes = _routeArriveMode ? 180 : 120;
+        const endMin = nowMin + limitMinutes;
+
+        const fmt = (min) => {
+            const m = ((min % 1440) + 1440) % 1440;
+            return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
+        };
+
+        const rangeStr = `${fmt(startMin)} ~ ${fmt(endMin)}`;
+
+        reasonEl.textContent = `仅 ${rangeStr} 可用`;
+        reasonEl.classList.add('show');
+    } else {
+        ctrlCheck.disabled = false;
+        label.classList.remove('is-disabled');
+        reasonEl.textContent = '';
+        reasonEl.classList.remove('show');
     }
 }

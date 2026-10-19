@@ -592,7 +592,9 @@ async function runRoutePlanning() {
             goBtn2.classList.remove('loading');
         }
         resultsEl.classList.remove('is-loading');
-        setRouteMeta(routeMetaText());
+
+        // ★ 修改此处：传入 true，表示规划结束后允许显示详细说明
+        setRouteMeta(routeMetaText(true));
     }
 }
 
