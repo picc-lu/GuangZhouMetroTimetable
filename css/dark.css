@@ -316,14 +316,14 @@
 }
 
 [data-theme="dark"] .theme-toggle {
-    background: #232b3d;
-    border-color: #3a4559;
-    color: #e2e8f0;
+    background: #ffffff; /* ★ 夜间模式背景改为白色 */
+    border-color: #e2e8f0;
+    color: #1f2b3c; /* ★ 图标改为深色 */
 }
 
 [data-theme="dark"] .theme-toggle:hover {
-    background: #2a3348;
-    border-color: #4a5568;
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 /* 站点行：非活动站名微调 */
@@ -485,16 +485,15 @@
     }
 }
 
-/* 夜间模式：附近站点按钮与面板 */
 [data-theme="dark"] .nearby-btn {
     background: #232b3d;
     border-color: #3a4559;
     color: #e2e8f0;
 }
-
 [data-theme="dark"] .nearby-btn:hover {
     background: #2a3348;
     border-color: #4a5568;
+    color: #ffffff;
 }
 
 [data-theme="dark"] .nearby-container {
@@ -622,17 +621,16 @@
     color: #5da0ff;
 }
 
-/* 线路规划按钮（夜间模式） */
 [data-theme="dark"] .route-plan-btn {
-    background: #1e3a5f;
-    border-color: #2a4d78;
-    color: #93c5fd;
+    background: #042f2e; /* ★ 极深的暗青色底 */
+    border-color: #115e59; /* ★ 深青色边框 */
+    color: #2dd4bf; /* ★ 明亮的青绿色文字 */
 }
 
 [data-theme="dark"] .route-plan-btn:hover {
-    background: #264a74;
-    border-color: #3a6aa0;
-    box-shadow: 0 4px 8px rgba(93, 160, 255, 0.18);
+    background: #0d4f4c;
+    border-color: #14b8a6;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
 }
 
 /* 夜间模式 - 线路徽章（灰色调） */

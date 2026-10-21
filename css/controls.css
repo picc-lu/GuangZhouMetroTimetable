@@ -456,8 +456,8 @@ select option:checked {
    夜间模式切换按钮
    ========================================== */
 .theme-toggle {
-    background: #ffffff;
-    border: 2px solid #d0ddee;
+    background: #1f2b3c; /* ★ 白天模式背景改为深色 */
+    border: 2px solid #2f405a; /* 边框稍微调深 */
     border-radius: 40px;
     width: 44px;
     height: 40px;
@@ -468,13 +468,13 @@ select option:checked {
     transition: all 0.15s;
     padding: 0;
     flex-shrink: 0;
-    color: #1f2b3c;
+    color: #ffffff; /* ★ 图标颜色改为白色，否则深色背景上看不清 */
 }
 
 .theme-toggle:hover {
-    border-color: #8fa8c9;
+    border-color: #4a5568;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .theme-toggle:active {
@@ -1062,4 +1062,38 @@ select option:checked {
 .nearby-picker-arrow {
     font-size: 18px;
     opacity: 0.85;
+}
+
+/* ==========================================
+   顶部工具栏按钮：统一过渡与点击反馈
+   ========================================== */
+.nearby-btn,
+.route-plan-btn,
+.theme-toggle {
+    /* 强制开启 GPU 加速，避免 transform 时引起整个工具栏重排 */
+    will-change: transform;
+    /* 统一过渡时间 */
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.15s !important;
+    /* 移除浏览器默认的聚焦边框，避免点击后留下一圈突兀的白边 */
+    outline: none !important;
+}
+
+/* 悬浮时：统一上浮 */
+.nearby-btn:hover,
+.route-plan-btn:hover,
+.theme-toggle:hover {
+    transform: translateY(-2px);
+}
+
+/* 按下时：统一下沉缩小（反馈更强） */
+.nearby-btn:active,
+.route-plan-btn:active,
+.theme-toggle:active {
+    transform: translateY(0) scale(0.94) !important;
+}
+
+.nearby-btn:focus,
+.route-plan-btn:focus,
+.theme-toggle:focus {
+    outline: none;
 }

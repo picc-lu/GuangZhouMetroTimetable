@@ -170,11 +170,17 @@ function parseRouteSegments(path, departMin) {
         const seg  = rawSegments[i];
         const next = rawSegments[i + 1];
 
+        // 3号线支线站点集合
+        const isBranch = (st) => ['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(st);
+
         const isThrough = next
             && seg.fullLine === '3号线' && next.fullLine === '3号线'
             && seg.toStation === '体育西路'
             && isNorthboundRawDir(next.rawDirection)
-            && isThroughTrainAvailable(seg.fromStation, dt);
+            && (
+                isBranch(next.toStation) || // 去支线（天河客运站），直接合并，不提示换乘
+                isThroughTrainAvailable(seg.fromStation, dt) // 去北段（林和西/机场北），必须有贯通车才合并
+            );
 
         if (isThrough) {
             merged.push({
@@ -227,7 +233,9 @@ function parseRouteSegments(path, departMin) {
                         needsSplit = true;
                     }
                 } else if (fromIsSouth && toIsNorthOrBranch) {
-                    // 南段 -> 北/支线：如果没有贯通车（通过函数判断），强制拆分
+                    // 南段 -> 北/支线：如果没有贯通车，强制拆分
+                    // 注：去支线的已经在步骤 2 被合并了，走不到这里；
+                    // 走这里说明是去北段，只要没有贯通车就必须拆分为两段 3号线
                     if (typeof isThroughTrainAvailable === 'function') {
                         needsSplit = !isThroughTrainAvailable(seg.fromStation, currentMin);
                     } else {

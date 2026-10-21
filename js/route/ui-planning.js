@@ -165,6 +165,21 @@ async function runRoutePlanning() {
 
     if (!startInput || !endInput || !resultsEl || !goBtn) return;
 
+    // 1. 如果处于系统时间模式，点击规划时自动同步刷新时间为当前时间
+    if (_routeDepartMin === null) {
+        refreshRouteTimeTriggers();
+        setRouteMeta(routeMetaText());
+    }
+
+    // 2. 点击规划时，自动收起高级设置面板
+    const advWrap = _routeOverlay.querySelector('#route-advanced');
+    const advToggle = _routeOverlay.querySelector('#route-advanced-toggle');
+    const wasOpen = advWrap && advWrap.classList.contains('open');
+    if (wasOpen) {
+        advWrap.classList.remove('open');
+        advToggle.setAttribute('aria-expanded', 'false');
+    }
+
     const start = startInput.value.trim();
     const end = endInput.value.trim();
 
@@ -197,13 +212,19 @@ async function runRoutePlanning() {
         return;
     }
 
+    // ★ 核心修复：只有当前没有任何结果卡片时（比如刚打开弹窗），才清空默认的空态提示文字
+    // 如果已经存在规划结果，则保留原有内容，后续会被加上 is-loading 变成半透明
+    if (!resultsEl.querySelector('.route-card')) {
+        resultsEl.innerHTML = '';
+    }
+
+    // 读取各种参数 ... (这部分代码保持原样)
     const sortRadio = _routeOverlay.querySelector('input[name="route-sort"]:checked');
     const sortMode = sortRadio ? sortRadio.value : 'fastest';
     const departMin = getRouteDepartMin();
 
     _routeLastArrivedAt = null;
 
-    // 读取"单次换乘时间不超过 n 分钟"（允许 0）
     let maxTransferMin = null;
     const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
     const mti = _routeOverlay.querySelector('#route-max-transfer-min');
@@ -214,19 +235,16 @@ async function runRoutePlanning() {
         }
     }
 
-    // 读取"不走站外换乘"
     let avoidOutOfStation = false;
     const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
     if (aoc) avoidOutOfStation = aoc.checked;
 
-    // ★ 读取"尽量不走客控中的换乘站"
     let avoidCtrlTransfer = false;
     const acc = _routeOverlay.querySelector('#route-avoid-ctrl-check');
     if (acc && !isTimeFarFromNow()) {
         avoidCtrlTransfer = acc.checked;
     }
 
-    // 读取步行速度
     let walkSpeed = 1.5;
     const wssEl = _routeOverlay.querySelector('#route-walk-speed');
     if (wssEl) {
@@ -238,7 +256,6 @@ async function runRoutePlanning() {
         ROUTE_GRAPH.userWalkSpeed = walkSpeed;
     }
 
-    // 保存偏好
     saveRoutePrefs({
         sortMode,
         maxTransferChecked: !!(mtc && mtc.checked),
@@ -251,18 +268,22 @@ async function runRoutePlanning() {
         arriveMode: _routeArriveMode,
     });
 
-    // 把起终点推进历史
     pushRouteHistory('start', start);
     pushRouteHistory('end', end);
 
     goBtn.disabled = true;
     goBtn.classList.add('loading');
     resultsEl.classList.add('is-loading');
-    setRouteMeta('正在计算路径…');
 
-    await new Promise(resolve =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve))
-    );
+    // ★ 核心修复：如果刚才触发了收起动画，给 CSS 留出 300ms 播放时间，防止主线程计算阻塞动画
+    if (wasOpen) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+    } else {
+        await new Promise(resolve =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve))
+        );
+    }
+
 
     try {
         // 先把用户输入的站名规范化（模糊匹配 / 别名 / 去括号）

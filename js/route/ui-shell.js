@@ -197,6 +197,17 @@ function ensureRouteOverlay() {
     document.body.appendChild(ov.querySelector('#route-start-suggestions'));
     document.body.appendChild(ov.querySelector('#route-end-suggestions'));
 
+    const hPanel = ov.querySelector('#route-hour-panel');
+    const mPanel = ov.querySelector('#route-minute-panel');
+    if (hPanel) {
+        hPanel.style.display = 'none';
+        document.body.appendChild(hPanel);
+    }
+    if (mPanel) {
+        mPanel.style.display = 'none';
+        document.body.appendChild(mPanel);
+    }
+
     initRouteTimePickers(ov);
 
     // 高级设置折叠
@@ -334,15 +345,16 @@ function ensureRouteOverlay() {
         _routeTimeDocClickBound = true;
         document.addEventListener('click', (e) => {
             if (!_routeOverlay) return;
-            const hourPanel = _routeOverlay.querySelector('#route-hour-panel');
-            const minutePanel = _routeOverlay.querySelector('#route-minute-panel');
-            const hourTrigger = _routeOverlay.querySelector('#route-hour-trigger');
-            const minuteTrigger = _routeOverlay.querySelector('#route-minute-trigger');
-            if (!hourPanel.contains(e.target) && !hourTrigger.contains(e.target)) {
-                hourPanel.style.display = 'none';
+            const hPanel = document.getElementById('route-hour-panel');
+            const mPanel = document.getElementById('route-minute-panel');
+            const hTrigger = _routeOverlay.querySelector('#route-hour-trigger');
+            const mTrigger = _routeOverlay.querySelector('#route-minute-trigger');
+
+            if (hPanel && !hPanel.contains(e.target) && !hTrigger.contains(e.target)) {
+                hPanel.style.display = 'none';
             }
-            if (!minutePanel.contains(e.target) && !minuteTrigger.contains(e.target)) {
-                minutePanel.style.display = 'none';
+            if (mPanel && !mPanel.contains(e.target) && !mTrigger.contains(e.target)) {
+                mPanel.style.display = 'none';
             }
         });
     }
@@ -384,8 +396,8 @@ const ROUTE_MINUTES = (() => {
 function initRouteTimePickers(ov) {
     const hourTrigger = ov.querySelector('#route-hour-trigger');
     const minuteTrigger = ov.querySelector('#route-minute-trigger');
-    const hourPanel = ov.querySelector('#route-hour-panel');
-    const minutePanel = ov.querySelector('#route-minute-panel');
+    const hourPanel = document.getElementById('route-hour-panel') || ov.querySelector('#route-hour-panel');
+    const minutePanel = document.getElementById('route-minute-panel') || ov.querySelector('#route-minute-panel');
 
     hourPanel.classList.add('rows-3');
     minutePanel.classList.add('rows-2');
@@ -439,28 +451,30 @@ function initRouteTimePickers(ov) {
         minutePanel.style.display = 'none';
     });
 
-    hourTrigger.addEventListener('click', (e) => {
+    hourTrigger.addEventListener('click', function(e) {
         e.stopPropagation();
         minutePanel.style.display = 'none';
         const isHidden = hourPanel.style.display === 'none' || !hourPanel.style.display;
         if (isHidden) {
-            positionTimePanel(hourPanel, hourTrigger);
-            hourPanel.style.display = 'grid';
+            hourPanel.style.display = 'grid'; // 先显示
+            positionTimePanel(hourPanel, hourTrigger); // 再定位
         } else {
             hourPanel.style.display = 'none';
         }
+        this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
 
-    minuteTrigger.addEventListener('click', (e) => {
+    minuteTrigger.addEventListener('click', function(e) {
         e.stopPropagation();
         hourPanel.style.display = 'none';
         const isHidden = minutePanel.style.display === 'none' || !minutePanel.style.display;
         if (isHidden) {
-            positionTimePanel(minutePanel, minuteTrigger);
             minutePanel.style.display = 'grid';
+            positionTimePanel(minutePanel, minuteTrigger);
         } else {
             minutePanel.style.display = 'none';
         }
+        this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
 
     ov.querySelector('#route-now').addEventListener('click', () => {
@@ -477,6 +491,7 @@ function initRouteTimePickers(ov) {
 function positionTimePanel(panel, trigger) {
     const rect = trigger.getBoundingClientRect();
     const vw = window.innerWidth;
+    const vh = window.innerHeight;
     const pw = panel.classList.contains('rows-3') ? 380 : 330;
 
     let left = rect.left;
@@ -484,10 +499,22 @@ function positionTimePanel(panel, trigger) {
     if (left < 8) left = 8;
 
     panel.style.position = 'fixed';
-    panel.style.top = (rect.bottom + 6) + 'px';
     panel.style.left = left + 'px';
     panel.style.right = 'auto';
     panel.style.width = pw + 'px';
+
+    // ★ 强行先显示，才能获取到真实高度
+    panel.style.display = 'grid';
+    const ph = panel.offsetHeight;
+
+    // ★ 如果下方空间不足以容纳面板高度（留 20px 的安全边距），则改为向上弹出
+    if (rect.bottom + 6 + ph > vh - 20) {
+        panel.style.top = 'auto';
+        panel.style.bottom = (vh - rect.top + 6) + 'px';
+    } else {
+        panel.style.bottom = 'auto';
+        panel.style.top = (rect.bottom + 6) + 'px';
+    }
 }
 
 function refreshRouteTimeTriggers() {
@@ -541,8 +568,12 @@ function closeRoutePlanner() {
         el.style.display = 'none';
         el.innerHTML = '';
     });
-    _routeOverlay.querySelector('#route-hour-panel').style.display = 'none';
-    _routeOverlay.querySelector('#route-minute-panel').style.display = 'none';
+    // ★ 关闭移出的面板
+    const hPanel = document.getElementById('route-hour-panel');
+    const mPanel = document.getElementById('route-minute-panel');
+    if (hPanel) hPanel.style.display = 'none';
+    if (mPanel) mPanel.style.display = 'none';
+
     unlockBodyScroll();
 }
 

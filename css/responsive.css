@@ -95,7 +95,7 @@
         flex-direction: column;
         gap: 6px !important;
         padding-bottom: 8px;
-        border-bottom: 1px dashed #ccd9e9;   /* ★ 新增，与桌面端一致 */
+        border-bottom: 1px dashed #ccd9e9; /* ★ 新增，与桌面端一致 */
     }
 
     .line-scroll-row {
@@ -144,13 +144,25 @@
         margin: 0 !important;
     }
 
-    /* ==========================================
-       搜索框（折叠为放大镜 + 点击展开）
-       ========================================== */
     .search-wrapper {
-        flex: 1 1 0;
-        min-width: 0;
-        max-width: 240px;
+        flex: 1 1 100%;
+        width: 100%;
+        max-width: none;
+        margin-bottom: 4px;
+        order: -1;
+    }
+
+    .search-wrapper .search-input {
+        font-size: 16px;
+        height: 40px;
+        width: 100%;
+        max-width: 100% !important;
+        padding: 6px 16px !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: none !important;
+        margin-left: 0 !important;
+        border-color: #d0ddee !important;
     }
 
     .search-input {
@@ -166,16 +178,11 @@
     }
 
     .search-wrapper.expanded .search-input {
-        max-width: 220px;
-        padding: 6px 16px;
-        opacity: 1;
-        pointer-events: auto;
-        /* transform 继承 .search-input 的，无需重写 */
+        max-width: 100% !important;
     }
 
     .search-toggle {
-        width: 40px;
-        height: 36px;
+        display: none !important;
     }
 
     .search-result {
@@ -205,14 +212,10 @@
         height: 18px;
     }
 
-    /* 移动端只留图标，隐藏"线路规划"文字 */
     .route-plan-btn {
-        padding: 0;
-        width: 40px;
-        height: 36px;
-        background: #e0efff;
-        border-color: #b8d4f0;
-        color: #1f4d8a;
+        padding: 0 12px !important;
+        width: auto !important;
+        /* 移除之前写的背景色，让它用 route.css 里的绿色 */
     }
 
     .route-plan-btn span {
@@ -225,6 +228,8 @@
     }
 
     .theme-toggle {
+        order: 0;
+        margin-right: auto;
         width: 40px;
         height: 36px;
     }
@@ -234,10 +239,13 @@
         height: 18px;
     }
 
-    /* 第二行：图标按钮右对齐 */
+    /* ==========================================
+       搜索框（移动端常驻展开，独占一行）
+       ========================================== */
     .controls-row-1b {
         display: flex;
-        justify-content: flex-end;
+        flex-wrap: wrap;
+        justify-content: flex-end; /* 下方的图标按钮靠右 */
         gap: 8px !important;
     }
 
@@ -522,5 +530,27 @@
 
     .nearby-name {
         font-size: 15px;
+    }
+
+    .nearby-btn,
+    .route-plan-btn {
+        order: 1;               /* 排在夜间模式后面 */
+        width: auto !important;
+        padding: 0 12px !important;
+        gap: 6px;
+    }
+
+    .nearby-btn svg,
+    .route-plan-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* 强制覆盖之前隐藏线路规划文本的样式 */
+    .route-plan-btn span,
+    .nearby-btn span {
+        display: inline-block !important;
+        font-size: 13px;
+        font-weight: 700;
     }
 }

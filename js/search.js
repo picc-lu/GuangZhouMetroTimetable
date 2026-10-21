@@ -225,9 +225,11 @@ function initStationSearch() {
     document.addEventListener('click', (e) => {
         if (!wrapper.contains(e.target)) {
             hideSearchResults();
-            // 若搜索框已展开且失焦 → 收起
-            if (wrapper.classList.contains('expanded')) {
+            // ★ 修改此处：移动端不收起搜索框，只隐藏结果并失去焦点
+            if (window.innerWidth > 768 && wrapper.classList.contains('expanded')) {
                 collapseSearch();
+            } else if (window.innerWidth <= 768) {
+                input.blur();
             }
         }
     });
