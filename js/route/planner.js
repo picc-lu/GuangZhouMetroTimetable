@@ -6,7 +6,7 @@ const PLAN_MAX_K        = PLAN_TARGET * 10;
 const PLAN_MAX_CHECK    = PLAN_TARGET * 6;
 
 // 到达模式：3 条（UI 只展示 3 条，直接少查避免浪费）
-const PLAN_TARGET_ARRIVE    = 3;
+const PLAN_TARGET_ARRIVE    = 15;
 const PLAN_MAX_K_ARRIVE     = PLAN_TARGET_ARRIVE * 5;
 const PLAN_MAX_CHECK_ARRIVE = PLAN_TARGET_ARRIVE * 3;
 

@@ -630,13 +630,14 @@ function routeShortLineName(line) {
 function buildArriveBlockHtml(item) {
     const arriveTime = fmtHM(item.arriveMin);
 
-    if (_routeArriveMode && _routeLastArrivedAt != null) {
-        const boardingTime = fmtHM(_routeLastArrivedAt);
+    // ★ 使用该路线自己计算出的极限出发时间
+    if (_routeArriveMode && item.actualDepartMin != null) {
+        const boardingTime = fmtHM(item.actualDepartMin);
         return `
             <div class="route-arrive">
                 <div class="route-arrive-line">
                     <span class="route-arrive-time">${boardingTime}</span>
-                    <span class="route-arrive-label">候车</span>
+                    <span class="route-arrive-label">出发</span>
                 </div>
                 <div class="route-arrive-line">
                     <span class="route-arrive-time">${arriveTime}</span>
