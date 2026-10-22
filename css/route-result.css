@@ -1,0 +1,137 @@
+/* ==========================================
+   结果列表、图例、卡片及换乘指引
+   ========================================== */
+.route-meta { font-size: 12px; color: #64748b; margin: 4px 0 12px; text-align: center; white-space: normal; line-height: 1.55; word-break: break-word; }
+.route-meta-sub { display: inline-block; margin-top: 2px; color: #94a3b8; font-size: 11.5px; }
+
+.route-results { display: flex; flex-direction: column; gap: 10px; transition: opacity 0.18s ease, filter 0.18s ease; }
+.route-results.is-loading { opacity: 0.55; filter: saturate(0.6); pointer-events: none; user-select: none; }
+.route-results:empty { min-height: 0; }
+.route-results > .route-empty:only-child { min-height: 160px; }
+
+.route-empty, .route-loading, .route-error { padding: 40px 20px; text-align: center; color: #64748b; font-size: 14px; line-height: 1.7; }
+.route-error { color: #dc2626; }
+.route-empty-title { font-size: 15px; font-weight: 700; color: #1f2b3c; margin-bottom: 6px; }
+.route-empty-detail { margin-top: 8px; font-size: 13px; color: #64748b; line-height: 1.6; }
+
+.route-legend {
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin: 0 0 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+.route-legend-row { display: flex; align-items: center; gap: 8px; }
+.route-legend-icon { flex-shrink: 0; width: 16px; height: 16px; color: #1f2b3c; }
+.route-legend-3line { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+
+/* 卡片 */
+.route-card { position: relative; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; cursor: pointer; }
+.route-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
+.route-card.expanded { border-color: #2b7de9; box-shadow: 0 4px 16px rgba(43, 125, 233, 0.12); }
+
+.route-rank { position: absolute; top: 0; left: 0; width: 34px; height: 34px; box-sizing: border-box; padding: 5px 0 0 6px; background: #bfdbfe; color: #1e40af; font-weight: 800; font-size: 12px; line-height: 1; display: flex; align-items: flex-start; justify-content: flex-start; clip-path: polygon(0 0, 100% 0, 0 100%); z-index: 2; pointer-events: none; }
+.route-card[data-rank="1"] .route-rank { background: #d4af37; color: #fff; }
+.route-card[data-rank="2"] .route-rank { background: #9ca3af; color: #fff; }
+.route-card[data-rank="3"] .route-rank { background: #b45309; color: #fff; }
+
+.route-card-head { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 34px; }
+.route-summary { flex: 1; min-width: 0; }
+.route-line-path { font-size: 15px; font-weight: 700; color: #1e293b; line-height: 1.3; margin-bottom: 5px; }
+.route-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: #64748b; }
+.route-delta { color: #94a3b8; font-weight: 500; font-size: 11.5px; letter-spacing: 0; }
+
+.route-arrive { text-align: right; flex-shrink: 0; }
+.route-arrive-line { display: flex; align-items: baseline; justify-content: flex-end; gap: 5px; line-height: 1.15; white-space: nowrap; }
+.route-arrive-line + .route-arrive-line { margin-top: 4px; }
+.route-arrive-line .route-arrive-label { font-size: 10.5px; }
+.route-arrive-time { font-size: 17px; font-weight: 800; color: #1e293b; font-variant-numeric: tabular-nums; }
+.route-arrive-label { font-size: 11px; color: #94a3b8; letter-spacing: 0.5px; }
+
+/* 线路角标 */
+.route-segments { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.route-segment-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 8px; font-size: 14px; font-weight: 800; line-height: 1.3; letter-spacing: 0.3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); white-space: nowrap; }
+.route-segment-warn { position: absolute; right: -7px; bottom: -7px; width: 18px; height: 18px; display: block; pointer-events: none; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25)); }
+.route-segment-warn-3line { position: absolute; left: -7px; top: -7px; width: 16px; height: 16px; display: block; pointer-events: none; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3)); z-index: 1; }
+.route-seg-arrow { color: #94a3b8; font-weight: 700; font-size: 13px; user-select: none; }
+
+/* 展开详情区 */
+.route-detail { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid transparent; }
+.route-card.expanded .route-detail { max-height: 2500px; border-top-color: #f1f5f9; }
+
+/* 站点列表 */
+.route-stations { padding: 12px 14px; font-size: 13px; color: #1f2b3c; line-height: 1.9; word-break: break-word; }
+.route-station { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; white-space: nowrap; display: inline-block; margin: 2px 0; }
+.route-arrow { color: #94a3b8; margin: 0 4px; font-weight: 600; }
+.route-stations-toggle-wrap { padding: 0 14px 10px; }
+.route-stations-toggle { display: inline-flex; align-items: center; gap: 5px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; line-height: 1.2; }
+.route-stations-toggle:hover { background: #e2e8f0; border-color: #cbd5e1; color: #1f2b3c; }
+.route-stations-toggle:active { background: #cbd5e1; }
+.route-stations-toggle-icon { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
+.route-stations-toggle[data-expanded="1"] .route-stations-toggle-icon { transform: rotate(180deg); }
+
+.route-station-more-btn { display: inline-block; background: #e2e8f0; color: #475569; border: none; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; font-family: inherit; line-height: 1.6; margin: 2px 0; letter-spacing: 0.3px; white-space: nowrap; cursor: pointer; transition: background 0.15s, color 0.15s, transform 0.1s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); vertical-align: middle; }
+.route-station-more-btn:hover { background: #cbd5e1; color: #1f2b3c; }
+.route-station-more-btn:active { background: #b8c4d4; transform: scale(0.97); }
+.route-station-more-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.25); }
+
+/* 换乘指引 */
+.route-guide { background: #f8fafc; padding: 4px 0; }
+.route-guide-empty { padding: 12px 14px; font-size: 13px; color: #16a34a; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.route-guide-item { position: relative; padding: 10px 14px; min-height: 62px; box-sizing: border-box; border-bottom: 1px dashed #e2e8f0; }
+.route-guide-item:last-child { border-bottom: none; }
+.route-guide-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; padding-right: 118px; row-gap: 4px; min-height: 22px; }
+.route-guide-station { font-weight: 800; color: #1e293b; font-size: 14px; flex-shrink: 0; }
+.route-guide-change { background: #eceff3; color: #475569; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.route-guide-direction { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.route-guide-note { color: #64748b; font-size: 12px; font-weight: 500; flex: 0 1 auto; min-width: 0; line-height: 1.5; }
+.route-guide-doors { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+.route-guide-time-wrap { position: absolute; top: 10px; right: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; pointer-events: none; line-height: 1; }
+.route-guide-time-row { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 5px; white-space: nowrap; line-height: 1.2; height: 15px; }
+.route-guide-dot { color: #cbd5e1; font-weight: 700; font-size: 10px; user-select: none; line-height: 1; }
+.route-guide-time { font-family: 'SF Mono', Consolas, Menlo, monospace; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 12.5px; color: #1f2b3c; letter-spacing: 0.2px; line-height: 1; white-space: nowrap; }
+.route-guide-walk { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; line-height: 1; }
+.route-guide-margin { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; line-height: 1; flex-shrink: 0; }
+.route-guide-margin.urgent { color: #d97706; }
+
+/* 警告信息 */
+.route-warnings { padding: 0 14px 10px; }
+.route-warning { display: flex; align-items: flex-start; gap: 8px; background: #fff8e1; border-left: 3px solid #f59e0b; color: #78350f; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.6; font-weight: 600; }
+.route-warning-text { flex: 1; min-width: 0; }
+.route-warning-icon { flex-shrink: 0; font-size: 14px; line-height: 1.4; }
+.route-warning-emphasis { font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; color: inherit; }
+.route-warning-meta { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 500; color: #a16207; opacity: 0.9; }
+
+.route-fare { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 6px; font-size: 12px; font-weight: 800; color: #b45309; background: #fef3c7; letter-spacing: 0.3px; }
+
+/* 空结果操作引导 */
+.route-empty-suggest { margin-top: 16px; font-size: 13px; font-weight: 600; color: #475569; text-align: left; padding-left: 4px; }
+.route-suggest-actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; text-align: left; }
+.route-suggest-btn { display: inline-flex; align-items: center; padding: 8px 14px; background: #f0f6ff; color: #1a6bd5; border: 1.5px solid #b8d4f0; border-radius: 20px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.1s; line-height: 1.2; }
+.route-suggest-btn:hover { background: #dbeafe; border-color: #7ab0e6; }
+.route-suggest-btn:active { background: #c0daf8; transform: scale(0.98); }
+
+/* 车站管制 / 起终点异常 */
+.route-station-ctrl { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.route-station-ctrl-item { display: flex; align-items: flex-start; gap: 8px; background: #fef2f2; border-left: 3px solid #dc2626; color: #7f1d1d; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.55; font-weight: 500; word-break: break-word; }
+.route-station-ctrl-icon { flex-shrink: 0; font-size: 13px; line-height: 1.5; }
+.route-station-ctrl-text { flex: 1; min-width: 0; }
+.route-station-ctrl-text b { font-weight: 800; margin-right: 6px; }
+.route-station-ctrl-count { display: inline-block; background: #dc2626; color: #fff; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-right: 6px; letter-spacing: 0.3px; line-height: 1.4; vertical-align: 1px; }
+
+.route-startend-warning { display: flex; flex-direction: column; gap: 6px; margin: 0 0 12px; }
+.route-sew-item { display: flex; align-items: center; gap: 8px; background: #fef2f2; border-left: 3px solid #dc2626; color: #7f1d1d; padding: 9px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.55; font-weight: 500; flex-wrap: wrap; }
+.route-sew-type { display: inline-block; background: #dc2626; color: #fff; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; letter-spacing: 0.3px; line-height: 1.4; flex-shrink: 0; }
+.route-sew-body { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; }
+.route-sew-tag { display: inline-block; background: rgba(220, 38, 38, 0.12); color: #b91c1c; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 5px; letter-spacing: 0.3px; line-height: 1.4; flex-shrink: 0; }
+.route-sew-name { font-weight: 700; }
+.route-sew-sep { color: #f87171; font-weight: 700; padding: 0 2px; }

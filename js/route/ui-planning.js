@@ -325,9 +325,6 @@ async function runRoutePlanning() {
             }
         }
 
-        // ==========================================
-        // 模式 1：到达模式（反向计算每条路线的最晚出发时间）
-        // ==========================================
         if (_routeArriveMode) {
             const targetArriveMin = departMin;
 
@@ -506,9 +503,24 @@ async function runRoutePlanning() {
                     html += `</div>`;
                 }
             }
+            // ★ 调整布局：左对齐，间距紧凑，样式与上方按钮一致
+            html += `<div style="margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 4px;">`;
+            html += `<button type="button" class="route-suggest-btn" id="route-btn-external">`;
+            html += `🗺️ 使用外部地图导航`;
+            html += `</button>`;
+            html += `</div>`;
             html += `</div>`;
             hideAllRouteLegends();
             resultsEl.innerHTML = html;
+
+            // ★ 绑定外部导航按钮事件
+            const extBtn = resultsEl.querySelector('#route-btn-external');
+            if (extBtn) {
+                extBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openExternalMap(displayStart, displayEnd);
+                });
+            }
 
             resultsEl.querySelectorAll('.route-suggest-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -717,4 +729,27 @@ function updateStartEndWarning(stationCtrl, startName, endName) {
     }).join('');
 
     wrap.style.display = 'flex';
+}
+
+/** 唤起外部地图 App */
+function openExternalMap(start, end) {
+    // 加上"广州市"和"地铁站"作为后缀，提高外部地图搜索的精准度
+    const startStr = encodeURIComponent(`广州市 ${start}地铁站`);
+    const endStr = encodeURIComponent(`广州市 ${end}地铁站`);
+
+    const ua = navigator.userAgent.toLowerCase();
+    // 严格判断真正的苹果移动设备（排除桌面端 Mac 和伪装 UA 的 Windows）
+    const isIOS = /iphone|ipad|ipod/.test(ua) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+        // 使用 Apple Maps 的通用 HTTPS 链接，iOS 上会自动拉起原生 App
+        const url = `https://maps.apple.com/?saddr=${startStr}&daddr=${endStr}&dirflg=r`;
+        window.location.href = url;
+    } else {
+        // 其他设备（Windows、安卓、Mac）：使用高德地图网页版
+        // 手机会自动唤起高德App，电脑会打开高德网页版
+        const url = `https://uri.amap.com/navigation?from=${startStr}&to=${endStr}&mode=bus&policy=1&src=mypage&coordinate=gaode&callnative=1`;
+        window.open(url, '_blank');
+    }
 }

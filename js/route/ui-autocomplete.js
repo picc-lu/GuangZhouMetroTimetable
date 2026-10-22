@@ -121,6 +121,10 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
             el.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 inputEl.value = el.dataset.value;
+
+                // ★ 核心修复：手动触发 input 事件，让清除红框和隐藏定位按钮的逻辑生效
+                inputEl.dispatchEvent(new Event('input'));
+
                 hide();
                 try {
                     inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);

@@ -21,9 +21,16 @@ function ensureRouteOverlay() {
                     <div class="route-stops">
                         <div class="route-field">
                             <label>起</label>
-                            <div class="route-autocomplete">
+                            <div class="route-autocomplete" style="position: relative; display: flex; align-items: center; flex: 1; min-width: 0;">
                                 <input id="route-start" class="route-input"
                                        placeholder="出发站" autocomplete="off">
+                                <button type="button" class="route-locate-btn" id="route-start-locate" title="定位当前起点" style="position: absolute; right: 4px;">
+                                    <svg class="locate-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    <span class="locate-spinner" style="display: none;"></span>
+                                </button>
                                 <div class="route-suggestions" id="route-start-suggestions"></div>
                             </div>
                         </div>
@@ -61,36 +68,28 @@ function ensureRouteOverlay() {
                         <div class="route-time-panel" id="route-hour-panel"></div>
                         <div class="route-time-panel" id="route-minute-panel"></div>
                     </div>
+                    <div class="route-sort-row">
+                        <label class="route-sort-option">
+                            <input type="radio" name="route-sort" value="fastest" checked>
+                            <span class="route-sort-label">最快优先</span>
+                            <span class="route-sort-hint">按总耗时排序</span>
+                        </label>
+                        <label class="route-sort-option">
+                            <input type="radio" name="route-sort" value="fewer-transfers">
+                            <span class="route-sort-label">换乘少优先</span>
+                            <span class="route-sort-hint">减少换乘次数</span>
+                        </label>
+                        <label class="route-sort-option">
+                            <input type="radio" name="route-sort" value="conservative">
+                            <span class="route-sort-label">保守优先</span>
+                            <span class="route-sort-hint">末班车时间充裕</span>
+                        </label>
+                    </div>
+                    <!-- 高级设置内容面板（移除了原来的触发按钮） -->
                     <div class="route-advanced" id="route-advanced">
-                        <button type="button" class="route-advanced-toggle"
-                                id="route-advanced-toggle" aria-expanded="false">
-                            <span class="route-advanced-title">⚙ 高级设置</span>
-                            <svg class="route-advanced-icon" viewBox="0 0 24 24"
-                                 width="14" height="14" fill="none" stroke="currentColor"
-                                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </button>
                         <div class="route-advanced-body">
                             <div class="route-advanced-inner">
-
-                                <div class="route-sort-row">
-                                    <label class="route-sort-option">
-                                        <input type="radio" name="route-sort" value="fastest" checked>
-                                        <span class="route-sort-label">最快优先</span>
-                                        <span class="route-sort-hint">按总耗时排序</span>
-                                    </label>
-                                    <label class="route-sort-option">
-                                        <input type="radio" name="route-sort" value="fewer-transfers">
-                                        <span class="route-sort-label">换乘少优先</span>
-                                        <span class="route-sort-hint">减少换乘次数</span>
-                                    </label>
-                                    <label class="route-sort-option">
-                                        <input type="radio" name="route-sort" value="conservative">
-                                        <span class="route-sort-label">保守优先</span>
-                                        <span class="route-sort-hint">末班车时间充裕</span>
-                                    </label>
-                                </div>
+                                <!-- ▼ 原来的 route-sort-row 和 route-extra-options 内容保持完全不变，放在这里 ▼ -->
 
                                 <div class="route-extra-options">
                                     <label class="route-extra-option">
@@ -116,7 +115,6 @@ function ensureRouteOverlay() {
                                                 <span class="route-extra-option-sub">优先展示避开客控站的路线</span>
                                             </span>
                                         </label>
-                                        <!-- ★ 提示文字放在框外右边 -->
                                         <span class="route-extra-reason" id="route-avoid-ctrl-reason"></span>
                                     </div>
                                     <label class="route-extra-option">
@@ -138,14 +136,24 @@ function ensureRouteOverlay() {
                                         </select>
                                     </label>
                                 </div>
-
+                                <!-- ▲ 原有内容结束 ▲ -->
                             </div>
                         </div>
                     </div>
-                    <button id="route-go" class="route-go" type="button">
-                        <span class="route-go-text">规划</span>
-                        <span class="route-go-spinner" aria-hidden="true"></span>
-                    </button>
+                    
+                                       <!-- ★ 底部操作栏：规划 + 齿轮 -->
+                    <div class="route-footer-actions">
+                        <button id="route-go" class="route-go" type="button">
+                            <span class="route-go-text">规划</span>
+                            <span class="route-go-spinner" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="route-advanced-toggle" id="route-advanced-toggle" aria-expanded="false" title="高级设置">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="route-meta" id="route-meta" style="display:none">正在加载线路图…</div>
                 <div class="route-startend-warning" id="route-startend-warning" style="display:none"></div>
@@ -250,6 +258,56 @@ function ensureRouteOverlay() {
         });
     }
 
+    // ★ 新增：起点定位按钮逻辑
+    const startLocateBtn = ov.querySelector('#route-start-locate');
+    if (startLocateBtn) {
+        startLocateBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // 防止触发弹窗外部的点击隐藏
+            if (startLocateBtn.classList.contains('loading')) return;
+
+            // 进入加载状态
+            startLocateBtn.classList.add('loading');
+            const icon = startLocateBtn.querySelector('.locate-icon');
+            const spinner = startLocateBtn.querySelector('.locate-spinner');
+            if (icon) icon.style.display = 'none';
+            if (spinner) spinner.style.display = 'block';
+
+            try {
+                // 调用我们马上要写的定位获取函数
+                const nearest = await getNearestStationForRoute();
+                if (nearest) {
+                    const startInput = ov.querySelector('#route-start');
+                    startInput.value = nearest;
+                    // 清除错误红框
+                    const field = startInput.closest('.route-field');
+                    if (field) field.classList.remove('input-error');
+                    // 触发一次 input 事件，让系统知道内容变了
+                    startInput.dispatchEvent(new Event('input'));
+                    // 收起软键盘
+                    if (_isIOSDevice) startInput.blur();
+                }
+            } catch (err) {
+                alert('定位失败：' + (err.message || err));
+            } finally {
+                // 恢复按钮状态
+                startLocateBtn.classList.remove('loading');
+                if (icon) icon.style.display = 'block';
+                if (spinner) spinner.style.display = 'none';
+            }
+        });
+
+        const startInput = ov.querySelector('#route-start');
+        if (startInput) {
+            const updateLocateBtnDisplay = () => {
+                startLocateBtn.style.display = startInput.value.trim() === '' ? 'flex' : 'none';
+            };
+            // 监听输入事件
+            startInput.addEventListener('input', updateLocateBtnDisplay);
+            // 初始化时检查一次
+            updateLocateBtnDisplay();
+        }
+    }
+
     setupRouteAutocomplete(
         ov.querySelector('#route-start'),
         document.getElementById('route-start-suggestions')
@@ -292,6 +350,8 @@ function ensureRouteOverlay() {
             const tmp = startInput.value;
             startInput.value = endInput.value;
             endInput.value = tmp;
+
+            startInput.dispatchEvent(new Event('input'));
 
             const s1 = document.getElementById('route-start-suggestions');
             const s2 = document.getElementById('route-end-suggestions');
@@ -686,4 +746,55 @@ function updateCtrlOptionStatus() {
         reasonEl.textContent = '';
         reasonEl.classList.remove('show');
     }
+}
+
+/** 获取距离当前定位最近的（可用于规划的）地铁站 */
+function getNearestStationForRoute() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject('您的浏览器不支持定位功能');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                // 转换为 GCJ02 坐标系（高德/腾讯坐标系）
+                const [gcjLat, gcjLng] = wgs84ToGcj02(latitude, longitude);
+
+                let minDist = Infinity;
+                let nearestName = '';
+
+                if (typeof STATION_COORDS === 'undefined' || !STATION_COORDS) {
+                    reject('站点坐标未加载');
+                    return;
+                }
+
+                for (const [name, coord] of Object.entries(STATION_COORDS)) {
+                    // 排除不支持路径规划的站（如有轨电车等）
+                    const lines = STATION_INDEX[name] || [];
+                    if (typeof isRouteEligibleStation === 'function' && !isRouteEligibleStation(name, lines)) {
+                        continue;
+                    }
+
+                    const [sLng, sLat] = coord;
+                    const dist = haversineDistance(gcjLat, gcjLng, sLat, sLng);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestName = name;
+                    }
+                }
+
+                if (nearestName) resolve(nearestName);
+                else reject('附近没有合适的地铁站');
+            },
+            (err) => {
+                let msg = '定位失败';
+                if (err.code === 1) msg = '定位权限被拒绝';
+                else if (err.code === 2) msg = '无法获取位置信息';
+                else if (err.code === 3) msg = '定位超时';
+                reject(msg);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    });
 }

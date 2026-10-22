@@ -1,0 +1,43 @@
+/* ==========================================
+   移动端适配（≤ 768px & ≤ 480px）
+   ========================================== */
+@media (max-width: 768px) {
+    .route-container { width: 96%; max-height: 92vh; }
+    .route-field { flex: 1 1 100%; }
+    .route-stops { gap: 6px; }
+    .route-swap-btn { width: 28px; height: 28px; }
+    .route-swap-btn svg { width: 14px; height: 14px; }
+    .route-go { width: 100%; padding: 12px 0; }
+    .route-card-head { padding: 10px 12px 10px 30px; gap: 10px; }
+    .route-rank { width: 30px; height: 30px; padding: 4px 0 0 5px; font-size: 11px; }
+    .route-line-path { font-size: 14px; }
+    .route-arrive-time { font-size: 15px; }
+    .route-arrive-line .route-arrive-label { font-size: 10px; }
+    .route-arrive-line + .route-arrive-line { margin-top: 3px; }
+    .route-segment-badge { padding: 3px 8px; font-size: 13px; }
+    .route-header-note { font-size: 11px; }
+    .route-segment-warn { width: 16px; height: 16px; right: -6px; bottom: -6px; }
+    .route-segment-warn-3line { width: 14px; height: 14px; left: -6px; top: -6px; }
+    .route-stations { font-size: 12px; padding: 10px 12px; }
+    .route-stations-toggle-wrap { padding: 0 12px 10px; }
+    .route-stations-toggle { padding: 4px 10px; font-size: 11.5px; }
+    .route-guide-item { padding: 8px 12px; min-height: 58px; }
+    .route-guide-head { padding-right: 108px; font-size: 12px; }
+    .route-guide-station { font-size: 13px; }
+    .route-guide-time-wrap { top: 8px; right: 12px; }
+    .route-guide-time { font-size: 12px; }
+    .route-guide-walk, .route-guide-margin { font-size: 10.5px; }
+    .route-plan-btn { width: 40px; height: 36px; padding: 0; }
+    .route-plan-btn span { display: none; }
+    .route-plan-btn svg { width: 18px; height: 18px; }
+    .route-extra-option { padding: 5px 10px; font-size: 12px; }
+    .route-extra-option-title { font-size: 12px; }
+    .route-extra-option-sub { font-size: 10px; }
+    .route-max-transfer-input { width: 60px; height: 36px; font-size: 16px; transform: scale(0.82); transform-origin: center; margin: -4px -5px; }
+    .route-station-more-btn { padding: 3px 10px; font-size: 11.5px; }
+}
+
+@media (max-width: 480px) {
+    .route-time-cell { min-width: 40px; height: 36px; font-size: 15px; padding: 6px 2px; }
+    .route-time-panel.rows-3, .route-time-panel.rows-2 { gap: 3px; padding: 8px; }
+}
