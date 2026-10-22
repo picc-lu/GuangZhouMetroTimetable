@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.25",
+  "current": "1.1.25a",
   "entries": [
+    {
+      "version": "1.1.25a",
+      "date": "2026-10-22",
+      "items": [
+        { "type": "调整", "text": "微调按钮位置" }
+      ]
+    },
     {
       "version": "1.1.25",
       "date": "2026-10-22",

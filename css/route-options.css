@@ -138,7 +138,7 @@
     display: flex;
     gap: 8px;
     padding: 4px;
-    margin: 4px -4px 0 -4px;
+    margin: 0 -4px;
     width: calc(100% + 8px);
     box-sizing: border-box;
 }
@@ -176,10 +176,10 @@
     transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 0;
 }
-.route-advanced.open .route-advanced-body { grid-template-rows: 1fr; margin-top: 8px; }
+.route-advanced.open .route-advanced-body { grid-template-rows: 1fr; }
 .route-advanced-inner { min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
 
-.route-extra-options { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-top: -2px; }
+.route-extra-options { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; }
 .route-extra-option {
     display: inline-flex;
     align-items: center;
