@@ -101,7 +101,7 @@ function ensureRouteOverlay() {
                                         <input type="text" id="route-max-transfer-min"
                                                class="route-max-transfer-input"
                                                inputmode="numeric" pattern="[0-9]*"
-                                               maxlength="2" value="5" disabled>
+                                               maxlength="2" value="3" disabled>
                                         <span>分钟</span>
                                     </label>
                                     <div class="route-extra-row">

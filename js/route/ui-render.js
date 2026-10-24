@@ -637,7 +637,7 @@ function buildArriveBlockHtml(item) {
             <div class="route-arrive">
                 <div class="route-arrive-line">
                     <span class="route-arrive-time">${boardingTime}</span>
-                    <span class="route-arrive-label">出发</span>
+                    <span class="route-arrive-label">候车</span>
                 </div>
                 <div class="route-arrive-line">
                     <span class="route-arrive-time">${arriveTime}</span>
@@ -923,17 +923,19 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 let row2 = '';
 
                 if (arriveStr) {
+                    // ★ 将“到”直接写进 route-guide-time 里面
                     const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
                     if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
-                    row1 = `<span class="route-guide-time-row">${row1Parts.join('<span class="route-guide-dot">·</span>')}</span>`;
+                    row1 = `<span class="route-guide-time-row">${row1Parts.join('')}</span>`;
                 }
 
                 if (boardingStr || marginStr) {
                     const row2Parts = [];
+                    // ★ 将“候”直接写进 route-guide-time 里面
                     if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
                     if (marginStr) row2Parts.push(marginStr);
                     row2 = row2Parts.length > 0
-                        ? `<span class="route-guide-time-row">${row2Parts.join('<span class="route-guide-dot">·</span>')}</span>`
+                        ? `<span class="route-guide-time-row">${row2Parts.join('')}</span>`
                         : '';
                 }
 

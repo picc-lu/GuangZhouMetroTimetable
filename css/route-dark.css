@@ -114,11 +114,10 @@
 [data-theme="dark"] .route-guide-station { color: #e2e8f0; }
 [data-theme="dark"] .route-guide-note { color: #94a3b8; }
 [data-theme="dark"] .route-guide-doors { background: #422c00; color: #fbbf24; }
-[data-theme="dark"] .route-guide-time { color: #e2e8f0; }
-[data-theme="dark"] .route-guide-walk { color: #94a3b8; }
-[data-theme="dark"] .route-guide-dot { color: #475569; }
-[data-theme="dark"] .route-guide-margin { color: #94a3b8; }
-[data-theme="dark"] .route-guide-margin.urgent { color: #fbbf24; }
+[data-theme="dark"] .route-guide-time{color:#e2e8f0;}
+[data-theme="dark"] .route-guide-walk{color:#e2e8f0;background:#374151;}
+[data-theme="dark"] .route-guide-margin{color:#cbd5e1;background:#2d3748;}
+[data-theme="dark"] .route-guide-margin.urgent{background:#422c00;color:#fbbf24;}
 [data-theme="dark"] .route-guide-empty { color: #4ade80; }
 
 [data-theme="dark"] .route-warning { background: #3a2a10; color: #fbbf24; border-left-color: #d97706; }

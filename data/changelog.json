@@ -1,7 +1,15 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.25a",
+  "current": "1.1.25b",
   "entries": [
+    {
+      "version": "1.1.25b",
+      "date": "2026-10-24",
+      "items": [
+        { "type": "新增", "text": "夜间模式动画" },
+        { "type": "调整", "text": "到达换乘站时间显示样式" }
+      ]
+    },
     {
       "version": "1.1.25a",
       "date": "2026-10-22",

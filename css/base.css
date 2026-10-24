@@ -554,3 +554,23 @@ html, body {
         font-size: 14px;
     }
 }
+
+/* ==========================================
+   View Transitions 夜间模式扩散动画
+   ========================================== */
+/* 禁用默认动画，只保留 clip-path 裁剪 */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* 旧视图（底层） */
+::view-transition-old(root) {
+    z-index: 1;
+}
+
+/* 新视图（顶层，执行扩散动画） */
+::view-transition-new(root) {
+    z-index: 2;
+}

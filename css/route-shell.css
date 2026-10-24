@@ -178,7 +178,7 @@
     width: 100%;
     min-width: 0;
     text-align: center;
-    padding: 0 28px;
+    padding: 0 16px;
 }
 
 .route-stops .route-input::placeholder {
