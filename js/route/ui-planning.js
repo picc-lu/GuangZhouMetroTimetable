@@ -1,5 +1,56 @@
 // ========== 路径规划 UI · 规划流程与空结果建议 ==========
 
+// ========== 检测未收录站点 ==========
+let _outdatedStationsCache = null; // 缓存结果
+
+function getOutdatedStations() {
+    if (_outdatedStationsCache !== null) return _outdatedStationsCache;
+    if (typeof ROUTE_GRAPH === 'undefined' || !ROUTE_GRAPH.loaded) return [];
+    if (typeof LINE_STATIONS === 'undefined') return [];
+
+    const result = [];
+    for (const [line, stations] of Object.entries(LINE_STATIONS)) {
+        // 排除 APM 和有轨电车
+        if (line.includes('APM') || line.includes('有轨')) continue;
+
+        for (const st of stations) {
+            if (!st || st === '开始' || st === '结束') continue;
+
+            // 如果本地图里查不到这个站
+            if (!resolveGraphStationNode(st, 'start')) {
+                result.push({ line, station: st });
+            }
+        }
+    }
+    _outdatedStationsCache = result;
+    return result;
+    // 测试用假数据
+    // return [
+    //     { line: '12号线', station: '棠溪' },
+    //     { line: '12号线', station: '新市墟' },
+    //     { line: '13号线', station: '松溪' },
+    //     { line: '4号线', station: '官桥' },
+    // ];
+}
+
+// ========== 新线配置加载 ==========
+let NEW_LINES_CONFIG = null;
+
+// 页面加载时自动去拉取配置（静默加载）
+fetch('./data/new-lines-config.json')
+    .then(res => res.json())
+    .then(data => { NEW_LINES_CONFIG = data; })
+    .catch(err => console.warn('[配置] 新线路配置加载失败，忽略新线警告:', err));
+
+// ========== 辅助检测函数 ==========
+/** 检查该站是否存在于官方实时数据中 */
+function isStationInOfficialData(stationName) {
+    if (!stationName) return false;
+    for (const arr of Object.values(LINE_STATIONS)) {
+        if (arr.includes(stationName)) return true;
+    }
+    return false;
+}
 /* ==========================================
    空结果引导
    ========================================== */
@@ -291,11 +342,11 @@ async function runRoutePlanning() {
         const resolvedEndNode = resolveGraphStationNode(end, 'end');
 
         if (!resolvedStartNode) {
-            resultsEl.innerHTML = `<div class="route-error">起点「${escapeHtml(start)}」不存在，请检查站名后重试</div>`;
-            return;
-        }
-        if (!resolvedEndNode) {
-            resultsEl.innerHTML = `<div class="route-error">终点「${escapeHtml(end)}」不存在，请检查站名后重试</div>`;
+            let msg = `起点「${escapeHtml(start)}」不存在，请检查站名后重试`;
+            if (isStationInOfficialData(start)) {
+                msg = `起点「${escapeHtml(start)}」属于官方已有数据，但本地路网图暂未收录（本地图未更新），当前版本无法规划。`;
+            }
+            resultsEl.innerHTML = `<div class="route-error">${msg}</div>`;
             return;
         }
 
@@ -566,6 +617,38 @@ async function runRoutePlanning() {
         if (legend3LineEl) legend3LineEl.style.display = has3LineWarning ? 'flex' : 'none';
 
         let headlineHtml = '';
+
+        // ★ 获取未收录站点并按线路分组
+        const outdated = getOutdatedStations();
+        if (outdated.length > 0) {
+            const grouped = {};
+            outdated.forEach(item => {
+                if (!grouped[item.line]) grouped[item.line] = [];
+                grouped[item.line].push(item.station);
+            });
+
+            // 限制最多展示 3 条线路，防止警告框过长
+            let detailsHtml = '';
+            const lines = Object.keys(grouped);
+            const maxLines = 3;
+
+            lines.slice(0, maxLines).forEach(line => {
+                detailsHtml += `<div><b>${line}</b>：${grouped[line].join('、')}</div>`;
+            });
+
+            if (lines.length > maxLines) {
+                detailsHtml += `<div style="opacity: 0.7;">等 ${lines.length} 条线路...</div>`;
+            }
+
+            headlineHtml += `
+                <div class="route-outdated-notice">
+                    <div style="font-size: 14px; margin-bottom: 4px;">检测到官方存在新站点，本地线路图未更新，规划结果可能不是最优：</div>
+                    <div style="font-weight: 500; font-size: 12px; line-height: 1.6; opacity: 0.9;">
+                        ${detailsHtml}
+                    </div>
+                </div>
+            `;
+        }
 
         // 渲染卡片
         resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>

@@ -137,3 +137,5 @@
 [data-theme="dark"] .route-sew-tag { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
 [data-theme="dark"] .route-sew-sep { color: #ef4444; }
 [data-theme="dark"] .route-fare { color: #fbbf24; background: #3a2a10; }
+
+[data-theme="dark"] .route-outdated-notice{background:#422c00;border-color:#78350f;color:#fcd34d;}
