@@ -1,20 +1,108 @@
 /* ==========================================
    控制面板
    ========================================== */
-.controls {
+.controls-wrapper {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: white;
-    border-radius: 0 0 24px 24px;
-    padding: 16px 28px;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    background: #ffffff;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
     border: 1px solid #dbe2ed;
     border-top: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.controls-toggle-btn {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 44px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2b3c;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+}
+
+.controls-wrapper.collapsed .controls-toggle-btn {
+    border-bottom: none;
+}
+
+.controls-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: transparent;
+}
+
+.controls-actions-bar .search-wrapper {
+    margin-right: auto;
+}
+
+.controls-wrapper:not(.collapsed) .controls-toggle-btn {
+    border-bottom: 1px dashed #ccd9e9;
+}
+
+.controls-wrapper.collapsed .controls-actions-bar {
+    border-top: 1px dashed #ccd9e9;
+}
+
+.controls-wrapper.expanded .controls-toggle-btn {
+    border-radius: 0;
+    border-bottom: 1px dashed #ccd9e9;
+}
+
+.toggle-progress-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-color: rgba(43, 125, 233, 0.1);
+    width: 0%;
+    z-index: 0;
+    transition: width 0.2s ease-out;
+}
+
+.toggle-progress-text {
+    display: none;
+    position: relative;
+    z-index: 1;
+}
+
+.toggle-text {
+    position: relative;
+    z-index: 1;
+}
+
+.controls-toggle-btn.loading {
+    color: #2b7de9;
+}
+
+.controls-toggle-btn.loading .toggle-text {
+    display: none;
+}
+
+.controls-toggle-btn.loading .toggle-progress-text {
+    display: block;
+}
+
+.controls {
+    position: relative;
+    background: transparent;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px dashed #ccd9e9;
 }
 
 /* 第一行：自定义时间 + 应用系统时间 */
@@ -41,8 +129,6 @@
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px dashed #ccd9e9;
 }
 
 /* 新增：每一行的横向滚动容器 */

@@ -129,42 +129,56 @@ function setAllLineButtonsToGray() {
 }
 
 function showLoadingMessage(text) {
+    const btn = document.getElementById('controls-toggle-btn');
+    if (btn) {
+        btn.classList.add('loading');
+        document.getElementById('toggle-progress-text').textContent = text;
+        document.getElementById('toggle-progress-bg').style.width = '0%';
+    }
     const wrapper = document.getElementById('map-wrapper');
     wrapper.innerHTML = `<div class="loading-message">${text}</div>`;
 }
 
 function updateLoadingMessage(text) {
+    const btn = document.getElementById('controls-toggle-btn');
+    if (btn && btn.classList.contains('loading')) {
+        // 文本显示：比如 "正在获取最新运营首末时间... 45/300"
+        document.getElementById('toggle-progress-text').textContent = text;
+
+        // 解析进度，比如 "45/300"
+        const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+        if (match) {
+            const current = parseInt(match[1], 10);
+            const total = parseInt(match[2], 10);
+            if (total > 0) {
+                const percent = Math.min(100, (current / total) * 100);
+                // 进度条背景宽度
+                document.getElementById('toggle-progress-bg').style.width = percent + '%';
+            }
+        }
+    }
+
+    // 保持原有的内部 map-wrapper loading 更新
     const wrapper = document.getElementById('map-wrapper');
     const bigLoading = wrapper ? wrapper.querySelector('.loading-message') : null;
-
-    // 如果大块 loading 还在，只更新它的文本（首次加载阶段）
     if (bigLoading) {
         bigLoading.textContent = text;
-        return;
     }
+}
 
-    // 大块 loading 已经被线路图取代，改用浮动 toast 显示进度
-    let toast = document.getElementById('loading-toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'loading-toast';
-        toast.className = 'loading-toast';
-        document.body.appendChild(toast);
-    }
-    toast.textContent = text;
-    toast.style.display = 'block';
-    toast.style.opacity = '1';
+function finishLoadingMessage() {
+    const btn = document.getElementById('controls-toggle-btn');
+    if (btn && btn.classList.contains('loading')) {
+        // 填充到 100%
+        document.getElementById('toggle-progress-bg').style.width = '100%';
 
-    // 如果进度形如 "300/300" 表示已完成，稍后淡出
-    const match = text.match(/(\d+)\s*\/\s*(\d+)/);
-    if (match && match[1] === match[2]) {
+        // 延迟一下让用户看到 100% 的进度，然后恢复按钮文本
         setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.style.display = 'none';
-                toast.style.opacity = '1';
-            }, 300);
-        }, 800);
+            if (!btn.classList.contains('loading')) return;
+            btn.classList.remove('loading');
+            document.getElementById('toggle-progress-bg').style.width = '0%';
+            document.getElementById('toggle-text').textContent = '展开控制面板 ▼';
+        }, 300);
     }
 }
 

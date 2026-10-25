@@ -60,31 +60,42 @@
     </svg>
     <span>地铁运营时间展示</span>
 </div>
-<div class="controls">
-    <div class="controls-row-1">
-        <div class="time-panel" id="custom-time-panel">
-            <label>⏱ 自定义</label>
-            <select id="hour-select"></select>
-            <span>:</span>
-            <select id="minute-select"></select>
-            <button id="apply-custom-time" class="action-button">应用</button>
-        </div>
-        <div class="system-time-area" id="system-time-panel">
-            <span id="real-time-clock">--:--</span>
-            <button id="use-system-time" class="action-button">应用系统时间</button>
-        </div>
-    </div>
+<div class="controls-wrapper" id="controls-wrapper">
+    <!-- 1. 满宽折叠按钮（同时作为进度条） -->
+    <button class="controls-toggle-btn" id="controls-toggle-btn">
+        <div class="toggle-progress-bg" id="toggle-progress-bg"></div>
+        <span class="toggle-text" id="toggle-text">展开控制面板 ▼</span>
+        <span class="toggle-progress-text" id="toggle-progress-text">正在获取最新运营时间...</span>
+    </button>
 
-    <!-- ★ 线路按钮行：从最下方移到工具栏上方 -->
-    <div class="controls-row-3" id="line-buttons-row"></div>
+    <!-- 2. 折叠区域 -->
+    <div class="controls" id="controls-panel" style="display: none;">
+        <div class="controls-row-1">
+            <div class="time-panel" id="custom-time-panel">
+                <label>⏱ 自定义</label>
+                <select id="hour-select"></select>
+                <span>:</span>
+                <select id="minute-select"></select>
+                <button class="action-button" id="apply-custom-time">应用</button>
+            </div>
+            <div class="system-time-area" id="system-time-panel">
+                <span id="real-time-clock">--:--</span>
+                <button class="action-button" id="use-system-time">应用系统时间</button>
+            </div>
+        </div>
 
-    <div class="controls-row-1b">
+        <div class="controls-row-3" id="line-buttons-row"></div>
+
         <div class="filter-area">
             <label>🚉 筛选</label>
             <select id="line-filter" class="filter-select" multiple size="1"></select>
             <button id="select-all" class="action-button">全选</button>
             <button id="deselect-all" class="action-button">清空</button>
         </div>
+    </div>
+
+    <!-- 3. 常驻操作栏（原红框内容） -->
+    <div class="controls-actions-bar">
         <div class="search-wrapper" id="search-wrapper">
             <button type="button" class="search-toggle" id="search-toggle"
                     title="搜索站点" aria-label="搜索站点" aria-expanded="false">
@@ -132,6 +143,7 @@
         </button>
     </div>
 
+    <!-- 下面保留你原有的 controls-row-2 -->
     <div class="controls-row-2" style="display: none">
         <div class="file-group">
             <button id="fetch-data-btn" class="action-button" style="background:#2e7d32;">🚇 获取最新首末数据</button>

@@ -277,6 +277,8 @@ async function fetchServiceTimes(stationsToFetch = null) {
         return;
     }
 
+    finishLoadingMessage();
+
     // 更新失败徽章
     updateFetchErrorBadge();
 }

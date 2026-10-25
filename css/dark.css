@@ -55,11 +55,8 @@
     color: #e2e8f0;
 }
 
-/* ---------- 控制栏 ---------- */
 [data-theme="dark"] .controls {
-    background: #131a26;
-    border-color: #2d3748;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-bottom-color: #2d3748;
 }
 
 [data-theme="dark"] select {
@@ -672,3 +669,28 @@
 [data-theme="dark"] .sw-tag-opt { background: #0c4a6e; color: #7dd3fc; }
 [data-theme="dark"] .sw-tag-update { background: #78350f; color: #fcd34d; }
 [data-theme="dark"] .sw-tag-default { background: #2d3748; color: #cbd5e1; }
+
+[data-theme="dark"] .controls-toggle-btn {
+    color: #e2e8f0;
+}
+[data-theme="dark"] .controls-wrapper:not(.collapsed) .controls-toggle-btn {
+    border-bottom-color: #2d3748;
+}
+
+[data-theme="dark"] .controls-wrapper.collapsed .controls-actions-bar {
+    border-top-color: #2d3748;
+}
+[data-theme="dark"] .controls-wrapper {
+    background: #131a26;
+    border-color: #2d3748;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .controls-wrapper.expanded .controls-toggle-btn {
+    border-bottom-color: #2d3748;
+}
+[data-theme="dark"] .toggle-progress-bg {
+    background-color: rgba(43, 125, 233, 0.25);
+}
+[data-theme="dark"] .controls-toggle-btn.loading {
+    color: #5da0ff; /* 夜间模式用亮蓝色 */
+}

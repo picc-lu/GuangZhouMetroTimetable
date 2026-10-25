@@ -334,3 +334,29 @@ if (backToTopBtn) {
         window.scrollTo({top: 0, behavior: 'smooth'});
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('controls-toggle-btn');
+    const panel = document.getElementById('controls-panel');
+    const wrapper = document.getElementById('controls-wrapper');
+
+    if (btn && panel && wrapper) {
+        // 初始状态为 collapsed
+        wrapper.classList.add('collapsed');
+
+        btn.addEventListener('click', () => {
+            if (btn.classList.contains('loading')) return;
+
+            const isHidden = panel.style.display === 'none';
+            if (isHidden) {
+                panel.style.display = 'flex';
+                wrapper.classList.remove('collapsed');
+                document.getElementById('toggle-text').textContent = '收起控制面板 ▲';
+            } else {
+                panel.style.display = 'none';
+                wrapper.classList.add('collapsed');
+                document.getElementById('toggle-text').textContent = '展开控制面板 ▼';
+            }
+        });
+    }
+});
