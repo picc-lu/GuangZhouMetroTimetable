@@ -884,16 +884,23 @@ select option:checked {
     background: #ffffff;
     border: 2px solid #d0ddee;
     border-radius: 40px;
-    width: 44px;
     height: 40px;
+    padding: 0 14px;
+    gap: 6px;
+
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.15s;
-    padding: 0;
     flex-shrink: 0;
     color: #1f2b3c;
+    font-family: inherit;
+}
+
+.nearby-btn span {
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .nearby-btn:hover {
