@@ -1,6 +1,26 @@
 /* ==========================================
    控制面板
    ========================================== */
+/* ====== 折叠动画包裹层 ====== */
+.controls-panel-wrapper {
+    display: grid;
+    grid-template-rows: 1fr; /* 默认展开 */
+    transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 收起状态：高度压缩为 0 */
+.controls-wrapper.collapsed .controls-panel-wrapper {
+    grid-template-rows: 0fr;
+}
+
+/* 内部容器：隐藏溢出内容 */
+.controls-panel-inner {
+    min-height: 0;
+    overflow: hidden;
+    /* 保证内部虚线边框在收起时不突兀 */
+    visibility: visible;
+}
+
 .controls-wrapper {
     position: sticky;
     top: 0;
@@ -81,6 +101,7 @@
 .toggle-text {
     position: relative;
     z-index: 1;
+    transition: opacity 0.2s;
 }
 
 .controls-toggle-btn.loading {

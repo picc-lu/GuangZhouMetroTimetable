@@ -56,7 +56,7 @@
 }
 
 [data-theme="dark"] .controls {
-    border-bottom-color: #2d3748;
+    border-bottom: 1px dashed #ccd9e9;
 }
 
 [data-theme="dark"] select {

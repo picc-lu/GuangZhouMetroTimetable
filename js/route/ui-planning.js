@@ -828,7 +828,8 @@ function openExternalMap(start, end) {
     if (isIOS) {
         // 使用 Apple Maps 的通用 HTTPS 链接，iOS 上会自动拉起原生 App
         const url = `https://maps.apple.com/?saddr=${startStr}&daddr=${endStr}&dirflg=r`;
-        window.location.href = url;
+        // window.location.href = url;
+        window.open(url, '_blank');
     } else {
         // 其他设备（Windows、安卓、Mac）：使用高德地图网页版
         // 手机会自动唤起高德App，电脑会打开高德网页版

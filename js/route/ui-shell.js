@@ -1,5 +1,39 @@
 // ========== 路径规划 UI · 弹窗壳与时间选择器 ==========
 
+let _routeTooltipTimer = null;
+
+function showRouteTooltip(targetEl, text) {
+    let tooltip = document.getElementById('route-tooltip');
+    if (tooltip) tooltip.remove(); // 移除旧的
+
+    tooltip = document.createElement('div');
+    tooltip.id = 'route-tooltip';
+    tooltip.className = 'route-tooltip';
+    tooltip.textContent = text;
+    document.body.appendChild(tooltip);
+
+    // 计算位置（在按钮正上方留出 8px 间距）
+    const rect = targetEl.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+    tooltip.style.top = (rect.top - 8) + 'px';
+
+    // 初始状态（稍微靠下一点，用于实现上浮动画）
+    tooltip.style.transform = 'translate(-50%, -100%) translateY(4px)';
+
+    // 下一帧触发动画显示
+    requestAnimationFrame(() => {
+        tooltip.classList.add('show');
+    });
+
+    // 3秒后自动消失
+    if (_routeTooltipTimer) clearTimeout(_routeTooltipTimer);
+    _routeTooltipTimer = setTimeout(() => {
+        tooltip.classList.remove('show');
+        // 等过渡动画结束再移除 DOM
+        setTimeout(() => tooltip.remove(), 200);
+    }, 3000);
+}
+
 function initRouteUI() {
     const btn = document.getElementById('route-plan-btn');
     if (btn) btn.addEventListener('click', openRoutePlanner);
@@ -287,7 +321,7 @@ function ensureRouteOverlay() {
                     if (_isIOSDevice) startInput.blur();
                 }
             } catch (err) {
-                alert('定位失败：' + (err.message || err));
+                showRouteTooltip(startLocateBtn, err.message || err);
             } finally {
                 // 恢复按钮状态
                 startLocateBtn.classList.remove('loading');
@@ -789,9 +823,19 @@ function getNearestStationForRoute() {
             },
             (err) => {
                 let msg = '定位失败';
-                if (err.code === 1) msg = '定位权限被拒绝';
-                else if (err.code === 2) msg = '无法获取位置信息';
-                else if (err.code === 3) msg = '定位超时';
+                if (err.code === 1) {
+                    if (err.message && err.message.includes('permissions policy')) {
+                        msg = '当前平台禁止获取位置权限，请直接在输入框手动输入起点站名。';
+                    } else if (!window.isSecureContext) {
+                        msg = '当前环境非 HTTPS 或 localhost，浏览器禁止定位';
+                    } else {
+                        msg = '定位权限被拒绝';
+                    }
+                } else if (err.code === 2) {
+                    msg = '无法获取位置信息';
+                } else if (err.code === 3) {
+                    msg = '定位超时';
+                }
                 reject(msg);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }

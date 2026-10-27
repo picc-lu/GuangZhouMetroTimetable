@@ -1,5 +1,5 @@
 const versionEl = document.getElementById('version-display');
-versionEl.textContent = '线路版本: 2026-03-03 (内置)';
+versionEl.textContent = '线路版本: 2026-10-24 (内置)';
 
 function applyBannerColors() {
     const banner = document.querySelector('.banner');
@@ -337,25 +337,30 @@ if (backToTopBtn) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('controls-toggle-btn');
-    const panel = document.getElementById('controls-panel');
     const wrapper = document.getElementById('controls-wrapper');
+    const toggleText = document.getElementById('toggle-text');
 
-    if (btn && panel && wrapper) {
-        // 初始状态为 collapsed
+    if (btn && wrapper && toggleText) {
+        // 初始化状态：默认为收起
         wrapper.classList.add('collapsed');
+        wrapper.classList.remove('expanded');
 
         btn.addEventListener('click', () => {
+            // 加载中禁止折叠展开
             if (btn.classList.contains('loading')) return;
 
-            const isHidden = panel.style.display === 'none';
-            if (isHidden) {
-                panel.style.display = 'flex';
+            const isCollapsed = wrapper.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                // 展开
                 wrapper.classList.remove('collapsed');
-                document.getElementById('toggle-text').textContent = '收起控制面板 ▲';
+                wrapper.classList.add('expanded');
+                toggleText.textContent = '收起控制面板 ▲';
             } else {
-                panel.style.display = 'none';
+                // 收起
+                wrapper.classList.remove('expanded');
                 wrapper.classList.add('collapsed');
-                document.getElementById('toggle-text').textContent = '展开控制面板 ▼';
+                toggleText.textContent = '展开控制面板 ▼';
             }
         });
     }

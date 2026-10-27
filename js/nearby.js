@@ -28,9 +28,22 @@ function findNearbyStations() {
         (err) => {
             console.error('[定位] 失败:', err);
             let msg = '定位失败';
-            if (err.code === 1) msg = '定位权限被拒绝，请在浏览器设置中允许访问位置';
-            else if (err.code === 2) msg = '无法获取位置信息，请检查设备定位功能';
-            else if (err.code === 3) msg = '定位超时，请重试';
+
+            if (err.code === 1) {
+                // ★ 检测是否为 iframe 权限策略拦截
+                if (err.message && err.message.includes('permissions policy')) {
+                    msg = '当前平台禁止获取位置权限。请直接使用上方的搜索框，输入站点名称进行查询。';
+                } else if (!window.isSecureContext) {
+                    msg = '当前环境非 HTTPS 或 localhost，浏览器出于安全限制禁止定位。请部署到 HTTPS 环境或本地测试。';
+                } else {
+                    msg = '定位权限被拒绝，请在浏览器设置中允许访问位置';
+                }
+            } else if (err.code === 2) {
+                msg = '无法获取位置信息，请检查设备定位功能';
+            } else if (err.code === 3) {
+                msg = '定位超时，请重试';
+            }
+
             showNearbyPanel('error', msg);
             btn.disabled = false;
         },

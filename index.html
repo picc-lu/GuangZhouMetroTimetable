@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script>
-        (function() {
+        (function () {
             const THEME_KEY = 'gz_metro_theme';
             const saved = localStorage.getItem(THEME_KEY);
             let theme = 'light';
@@ -69,31 +69,34 @@
     </button>
 
     <!-- 2. 折叠区域 -->
-    <div class="controls" id="controls-panel" style="display: none;">
-        <div class="controls-row-1">
-            <div class="time-panel" id="custom-time-panel">
-                <label>⏱ 自定义</label>
-                <select id="hour-select"></select>
-                <span>:</span>
-                <select id="minute-select"></select>
-                <button class="action-button" id="apply-custom-time">应用</button>
-            </div>
-            <div class="system-time-area" id="system-time-panel">
-                <span id="real-time-clock">--:--</span>
-                <button class="action-button" id="use-system-time">应用系统时间</button>
-            </div>
-        </div>
+    <div class="controls-panel-wrapper" id="controls-panel-wrapper">
+        <div class="controls-panel-inner">
+            <div class="controls" id="controls-panel">
+                <div class="controls-row-1">
+                    <div class="time-panel" id="custom-time-panel">
+                        <label>⏱ 自定义</label>
+                        <select id="hour-select"></select>
+                        <span>:</span>
+                        <select id="minute-select"></select>
+                        <button class="action-button" id="apply-custom-time">应用</button>
+                    </div>
+                    <div class="system-time-area" id="system-time-panel">
+                        <span id="real-time-clock">--:--</span>
+                        <button class="action-button" id="use-system-time">应用系统时间</button>
+                    </div>
+                </div>
 
-        <div class="controls-row-3" id="line-buttons-row"></div>
+                <div class="controls-row-3" id="line-buttons-row"></div>
 
-        <div class="filter-area">
-            <label>🚉 筛选</label>
-            <select id="line-filter" class="filter-select" multiple size="1"></select>
-            <button id="select-all" class="action-button">全选</button>
-            <button id="deselect-all" class="action-button">清空</button>
+                <div class="filter-area">
+                    <label>🚉 筛选</label>
+                    <select class="filter-select" id="line-filter" multiple size="1"></select>
+                    <button class="action-button" id="select-all">全选</button>
+                    <button class="action-button" id="deselect-all">清空</button>
+                </div>
+            </div>
         </div>
     </div>
-
     <!-- 3. 常驻操作栏（原红框内容） -->
     <div class="controls-actions-bar">
         <div class="search-wrapper" id="search-wrapper">
@@ -253,12 +256,13 @@
         // 拉取 changelog（不缓存）
         let latest = null;
         try {
-            const resp = await fetch('./data/changelog.json', { cache: 'no-store' });
+            const resp = await fetch('./data/changelog.json', {cache: 'no-store'});
             if (resp.ok) {
                 const data = await resp.json();
                 latest = (data.entries && data.entries[0]) || null;
             }
-        } catch (_) { /* 拉不到就只显示通用提示 */ }
+        } catch (_) { /* 拉不到就只显示通用提示 */
+        }
 
         const toast = document.createElement('div');
         toast.id = 'sw-update-toast';
@@ -327,7 +331,7 @@
         _swUpdating = true;
 
         const toast = document.getElementById('sw-update-toast');
-        const btn      = toast ? toast.querySelector('.sw-update-btn') : null;
+        const btn = toast ? toast.querySelector('.sw-update-btn') : null;
         const closeBtn = toast ? toast.querySelector('.sw-update-btn-cancel') : null;   // ★ 改这里
 
         // 禁用按钮，防止重复触发
@@ -361,7 +365,7 @@
             // ---- 阶段 3：停留 500ms，再发更新指令 ----
             setTimeout(() => {
                 if (reg && reg.waiting) {
-                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    reg.waiting.postMessage({type: 'SKIP_WAITING'});
                     // 兜底：若 3 秒内没触发 controllerchange，强制 reload
                     setTimeout(safeReload, 3000);
                 } else {
