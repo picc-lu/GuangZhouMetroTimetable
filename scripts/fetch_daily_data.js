@@ -102,8 +102,8 @@ async function main() {
                 }
             }
         }));
-        // 每批之间停顿 500 毫秒，模拟真实网络请求，防止被封 IP
-        await new Promise(r => setTimeout(r, 500));
+        // 每批之间停顿 50 毫秒，模拟真实网络请求，防止被封 IP
+        await new Promise(r => setTimeout(r, 50));
     }
 
     // 3. 写入数据包（强制使用北京时间）
