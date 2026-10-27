@@ -1,8 +1,5 @@
 name: Update Daily Metro Data
 on:
-  schedule:
-    # 每天 UTC 21:05 (即北京时间 05:05) 执行
-    - cron: '0 21 * * *'
   workflow_dispatch: # 允许手动触发
 
 jobs:
