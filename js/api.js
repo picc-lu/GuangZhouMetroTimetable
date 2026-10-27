@@ -177,11 +177,21 @@ async function fetchServiceTimes(stationsToFetch = null) {
                 // 如果数据包的日期和今天一致
                 const serviceDate = getServiceDate();
                 if (bundle.serviceDate === serviceDate || serviceDate === new Date().toISOString().split('T')[0]) {
-                    // ... 原本的数据解析逻辑保持不变 ...
                     const allRecords = [];
                     for (const st of uniqueStations) {
                         if (bundle.records[st]) {
-                            allRecords.push(...bundle.records[st]);
+                            // ★ 核心修复：遍历每条记录，对字符串字段重新执行一遍清洗
+                            bundle.records[st].forEach(rec => {
+                                const normalized = {};
+                                for (let [key, value] of Object.entries(rec)) {
+                                    if (typeof value === 'string') {
+                                        normalized[key] = normalizeMetroText(value);
+                                    } else {
+                                        normalized[key] = value;
+                                    }
+                                }
+                                allRecords.push(normalized);
+                            });
                         }
                     }
 
