@@ -200,6 +200,16 @@ async function fetchServiceTimes(stationsToFetch = null) {
                     await saveDataToCache(LINE_STATIONS, rawServiceRecords, []);
                     renderAllLines();
                     finishLoadingMessage();
+
+                    // ★ 新增：找出没有数据的站点，静默向官方补发请求
+                    const missing = uniqueStations.filter(st => {
+                        const d = lineDirectionTime[st] || (Object.values(lineDirectionTime).find(l => l[st]));
+                        return !d || (d.up && d.up.length === 0 && d.down && d.down.length === 0) || (!d.up && !d.down);
+                    });
+                    if (missing.length > 0 && missing.length < 30) { // 如果缺失太多可能说明接口挂了，就不补了
+                        console.log('[补抓] 发现少量缺失站点，尝试向官方请求补充...', missing);
+                        fetchServiceTimes(missing); // 降级调用原本的单站抓取逻辑
+                    }
                     return;
                 }
             }

@@ -1,10 +1,17 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.31",
+  "current": "1.1.31a",
   "entries": [
     {
+      "version": "1.1.31a",
+      "date": "2026-10-28",
+      "items": [
+        { "type": "优化", "text": "每日定时查询提升鲁棒性" }
+      ]
+    },
+    {
       "version": "1.1.31",
-      "date": "2026-10-27",
+      "date": "2026-10-28",
       "items": [
         { "type": "调整", "text": "" }
       ]
