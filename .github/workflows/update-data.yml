@@ -1,0 +1,24 @@
+name: Update Daily Metro Data
+on:
+  schedule:
+    # 每天 UTC 21:05 (即北京时间 05:05) 执行
+    - cron: '5 21 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Fetch Data
+        run: node scripts/fetch_daily_data.js
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add data/daily-times.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto update daily metro data"
+          git push

@@ -156,15 +156,38 @@ async function fetchServiceTimes(stationsToFetch = null) {
         ? stationsToFetch.filter(s => allStationsSet.has(s))
         : Array.from(allStationsSet);
     const total = uniqueStations.length;
-
     if (total === 0) return;
 
-    // 首次抓取时清空历史，重试时保留已有数据
+    // ★ 核心新增：优先尝试获取全局预缓存数据
     if (!isRetry) {
-        rawServiceRecords = [];
-        failedStations = [];
-    } else {
-        failedStations = failedStations.filter(s => !uniqueStations.includes(s));
+        try {
+            updateLoadingMessage('正在获取今日全量运营数据包...');
+            const resp = await fetch('./data/daily-times.json');
+            if (resp.ok) {
+                const bundle = await resp.json();
+                // 如果数据包的日期和今天一致
+                const serviceDate = getServiceDate();
+                if (bundle.serviceDate === serviceDate || serviceDate === new Date().toISOString().split('T')[0]) {
+                    // 直接解析打包好的数据
+                    const allRecords = [];
+                    for (const st of uniqueStations) {
+                        if (bundle.records[st]) {
+                            allRecords.push(...bundle.records[st]);
+                        }
+                    }
+
+                    // 更新 UI 和缓存
+                    rawServiceRecords = allRecords;
+                    parseTimeRecords(rawServiceRecords, { skipRender: true });
+                    await saveDataToCache(LINE_STATIONS, rawServiceRecords, []);
+                    renderAllLines();
+                    finishLoadingMessage(); // 结束进度条
+                    return; // 直接结束，不再请求单站 API
+                }
+            }
+        } catch (e) {
+            console.warn('全量数据包不可用，回退到独立请求...', e);
+        }
     }
 
     updateLoadingMessage(`正在获取最新运营首末时间... 0/${total}`);
