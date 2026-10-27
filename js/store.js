@@ -2,6 +2,12 @@
 // 所有跨模块共享的可变状态集中在此，其他文件只读取/赋值，不再各自 let 声明。
 // 加载顺序：constants.js → store.js → 其余所有 js
 
+// ========== 运行环境检测 ==========
+// B站 Toy 是嵌入在 iframe 中的，且通常包含 bilibili 域名特征
+const IS_TOY_ENV = window.self !== window.top ||
+    location.hostname.includes('bilibili') ||
+    location.href.includes('/toy/');
+
 // ---- 数据层 ----
 let rawServiceRecords = [];
 let LINE_STATIONS = {};

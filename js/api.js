@@ -162,13 +162,22 @@ async function fetchServiceTimes(stationsToFetch = null) {
     if (!isRetry) {
         try {
             updateLoadingMessage('正在获取今日全量运营数据包...');
-            const resp = await fetch('./data/daily-times.json');
+
+            // ★ 动态判断环境：Toy 环境从 GitHub 拉取，其他环境用相对路径
+            let dailyTimesUrl = './data/daily-times.json';
+
+            if (typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV) {
+                dailyTimesUrl = `${GITHUB_PAGES_BASE_URL}/data/daily-times.json`;
+            }
+
+            // 防止浏览器缓存
+            const resp = await fetch(`${dailyTimesUrl}?t=${new Date().getTime()}`);
             if (resp.ok) {
                 const bundle = await resp.json();
                 // 如果数据包的日期和今天一致
                 const serviceDate = getServiceDate();
                 if (bundle.serviceDate === serviceDate || serviceDate === new Date().toISOString().split('T')[0]) {
-                    // 直接解析打包好的数据
+                    // ... 原本的数据解析逻辑保持不变 ...
                     const allRecords = [];
                     for (const st of uniqueStations) {
                         if (bundle.records[st]) {
@@ -176,13 +185,12 @@ async function fetchServiceTimes(stationsToFetch = null) {
                         }
                     }
 
-                    // 更新 UI 和缓存
                     rawServiceRecords = allRecords;
                     parseTimeRecords(rawServiceRecords, { skipRender: true });
                     await saveDataToCache(LINE_STATIONS, rawServiceRecords, []);
                     renderAllLines();
-                    finishLoadingMessage(); // 结束进度条
-                    return; // 直接结束，不再请求单站 API
+                    finishLoadingMessage();
+                    return;
                 }
             }
         } catch (e) {

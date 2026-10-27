@@ -3,6 +3,12 @@
 function initNearbyButton() {
     const btn = document.getElementById('nearby-btn');
     if (!btn) return;
+
+    if (typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV) {
+        btn.style.display = 'none';
+        return;
+    }
+
     btn.addEventListener('click', findNearbyStations);
 }
 

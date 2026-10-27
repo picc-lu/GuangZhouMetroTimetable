@@ -1,3 +1,5 @@
+const GITHUB_PAGES_BASE_URL = 'https://picc-lu.github.io/GuangZhouMetroTimetable';
+
 // 硬编码线路颜色（与原有 广州地铁线路各站.js 中的颜色一致）
 const HARDCODED_COLORS = {
     "APM": "#00b5e6",

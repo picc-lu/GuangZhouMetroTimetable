@@ -263,3 +263,58 @@
     box-sizing: border-box;
 }
 .route-walk-speed-select:focus { border-color: #2b7de9; box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15); }
+/* ==========================================
+   步行速度选项组
+   ========================================== */
+.route-extra-speed-group {
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center; /* 垂直居中对齐 */
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 6px;
+    padding-left: 4px;
+}
+
+.route-extra-speed-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    flex-shrink: 0; /* 防止文字被压缩 */
+}
+
+.route-speed-options-wrap {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap; /* 保持单行不换行 */
+}
+
+/* 覆盖默认的满宽样式，变成紧凑小按钮 */
+.route-speed-options-wrap .route-speed-option {
+    flex: 0 0 auto !important; /* 取消等宽拉伸 */
+    padding: 4px 12px !important; /* 缩小内边距 */
+    gap: 1px !important;
+    border-radius: 8px !important;
+    min-height: 36px;
+}
+
+/* 缩小字号 */
+.route-speed-options-wrap .route-speed-option .route-sort-label {
+    font-size: 12px !important;
+}
+
+.route-speed-options-wrap .route-speed-option .route-sort-hint {
+    font-size: 10px !important;
+}
+
+[data-theme="dark"] .route-extra-speed-label {
+    color: #cbd5e1;
+}
+
+/* 移动端极窄屏幕适配：如果放不下一行，自动换行 */
+@media (max-width: 480px) {
+    .route-extra-speed-group {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}

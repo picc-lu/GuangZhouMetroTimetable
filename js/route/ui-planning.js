@@ -297,9 +297,9 @@ async function runRoutePlanning() {
     }
 
     let walkSpeed = 1.5;
-    const wssEl = _routeOverlay.querySelector('#route-walk-speed');
-    if (wssEl) {
-        const v = parseFloat(wssEl.value);
+    const walkSpeedRadio = _routeOverlay.querySelector('input[name="route-walk-speed"]:checked');
+    if (walkSpeedRadio) {
+        const v = parseFloat(walkSpeedRadio.value);
         if (!isNaN(v) && v > 0) walkSpeed = v;
     }
 

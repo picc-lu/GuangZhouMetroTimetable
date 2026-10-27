@@ -161,14 +161,26 @@ function ensureRouteOverlay() {
                                             <span class="route-extra-option-sub">目前仅琶洲 8↔11 与五羊邨 5↔10</span>
                                         </span>
                                     </label>
-                                    <label class="route-extra-option route-extra-speed">
-                                        <span>步行速度</span>
-                                        <select id="route-walk-speed" class="route-walk-speed-select">
-                                            <option value="1.2">悠闲 · 1.2 m/s</option>
-                                            <option value="1.5" selected>中等 · 1.5 m/s</option>
-                                            <option value="1.8">快走 · 1.8 m/s</option>
-                                        </select>
-                                    </label>
+<div class="route-extra-speed-group">
+    <span class="route-extra-speed-label">步行速度</span>
+    <div class="route-speed-options-wrap">
+        <label class="route-sort-option route-speed-option">
+            <input type="radio" name="route-walk-speed" value="1.2">
+            <span class="route-sort-label">悠闲</span>
+            <span class="route-sort-hint">1.2 m/s</span>
+        </label>
+        <label class="route-sort-option route-speed-option">
+            <input type="radio" name="route-walk-speed" value="1.5" checked>
+            <span class="route-sort-label">中等</span>
+            <span class="route-sort-hint">1.5 m/s</span>
+        </label>
+        <label class="route-sort-option route-speed-option">
+            <input type="radio" name="route-walk-speed" value="1.8">
+            <span class="route-sort-label">快走</span>
+            <span class="route-sort-hint">1.8 m/s</span>
+        </label>
+    </div>
+</div>
                                 </div>
                                 <!-- ▲ 原有内容结束 ▲ -->
                             </div>
@@ -253,7 +265,7 @@ function ensureRouteOverlay() {
     initRouteTimePickers(ov);
 
     // 高级设置折叠
-    const advWrap   = ov.querySelector('#route-advanced');
+    const advWrap = ov.querySelector('#route-advanced');
     const advToggle = ov.querySelector('#route-advanced-toggle');
     if (advWrap && advToggle) {
         advToggle.addEventListener('click', (e) => {
@@ -295,50 +307,52 @@ function ensureRouteOverlay() {
     // ★ 新增：起点定位按钮逻辑
     const startLocateBtn = ov.querySelector('#route-start-locate');
     if (startLocateBtn) {
-        startLocateBtn.addEventListener('click', async (e) => {
-            e.stopPropagation(); // 防止触发弹窗外部的点击隐藏
-            if (startLocateBtn.classList.contains('loading')) return;
+        if (typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV) {
+            startLocateBtn.style.display = 'none';
+        } else {
+            startLocateBtn.addEventListener('click', async (e) => {
+                e.stopPropagation(); // 防止触发弹窗外部的点击隐藏
+                if (startLocateBtn.classList.contains('loading')) return;
 
-            // 进入加载状态
-            startLocateBtn.classList.add('loading');
-            const icon = startLocateBtn.querySelector('.locate-icon');
-            const spinner = startLocateBtn.querySelector('.locate-spinner');
-            if (icon) icon.style.display = 'none';
-            if (spinner) spinner.style.display = 'block';
+                // 进入加载状态
+                startLocateBtn.classList.add('loading');
+                const icon = startLocateBtn.querySelector('.locate-icon');
+                const spinner = startLocateBtn.querySelector('.locate-spinner');
+                if (icon) icon.style.display = 'none';
+                if (spinner) spinner.style.display = 'block';
 
-            try {
-                // 调用我们马上要写的定位获取函数
-                const nearest = await getNearestStationForRoute();
-                if (nearest) {
-                    const startInput = ov.querySelector('#route-start');
-                    startInput.value = nearest;
-                    // 清除错误红框
-                    const field = startInput.closest('.route-field');
-                    if (field) field.classList.remove('input-error');
-                    // 触发一次 input 事件，让系统知道内容变了
-                    startInput.dispatchEvent(new Event('input'));
-                    // 收起软键盘
-                    if (_isIOSDevice) startInput.blur();
+                try {
+                    // 调用我们马上要写的定位获取函数
+                    const nearest = await getNearestStationForRoute();
+                    if (nearest) {
+                        const startInput = ov.querySelector('#route-start');
+                        startInput.value = nearest;
+                        // 清除错误红框
+                        const field = startInput.closest('.route-field');
+                        if (field) field.classList.remove('input-error');
+                        // 触发一次 input 事件，让系统知道内容变了
+                        startInput.dispatchEvent(new Event('input'));
+                        // 收起软键盘
+                        if (_isIOSDevice) startInput.blur();
+                    }
+                } catch (err) {
+                    showRouteTooltip(startLocateBtn, err.message || err);
+                } finally {
+                    // 恢复按钮状态
+                    startLocateBtn.classList.remove('loading');
+                    if (icon) icon.style.display = 'block';
+                    if (spinner) spinner.style.display = 'none';
                 }
-            } catch (err) {
-                showRouteTooltip(startLocateBtn, err.message || err);
-            } finally {
-                // 恢复按钮状态
-                startLocateBtn.classList.remove('loading');
-                if (icon) icon.style.display = 'block';
-                if (spinner) spinner.style.display = 'none';
-            }
-        });
+            });
 
-        const startInput = ov.querySelector('#route-start');
-        if (startInput) {
-            const updateLocateBtnDisplay = () => {
-                startLocateBtn.style.display = startInput.value.trim() === '' ? 'flex' : 'none';
-            };
-            // 监听输入事件
-            startInput.addEventListener('input', updateLocateBtnDisplay);
-            // 初始化时检查一次
-            updateLocateBtnDisplay();
+            const startInput = ov.querySelector('#route-start');
+            if (startInput && !(typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV)) {
+                const updateLocateBtnDisplay = () => {
+                    startLocateBtn.style.display = startInput.value.trim() === '' ? 'flex' : 'none';
+                };
+                startInput.addEventListener('input', updateLocateBtnDisplay);
+                updateLocateBtnDisplay();
+            }
         }
     }
 
@@ -356,22 +370,24 @@ function ensureRouteOverlay() {
     enableSelectAllOnFocus(ov.querySelector('#route-max-transfer-min'));
 
     // 步行速度变化
-    const wssChange = ov.querySelector('#route-walk-speed');
-    if (wssChange) {
-        wssChange.addEventListener('change', () => {
-            const v = parseFloat(wssChange.value);
-            if (typeof ROUTE_GRAPH !== 'undefined' && ROUTE_GRAPH.loaded && !isNaN(v)) {
-                ROUTE_GRAPH.userWalkSpeed = v;
+    const walkSpeedRadios = ov.querySelectorAll('input[name="route-walk-speed"]');
+    walkSpeedRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                const v = parseFloat(e.target.value);
+                if (typeof ROUTE_GRAPH !== 'undefined' && ROUTE_GRAPH.loaded && !isNaN(v)) {
+                    ROUTE_GRAPH.userWalkSpeed = v;
+                }
             }
         });
-    }
+    });
 
     // 交换起终点
     ov.querySelector('#route-swap').addEventListener('click', () => {
         const startInput = ov.querySelector('#route-start');
-        const endInput   = ov.querySelector('#route-end');
-        const stops      = ov.querySelector('.route-stops');
-        const btn        = ov.querySelector('#route-swap');
+        const endInput = ov.querySelector('#route-end');
+        const stops = ov.querySelector('.route-stops');
+        const btn = ov.querySelector('#route-swap');
         if (!startInput || !endInput || !stops) return;
 
         if (stops.classList.contains('swap-out') ||
@@ -389,16 +405,24 @@ function ensureRouteOverlay() {
 
             const s1 = document.getElementById('route-start-suggestions');
             const s2 = document.getElementById('route-end-suggestions');
-            if (s1) { s1.style.display = 'none'; s1.innerHTML = ''; }
-            if (s2) { s2.style.display = 'none'; s2.innerHTML = ''; }
+            if (s1) {
+                s1.style.display = 'none';
+                s1.innerHTML = '';
+            }
+            if (s2) {
+                s2.style.display = 'none';
+                s2.innerHTML = '';
+            }
 
             // 交换后清除错误高亮
             ov.querySelectorAll('.route-field.input-error')
-              .forEach(f => f.classList.remove('input-error'));
+                .forEach(f => f.classList.remove('input-error'));
 
             stops.classList.remove('swap-out');
             stops.classList.add('swap-in');
-            setTimeout(() => { stops.classList.remove('swap-in'); }, 240);
+            setTimeout(() => {
+                stops.classList.remove('swap-in');
+            }, 240);
         }, 220);
     });
 
@@ -411,7 +435,10 @@ function ensureRouteOverlay() {
         });
         maxTransferInput.addEventListener('input', () => {
             let v = maxTransferInput.value.replace(/\D/g, '');
-            if (v === '') { maxTransferInput.value = ''; return; }
+            if (v === '') {
+                maxTransferInput.value = '';
+                return;
+            }
             let n = parseInt(v, 10);
             if (isNaN(n) || n < 0) n = 0;
             if (n > 60) n = 60;
@@ -545,7 +572,7 @@ function initRouteTimePickers(ov) {
         minutePanel.style.display = 'none';
     });
 
-    hourTrigger.addEventListener('click', function(e) {
+    hourTrigger.addEventListener('click', function (e) {
         e.stopPropagation();
         minutePanel.style.display = 'none';
         const isHidden = hourPanel.style.display === 'none' || !hourPanel.style.display;
@@ -558,7 +585,7 @@ function initRouteTimePickers(ov) {
         this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
 
-    minuteTrigger.addEventListener('click', function(e) {
+    minuteTrigger.addEventListener('click', function (e) {
         e.stopPropagation();
         hourPanel.style.display = 'none';
         const isHidden = minutePanel.style.display === 'none' || !minutePanel.style.display;
@@ -791,7 +818,7 @@ function getNearestStationForRoute() {
         }
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                const { latitude, longitude } = pos.coords;
+                const {latitude, longitude} = pos.coords;
                 // 转换为 GCJ02 坐标系（高德/腾讯坐标系）
                 const [gcjLat, gcjLng] = wgs84ToGcj02(latitude, longitude);
 
@@ -838,7 +865,7 @@ function getNearestStationForRoute() {
                 }
                 reject(msg);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            {enableHighAccuracy: true, timeout: 10000, maximumAge: 0}
         );
     });
 }

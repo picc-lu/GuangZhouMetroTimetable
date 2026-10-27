@@ -107,9 +107,9 @@ function applyRoutePrefs(ov) {
     }
 
     // 步行速度
-    const wss = ov.querySelector('#route-walk-speed');
-    if (wss && prefs.walkSpeed) {
-        wss.value = String(prefs.walkSpeed);
+    if (prefs.walkSpeed) {
+        const walkRadio = ov.querySelector(`input[name="route-walk-speed"][value="${prefs.walkSpeed}"]`);
+        if (walkRadio) walkRadio.checked = true;
     }
 
     // 不走站外换乘

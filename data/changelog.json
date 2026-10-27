@@ -1,7 +1,15 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.29",
+  "current": "1.1.30",
   "entries": [
+    {
+      "version": "1.1.30",
+      "date": "2026-10-27",
+      "items": [
+        { "type": "调整", "text": "代码和bilibili toy合并" },
+        { "type": "优化", "text": "步行速度ui更改" }
+      ]
+    },
     {
       "version": "1.1.29",
       "date": "2026-10-27",
