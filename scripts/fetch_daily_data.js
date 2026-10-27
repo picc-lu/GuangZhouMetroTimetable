@@ -106,10 +106,27 @@ async function main() {
         await new Promise(r => setTimeout(r, 500));
     }
 
-    // 3. 写入数据包
-    const today = new Date();
-    if (today.getHours() < 5) today.setDate(today.getDate() - 1);
-    const serviceDate = today.toISOString().split('T')[0];
+    // 3. 写入数据包（强制使用北京时间）
+    const now = new Date();
+    // 将 UTC 时间戳加上 8 小时的毫秒数
+    const bjTime = new Date(now.getTime() + 8 * 3600 * 1000);
+
+    // 用 getUTC* 方法读取偏移后的北京时间
+    let year = bjTime.getUTCFullYear();
+    let month = String(bjTime.getUTCMonth() + 1).padStart(2, '0');
+    let day = String(bjTime.getUTCDate()).padStart(2, '0');
+    let hours = bjTime.getUTCHours();
+
+    // 如果是北京时间凌晨 5 点之前，日期算作前一天（运营日逻辑）
+    if (hours < 5) {
+        bjTime.setUTCDate(bjTime.getUTCDate() - 1);
+        year = bjTime.getUTCFullYear();
+        month = String(bjTime.getUTCMonth() + 1).padStart(2, '0');
+        day = String(bjTime.getUTCDate()).padStart(2, '0');
+    }
+
+    const serviceDate = `${year}-${month}-${day}`;
+    console.log(`当前计算出的服务日期 (北京时间): ${serviceDate}`);
 
     const outData = {
         serviceDate: serviceDate,
