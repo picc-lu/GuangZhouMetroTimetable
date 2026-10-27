@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.30",
+  "current": "1.1.31",
   "entries": [
+    {
+      "version": "1.1.31",
+      "date": "2026-10-27",
+      "items": [
+        { "type": "调整", "text": "" }
+      ]
+    },
     {
       "version": "1.1.30",
       "date": "2026-10-27",
