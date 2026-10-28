@@ -397,7 +397,6 @@ async function runRoutePlanning() {
                         item.arriveMin = bestCheck.arriveMin;
                         item.boardingMargins = bestCheck.boardingMargins;
                         item.interchanges = parseInterchangeKeys(item.path, bestDepart);
-                        item.warnings = checkThreeLineCrossSegment(item.path, bestDepart);
                         item.startMargin = (bestCheck.boardingMargins && bestCheck.boardingMargins.length > 0) ? bestCheck.boardingMargins[0] : null;
 
                         const validMargins = item.boardingMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));

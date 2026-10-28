@@ -300,9 +300,9 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         return resolved.dir;
     }
 
-    // ---------- 分支 B：南段南向（体育西路~汉溪长隆 → 往南） ----------
-    if (isL3 && (inSouth || station === '体育西路')
-        && (rawDirection.includes('海傍') || rawDirection.includes('体育西路'))) {
+    // ---------- 分支 B：南段南向 ----------
+    if (isL3 && (inSouth || station === '体育西路')) {
+        // ★ 删掉对 rawDirection 的严格限制，只要起点在南段或体育西路，就按 forcedEnd 或 segEnd 算
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
         const SOUTH_TERMINALS = ['大石', '番禺广场', '海傍'];
         const idxSegEnd = LINE3_SOUTH_ORDER.indexOf(segEnd);
@@ -314,7 +314,6 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
             });
             if (targets.length > 0) return targets.join(' / ') + '方向';
         }
-        // 如果没有匹配到具体的南段终点，或者未越过体育西路，返回完整的南向终点列表
         return SOUTH_TERMINALS.join(' / ') + '方向';
     }
 
@@ -676,15 +675,6 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
     }
 
     let warningHtml = '';
-    if (item.warnings && item.warnings.length > 0) {
-        warningHtml = `<div class="route-warnings">` + item.warnings.map(w => {
-            const content = w.messageHtml ? w.messageHtml : escapeHtml(w.message || '');
-            return `<div class="route-warning">
-                <span class="route-warning-icon">⚠️</span>
-                <span class="route-warning-text">${content}</span>
-            </div>`;
-        }).join('') + `</div>`;
-    }
 
     // 车站管制警告：按类型分组，每类一行
     let stationCtrlHtml = '';
@@ -781,32 +771,22 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
         let interchangeCursor = 0;
         for (let si = 0; si < segs.length - 1; si++) {
             if (virtualSplitAfter.has(si)) {
-                // ★ 虚拟 3→3 换乘：根据下一段的目的地判断方向
-                //   北段（林和西/广州东站/机场北等）→ 北向终点
-                //   支线（石牌桥/岗顶/华师/五山/天河客运站）→ 天河客运站
-                //   南段（珠江新城/番禺广场/海傍等）→ 海傍
                 const nextSeg = segs[si + 1];
                 const nextTo = nextSeg ? nextSeg.toStation : null;
 
-                // 3号线支线站集合
-                const LINE3_BRANCH_STATIONS_LOCAL = new Set([
-                    '石牌桥', '岗顶', '华师', '五山', '天河客运站'
-                ]);
-
-                // 判断目的地所属段
-                let virtualDir = '大石 / 番禺广场 / 海傍方向';
+                // ★ 直接根据终点站在南段列表中的顺序，计算需要显示的终点
+                let virtualDir = '大石 / 番禺广场 / 海傍方向'; // 兜底
                 if (nextTo) {
-                    const inNorth = (typeof LINE3_NORTH_STATIONS !== 'undefined')
-                        && (LINE3_NORTH_STATIONS.has(nextTo)
-                            || (nextTo === '机场北' && LINE3_NORTH_STATIONS.has('机场北（T2）')));
-                    const inBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextTo);
+                    const SOUTH_TERMINALS = ['大石', '番禺广场', '海傍'];
+                    const LINE3_SOUTH_ORDER = ['体育西路', '珠江新城', '广州塔', '客村', '大塘', '沥滘', '厦滘', '大石', '汉溪长隆', '市桥', '番禺广场', '傍江', '石碁南', '海涌路', '海傍'];
 
-                    if (inNorth) {
-                        virtualDir = '机场北（T2） / 嘉禾望岗 / 同和方向';
-                    } else if (inBranch) {
-                        virtualDir = '天河客运站方向';
-                    } else {
-                        virtualDir = '大石 / 番禺广场 / 海傍方向';
+                    const idxSegEnd = LINE3_SOUTH_ORDER.indexOf(nextTo);
+                    if (idxSegEnd >= 0) {
+                        // 过滤出在所有终点站中，排在当前目的地之后（或同站）的车
+                        const targets = SOUTH_TERMINALS.filter(t => LINE3_SOUTH_ORDER.indexOf(t) >= idxSegEnd);
+                        if (targets.length > 0) {
+                            virtualDir = targets.join(' / ') + '方向';
+                        }
                     }
                 }
 
