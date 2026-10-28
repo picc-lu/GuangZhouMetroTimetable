@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.31a",
+  "current": "1.1.31b",
   "entries": [
+    {
+      "version": "1.1.31b",
+      "date": "2026-10-28",
+      "items": [
+        { "type": "优化", "text": "页面刷新默认关闭控制面板" }
+      ]
+    },
     {
       "version": "1.1.31a",
       "date": "2026-10-28",

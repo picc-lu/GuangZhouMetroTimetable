@@ -341,12 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleText = document.getElementById('toggle-text');
 
     if (btn && wrapper && toggleText) {
-        // 初始化状态：默认为收起
-        wrapper.classList.add('collapsed');
-        wrapper.classList.remove('expanded');
-
         btn.addEventListener('click', () => {
-            // 加载中禁止折叠展开
             if (btn.classList.contains('loading')) return;
 
             const isCollapsed = wrapper.classList.contains('collapsed');
