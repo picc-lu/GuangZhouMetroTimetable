@@ -173,14 +173,16 @@ function parseRouteSegments(path, departMin) {
         // 3号线支线站点集合
         const isBranch = (st) => ['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(st);
 
-        const isThrough = next
-            && seg.fullLine === '3号线' && next.fullLine === '3号线'
-            && seg.toStation === '体育西路'
-            && isNorthboundRawDir(next.rawDirection)
-            && (
-                isBranch(next.toStation) || // 去支线（天河客运站），直接合并，不提示换乘
-                isThroughTrainAvailable(seg.fromStation, dt) // 去北段（林和西/机场北），必须有贯通车才合并
-            );
+        let isThrough = false;
+        if (next && seg.fullLine === '3号线' && next.fullLine === '3号线' && seg.toStation === '体育西路') {
+            if (isNorthboundRawDir(next.rawDirection)) {
+                // 向北：去支线无条件合并，去北段需看贯通车
+                isThrough = isBranch(next.toStation) || isThroughTrainAvailable(seg.fromStation, dt);
+            } else if (isBranch(seg.fromStation) && next.rawDirection.includes('海傍')) {
+                // ★ 新增：支线 -> 南段，常态化直达交路（如 华师 -> 体育西路 -> 傍江）
+                isThrough = true;
+            }
+        }
 
         if (isThrough) {
             merged.push({
@@ -227,17 +229,20 @@ function parseRouteSegments(path, departMin) {
                 }
                 currentMin = currentMin || 0;
 
-                if (fromIsNorthOrBranch && toIsSouth) {
-                    // 北/支线 -> 南段：出发时间 >= 22:51（1371分钟）时，无贯通车，强制拆分
-                    if (currentMin >= 1371) {
-                        needsSplit = true;
+                // ★ 核心：只要支线参与了跨段，就是常态化交路，无需拆分
+                if (isBranch(seg.fromStation) || isBranch(seg.toStation)) {
+                    needsSplit = false;
+                } else if (fromIsNorthOrBranch && toIsSouth) {
+                    // 北段 -> 南段：查北向南贯通车
+                    if (typeof isThroughTrainAvailable === 'function') {
+                        needsSplit = !isThroughTrainAvailable(seg.fromStation, currentMin, 'northToSouth');
+                    } else {
+                        needsSplit = currentMin >= 1371; // 兜底
                     }
                 } else if (fromIsSouth && toIsNorthOrBranch) {
-                    // 南段 -> 北/支线：如果没有贯通车，强制拆分
-                    // 注：去支线的已经在步骤 2 被合并了，走不到这里；
-                    // 走这里说明是去北段，只要没有贯通车就必须拆分为两段 3号线
+                    // 南段 -> 北段：查南向北贯通车
                     if (typeof isThroughTrainAvailable === 'function') {
-                        needsSplit = !isThroughTrainAvailable(seg.fromStation, currentMin);
+                        needsSplit = !isThroughTrainAvailable(seg.fromStation, currentMin, 'southToNorth');
                     } else {
                         needsSplit = true;
                     }
@@ -264,15 +269,13 @@ function parseRouteSegments(path, departMin) {
     }
 
     // 3. 合并零长度段（fromStation === toStation 的过渡段）
-    // 场景：体育西路同时有 3号线南段与北段的站台节点，或者跨线路时产生的伪节点，
-    // 会产生一个只含单站的零长度段，直接舍弃并顺延起点。
     const compacted = [];
-    for (let i = 0; i < merged.length; i++) {
-        const cur = merged[i];
+    for (let i = 0; i < splitMerged.length; i++) {  // ★ 修复：将 merged 改为 splitMerged
+        const cur = splitMerged[i];
         if (cur.fromStation === cur.toStation) {
             // 零长度段直接丢弃，把起点顺延给下一段（如果存在的话）
-            if (i + 1 < merged.length) {
-                merged[i + 1].fromStation = cur.fromStation;
+            if (i + 1 < splitMerged.length) {  // ★ 修复：将 merged 改为 splitMerged
+                splitMerged[i + 1].fromStation = cur.fromStation;
             }
             continue;
         }
@@ -312,15 +315,20 @@ function isNorthboundRawDir(rawDir) {
 }
 
 /**
- * 3 号线贯通车（海傍 → 机场北方向）在指定站是否仍可搭。
- * @param {string} station   站名（干净站名，无后缀）
- * @param {number|null} timeMin  出发/boarding 时刻（分钟）
+ * 3 号线贯通车在指定站是否仍可搭。
+ * @param {string} station   站名
+ * @param {number|null} timeMin  出发/boarding 时刻
+ * @param {string} direction  'southToNorth' (南向北) 或 'northToSouth' (北向南)
  * @returns {boolean}
  */
-function isThroughTrainAvailable(station, timeMin) {
+function isThroughTrainAvailable(station, timeMin, direction = 'southToNorth') {
     if (timeMin == null) return false;
     if (typeof ROUTE_GRAPH === 'undefined' || !ROUTE_GRAPH) return false;
-    const tt = ROUTE_GRAPH.throughTrains?.['3号线']?.haibangToAirportNorth;
+
+    // 根据方向选择对应的数据包
+    const dirKey = direction === 'southToNorth' ? 'haibangToAirportNorth' : 'airportNorthToHaibang';
+    const tt = ROUTE_GRAPH.throughTrains?.['3号线']?.[dirKey];
+
     if (!tt || !tt.stationMap || !tt.stationMap.has(station)) return false;
     return timeMin < tt.stationMap.get(station);   // 严格小于
 }

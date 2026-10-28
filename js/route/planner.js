@@ -275,7 +275,6 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             route: parseInterchangeRoute(p, true),
             interchangeCost: parseInterchangeTimeCost(p),
             interchanges,
-            warnings: checkThreeLineCrossSegment(p, departMin),
             urgentCount,
             boardingMargins: check.boardingMargins,
             startMargin,
@@ -582,9 +581,13 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
 
     // ★ 3 号线南段往机场北方向：优先用「贯通车」数据判定
     if (webLine === '3号线' && webDir.includes('机场北')) {
-        const through = get3ThroughTrainMargin(station, timeMin);
+        const through = get3ThroughTrainMargin(station, timeMin, 'southToNorth');
         if (through !== 'unknown') return through;
-        // 'unknown' → 该站不在贯通车数据中，回落到常规逻辑
+    }
+
+    if (webLine === '3号线' && webDir.includes('海傍')) {
+        const through = get3ThroughTrainMargin(station, timeMin, 'northToSouth');
+        if (through !== 'unknown') return through;
     }
 
     // 收集该站该线路所有方向的记录
@@ -654,21 +657,13 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
     return latestLast - timeMin;
 }
 
-/**
- * 3 号线贯通车（海傍 → 机场北方向末班）的 boarding 余量判定。
- *  - 'unknown' → 该站不在贯通车数据里，调用方应回落到常规逻辑
- *  - null      → 贯通车已过（boarding 时刻 >= 贯通车经过时刻）
- *  - number    → 距离贯通车经过本站的剩余分钟（严格小于判定）
- *
- * 说明：贯通车数据的站名是干净站名（无 | 无括号），
- *       与 getBoardingMargin 传入的 station (parts[1]) 格式一致，无需归一化。
- */
-function get3ThroughTrainMargin(station, timeMin) {
-    const tt = ROUTE_GRAPH.throughTrains?.['3号线']?.haibangToAirportNorth;
+function get3ThroughTrainMargin(station, timeMin, direction = 'southToNorth') {
+    const dirKey = direction === 'southToNorth' ? 'haibangToAirportNorth' : 'airportNorthToHaibang';
+    const tt = ROUTE_GRAPH.throughTrains?.['3号线']?.[dirKey];
     if (!tt || !tt.stationMap || !tt.stationMap.has(station)) return 'unknown';
     const throughMin = tt.stationMap.get(station);
-    if (timeMin < throughMin) return throughMin - timeMin;   // 严格小于：还有余量
-    return null;                                              // 已过（含恰好等于）
+    if (timeMin < throughMin) return throughMin - timeMin;
+    return null;
 }
 
 /**
@@ -755,97 +750,6 @@ function isPathWithinTerminalRange(startStation, dirStr, terminalEnd, downstream
         if (!covered.has(s)) return false;
     }
     return true;
-}
-
-/* ==========================================
-   3号线南北段跨段警告
-   仅当"同一段连续的 3 号线"里同时出现南段站与北段站时告警。
-   中途下车换乘其他线路、再从 3 号线另一段重新上车的情况不算跨段。
-   ========================================== */
-function checkThreeLineCrossSegment(path, departMin) {
-    const warnings = [];
-
-    // 1. 构建 timeline（站名 + 到达时间）
-    const timeline = [];
-    let t = departMin;
-    for (let i = 0; i < path.nodes.length; i++) {
-        timeline.push({node: path.nodes[i], timeMin: t});
-        if (i < path.nodes.length - 1) {
-            const w = routeGetEdgeWeight(path.nodes[i], path.nodes[i + 1]);
-            if (w !== null) t += w / 60;
-        }
-    }
-
-    // 2. 把 3 号线节点按"连续段"分组（其他线路出现即打断）
-    const line3Segments = [];
-    let currentSeg = null;
-
-    for (const entry of timeline) {
-        const parts = entry.node.split('|');
-        if (parts.length < 2) { currentSeg = null; continue; }
-        if (parts[0] !== '3号线') { currentSeg = null; continue; }
-        const station = parts[1];
-        if (station === '开始' || station === '结束') continue;
-
-        if (!currentSeg) {
-            currentSeg = [];
-            line3Segments.push(currentSeg);
-        }
-        // 相邻同名站去重
-        if (currentSeg.length === 0 ||
-            currentSeg[currentSeg.length - 1].station !== station) {
-            currentSeg.push({station, timeMin: entry.timeMin});
-        }
-    }
-
-    // 3. 逐段判断：只有同一段内同时含南段站 + 体育西路 + 北段站，才算跨段
-    let northToSouthInfo = null;
-
-    for (const seg of line3Segments) {
-        let southIdx = -1, northIdx = -1, tyxIdx = -1;
-        seg.forEach((s, i) => {
-            if (tyxIdx < 0 && s.station === '体育西路') tyxIdx = i;
-            if (southIdx < 0 &&
-                (LINE3_MAIN_SOUTH.has(s.station) || LINE3_BRANCH.has(s.station))) {
-                southIdx = i;
-            }
-            if (northIdx < 0 && LINE3_NORTH_STATIONS.has(s.station)) northIdx = i;
-        });
-
-        if (southIdx < 0 || northIdx < 0 || tyxIdx < 0) continue;
-
-        // 只保留"北 → 南"方向的风险检测
-        if (southIdx > northIdx) {
-            northToSouthInfo = {
-                segFrom: seg[0].station,
-                segTo:   seg[seg.length - 1].station,
-                tiyuxiluTime: seg[tyxIdx].timeMin,
-            };
-        }
-    }
-
-    if (!northToSouthInfo) return warnings;
-
-    // 4. 北 → 南风险：到达体育西路时南段末班车已发
-    const tiyuxiluTime = northToSouthInfo.tiyuxiluTime;
-    const southData = lineDirectionTime['3号线']?.['体育西路'];
-    if (southData) {
-        const southDown = (southData.down || [])
-            .find(x => x.to === '海傍' || x.to.includes('海傍'));
-        if (southDown && tiyuxiluTime > southDown.last) {
-            warnings.push({
-                type: 'miss_south_train',
-                message: `约 ${fmtHM(tiyuxiluTime)} 到达体育西路时，天河客运站→海傍的末班车已于 ${fmtHM(southDown.last)} 发出。若乘坐体育西路方向的列车，可能赶不上南段末班车。`,
-                messageHtml: `约 <b>${fmtHM(tiyuxiluTime)}</b> 到达体育西路时，天河客运站→海傍的末班车已于 <b>${fmtHM(southDown.last)}</b> 发出。<br>若乘坐<strong class="route-warning-emphasis">体育西路方向</strong>的列车，可能赶不上南段末班车。`,
-                enterTyxTime: tiyuxiluTime,
-                southLastTrain: southDown.last,
-                risky3LineFrom: northToSouthInfo.segFrom,
-                risky3LineTo:   northToSouthInfo.segTo,
-            });
-        }
-    }
-
-    return warnings;
 }
 
 function fmtHM(min) {
