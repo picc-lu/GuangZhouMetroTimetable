@@ -36,12 +36,6 @@ function getOutdatedStations() {
 // ========== 新线配置加载 ==========
 let NEW_LINES_CONFIG = null;
 
-// 页面加载时自动去拉取配置（静默加载）
-fetch('./data/new-lines-config.json')
-    .then(res => res.json())
-    .then(data => { NEW_LINES_CONFIG = data; })
-    .catch(err => console.warn('[配置] 新线路配置加载失败，忽略新线警告:', err));
-
 // ========== 辅助检测函数 ==========
 /** 检查该站是否存在于官方实时数据中 */
 function isStationInOfficialData(stationName) {
