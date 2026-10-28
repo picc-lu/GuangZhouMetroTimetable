@@ -24,17 +24,7 @@ function getOutdatedStations() {
     }
     _outdatedStationsCache = result;
     return result;
-    // 测试用假数据
-    // return [
-    //     { line: '12号线', station: '棠溪' },
-    //     { line: '12号线', station: '新市墟' },
-    //     { line: '13号线', station: '松溪' },
-    //     { line: '4号线', station: '官桥' },
-    // ];
 }
-
-// ========== 新线配置加载 ==========
-let NEW_LINES_CONFIG = null;
 
 // ========== 辅助检测函数 ==========
 /** 检查该站是否存在于官方实时数据中 */
