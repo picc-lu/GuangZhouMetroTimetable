@@ -633,6 +633,26 @@ async function runRoutePlanning() {
             `;
         }
 
+        // 检测是否有客控换乘站，并渲染提示
+        let hasCtrlLightning = false;
+        r.results.forEach(item => {
+            if (item.stationWarnings && item.stationWarnings.length > 0) {
+                const transferStations = item.interchanges.map(o => o.key.split('|')[0]);
+                if (item.stationWarnings.some(w => transferStations.includes(w.station))) {
+                    hasCtrlLightning = true;
+                }
+            }
+        });
+
+        if (hasCtrlLightning) {
+            headlineHtml += `<div class="route-ctrl-lightning-hint">
+                <svg viewBox="0 0 24 24" class="ctrl-lightning-icon">
+                    <path d="M13 2 L5 13 h6 l-1 9 l9 -12 h-6 l1 -8 z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+                <span>换乘站客控中，请留意车站指引</span>
+            </div>`;
+        }
+
         // 渲染卡片
         resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) =>
             renderRouteCard(item, idx, displayStart, displayEnd, sortMode)
@@ -641,10 +661,57 @@ async function runRoutePlanning() {
         // 卡片展开/收起
         resultsEl.querySelectorAll('.route-card').forEach(card => {
             card.addEventListener('click', (e) => {
+                // 拦截内部交互元素
                 if (e.target.closest('.route-guide')) return;
                 if (e.target.closest('.route-stations-toggle')) return;
                 if (e.target.closest('.route-station-more-btn')) return;
+
+                const isExpanding = !card.classList.contains('expanded');
                 card.classList.toggle('expanded');
+
+                // 如果正在展开，则触发自动滚动并锁定交互
+                if (isExpanding) {
+                    const routeBody = card.closest('.route-body');
+                    if (!routeBody) return;
+
+                    // 1. 锁定滚动与交互（阻止用户滚轮、触摸、拖拽滚动条）
+                    const preventScroll = (ev) => { ev.preventDefault(); };
+                    routeBody.addEventListener('wheel', preventScroll, { passive: false });
+                    routeBody.addEventListener('touchmove', preventScroll, { passive: false });
+                    routeBody.style.pointerEvents = 'none'; // 禁止点击，防止用户在动画期间乱点
+
+                    const unlock = () => {
+                        routeBody.removeEventListener('wheel', preventScroll);
+                        routeBody.removeEventListener('touchmove', preventScroll);
+                        routeBody.style.pointerEvents = '';
+                    };
+
+                    // 2. 等待卡片 CSS 展开动画（约 350ms）完成
+                    setTimeout(() => {
+                        const bodyRect = routeBody.getBoundingClientRect();
+                        const cardRect = card.getBoundingClientRect();
+                        const padding = 20; // 底部留白
+                        let scrollDistance = 0;
+
+                        if (cardRect.height > bodyRect.height - padding) {
+                            // 卡片超长，滚到顶部
+                            scrollDistance = (cardRect.top - bodyRect.top) - 10;
+                        } else if (cardRect.bottom > bodyRect.bottom) {
+                            // 卡片底部被遮挡，向上滚动
+                            scrollDistance = cardRect.bottom - bodyRect.bottom + padding;
+                        }
+
+                        // 3. 如果需要滚动，执行平滑滚动，并在滚动期间保持锁定
+                        if (scrollDistance > 5) {
+                            routeBody.scrollTo({ top: routeBody.scrollTop + scrollDistance, behavior: 'smooth' });
+                            // 平滑滚动通常需要 300-500ms，这里预留 500ms 后再解锁
+                            setTimeout(unlock, 500);
+                        } else {
+                            // 不需要滚动则直接解锁
+                            unlock();
+                        }
+                    }, 360);
+                }
             });
         });
 

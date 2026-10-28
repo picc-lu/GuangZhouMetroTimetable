@@ -22,7 +22,7 @@ function formatDelta(seconds) {
     return `${m}分${r}秒`;
 }
 
-function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
+function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlStations = null) {
     const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(path) : [];
     if (segs.length === 0) return '';
     const margins = boardingMargins || [];
@@ -35,35 +35,39 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning) {
 
         let urgentSvg = '';
         if (isExtremeUrgent) {
-            // 小于 5 分钟：红色实心警告
-            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
-                   <circle cx="12" cy="12" r="10" fill="#dc2626"/>
-                   <line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-                   <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
-               </svg>`;
+            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#dc2626"/><line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#ffffff"/></svg>`;
         } else if (isUrgent) {
-            // 小于 15 分钟：黄色三角形警告
-            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
-                   <path d="M12 2 L22 20 L2 20 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
-                   <line x1="12" y1="9" x2="12" y2="14" stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
-                   <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
-               </svg>`;
+            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L22 20 L2 20 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="14" stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/></svg>`;
         }
 
         const warn3Svg = is3LineWarn
-            ? `<svg class="route-segment-warn-3line" viewBox="0 0 24 24" aria-hidden="true">
-                   <circle cx="12" cy="12" r="10" fill="#dc2626"/>
-                   <line x1="12" y1="7" x2="12" y2="13"
-                         stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-                   <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
-               </svg>`
+            ? `<svg class="route-segment-warn-3line" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#dc2626"/><line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#ffffff"/></svg>`
             : '';
 
-        const badge = `<span class="route-segment-badge${(isUrgent || isExtremeUrgent) ? ' urgent' : ''}${is3LineWarn ? ' warn-3line' : ''}"
-                            style="background:${s.color}; color:${s.textColor};">
-                            ${escapeHtml(s.shortName)}${urgentSvg}${warn3Svg}
-                       </span>`;
-        return i === 0 ? badge : `<span class="route-seg-arrow">→</span>${badge}`;
+        const badge = `<span class="route-segment-badge${(isUrgent || isExtremeUrgent) ? ' urgent' : ''}${is3LineWarn ? ' warn-3line' : ''}" style="background:${s.color}; color:${s.textColor};">${escapeHtml(s.shortName)}${urgentSvg}${warn3Svg}</span>`;
+
+        if (i === 0) return badge;
+
+        // ★ 新增：判断箭头前方的换乘站是否客控
+        const prevSeg = segs[i - 1];
+        const transferStation = prevSeg.toStation;
+        const isCtrl = ctrlStations && ctrlStations.includes(transferStation);
+
+        let arrowHtml = `<span class="route-seg-arrow">→</span>`;
+        if (isCtrl) {
+            const ctrlSvg = `<span class="route-seg-ctrl-icon" title="换乘站客控中">
+                <svg viewBox="0 0 24 24" width="13" height="13" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2 L5 13 h6 l-1 9 l9 -12 h-6 l1 -8 z" 
+                          fill="#f59e0b" 
+                          stroke="#1f2b3c" 
+                          stroke-width="1.8" 
+                          stroke-linejoin="round"/>
+                </svg>
+            </span>`;
+            arrowHtml = `<span class="route-seg-arrow-wrapper">${arrowHtml}${ctrlSvg}</span>`;
+        }
+
+        return arrowHtml + badge;
     }).join('') + `</span>`;
 }
 
@@ -385,13 +389,18 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
     }
 
     // ---------- 分支 D：北段南向（机场北~广州东站 → 往南） ----------
-    // Web 数据里 3号线北 的南向终点只写"体育西路"，
-    // 但实际有列车继续开到 大石 / 番禺广场 / 海傍。
     if (isL3 && inNorth && !inSouth
         && (rawDirection.includes('体育西路') || rawDirection.includes('海傍'))) {
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
 
-        // ★ 新增：如果本段目的地就是体育西路，说明不再继续往南，直接返回
+        // ★ 新增：如果目的地是支线，直接返回天河客运站方向
+        const LINE3_BRANCH_STATIONS_LOCAL = new Set([
+            '石牌桥', '岗顶', '华师', '五山', '天河客运站'
+        ]);
+        if (segEnd && LINE3_BRANCH_STATIONS_LOCAL.has(segEnd)) {
+            return '天河客运站方向';
+        }
+
         if (segEnd === '体育西路') {
             return '体育西路方向';
         }
@@ -413,6 +422,12 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
             if (targets.length > 0) return targets.join(' / ') + '方向';
         }
         return SOUTH_TERMINALS.join(' / ') + '方向';
+    }
+
+    // ---------- 分支 E：支线南向（石牌桥~天河客运站 → 往体育西路/南段） ----------
+    if (isL3 && LINE3_BRANCH.has(station) && (rawDirection.includes('体育西路') || rawDirection.includes('海傍'))) {
+        // 只要不是去北段，统统按南段的终点列表展示
+        return '大石 / 番禺广场 / 海傍方向';
     }
 
     /* ============================================================
@@ -720,11 +735,12 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
 
     let warningHtml = '';
 
-    // 车站管制警告：按类型分组，每类一行
     let stationCtrlHtml = '';
+    const ctrlStationNames = []; // ★ 新增：提取客控站名字
     if (item.stationWarnings && item.stationWarnings.length > 0) {
         const grouped = new Map();
         for (const w of item.stationWarnings) {
+            ctrlStationNames.push(w.station); // ★ 存入数组
             if (!grouped.has(w.typeText)) grouped.set(w.typeText, []);
             grouped.get(w.typeText).push(w.station);
         }
@@ -759,11 +775,12 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             && segs[i + 1].fullLine === '3号线'
             && segs[i].toStation === '体育西路') {
 
-            // 如果下一段去往的是支线，说明是同一趟车继续开，不需要虚拟换乘
             const nextSeg = segs[i + 1];
+            const isFromBranch = LINE3_BRANCH_STATIONS_LOCAL.has(segs[i].fromStation);
             const isToBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextSeg.toStation);
 
-            if (!isToBranch) {
+            // ★ 修改：只要不是“支线去南段”，统统加上换乘提示
+            if (!isToBranch || (!isFromBranch && isToBranch)) {
                 virtualSplitAfter.add(i);
             }
         }
@@ -818,20 +835,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 const nextSeg = segs[si + 1];
                 const nextTo = nextSeg ? nextSeg.toStation : null;
 
-                // ★ 直接根据终点站在南段列表中的顺序，计算需要显示的终点
-                let virtualDir = '大石 / 番禺广场 / 海傍方向'; // 兜底
+                // ★ 修改：直接复用 getSegmentDirection，不要再写死南段逻辑
+                let virtualDir = '大石 / 番禺广场 / 海傍方向';
                 if (nextTo) {
-                    const SOUTH_TERMINALS = ['大石', '番禺广场', '海傍'];
-                    const LINE3_SOUTH_ORDER = ['体育西路', '珠江新城', '广州塔', '客村', '大塘', '沥滘', '厦滘', '大石', '汉溪长隆', '市桥', '番禺广场', '傍江', '石碁南', '海涌路', '海傍'];
-
-                    const idxSegEnd = LINE3_SOUTH_ORDER.indexOf(nextTo);
-                    if (idxSegEnd >= 0) {
-                        // 过滤出在所有终点站中，排在当前目的地之后（或同站）的车
-                        const targets = SOUTH_TERMINALS.filter(t => LINE3_SOUTH_ORDER.indexOf(t) >= idxSegEnd);
-                        if (targets.length > 0) {
-                            virtualDir = targets.join(' / ') + '方向';
-                        }
-                    }
+                    const dir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
+                    if (dir) virtualDir = dir;
                 }
 
                 boardingPoints.push({
@@ -989,7 +997,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                     <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0)}</div>
+                     <!-- ★ 传入 ctrlStationNames -->
+                     <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames)}</div>
                         <div class="route-sub">
                             <span>⏱ ${formatDuration(item.totalCost)}</span>
                             <span>${item.stationRoute.length + 2} 站</span>

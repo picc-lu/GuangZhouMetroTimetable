@@ -2,8 +2,8 @@
 
 // 出发模式：5 条
 const PLAN_TARGET       = 5;
-const PLAN_MAX_K        = PLAN_TARGET * 10;
-const PLAN_MAX_CHECK    = PLAN_TARGET * 6;
+const PLAN_MAX_K        = PLAN_TARGET * 18;
+const PLAN_MAX_CHECK    = PLAN_TARGET * 13;
 
 // 到达模式：3 条（UI 只展示 3 条，直接少查避免浪费）
 const PLAN_TARGET_ARRIVE    = 15;
@@ -12,8 +12,8 @@ const PLAN_MAX_CHECK_ARRIVE = PLAN_TARGET_ARRIVE * 3;
 
 // 换乘少模式：最多展示 5 条，需要更大候选池让 Yen 枚举到换乘更少的路径
 const PLAN_TARGET_FEWER_TRANSFERS     = 5;
-const PLAN_MAX_K_FEWER_TRANSFERS      = 100;
-const PLAN_MAX_CHECK_FEWER_TRANSFERS  = 75;
+const PLAN_MAX_K_FEWER_TRANSFERS      = PLAN_TARGET_FEWER_TRANSFERS * 18;
+const PLAN_MAX_CHECK_FEWER_TRANSFERS  = PLAN_TARGET_FEWER_TRANSFERS * 13;
 const FEWER_TRANSFERS_MAX_DELTA_SEC   = 30 * 60;   // 超过 30 分钟的换乘少方案直接过滤
 
 const LINE_NAME_ALIASES = {

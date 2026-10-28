@@ -139,3 +139,12 @@
 [data-theme="dark"] .route-fare { color: #fbbf24; background: #3a2a10; }
 
 [data-theme="dark"] .route-outdated-notice{background:#422c00;border-color:#78350f;color:#fcd34d;}
+
+[data-theme="dark"] .route-seg-ctrl-icon path {stroke: #ffffff;}
+
+[data-theme="dark"] .route-ctrl-lightning-hint {
+    color: #94a3b8;
+}
+[data-theme="dark"] .ctrl-lightning-icon path {
+    stroke: #ffffff;
+}

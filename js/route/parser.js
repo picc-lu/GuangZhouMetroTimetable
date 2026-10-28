@@ -176,10 +176,10 @@ function parseRouteSegments(path, departMin) {
         let isThrough = false;
         if (next && seg.fullLine === '3号线' && next.fullLine === '3号线' && seg.toStation === '体育西路') {
             if (isNorthboundRawDir(next.rawDirection)) {
-                // 向北：去支线无条件合并，去北段需看贯通车
-                isThrough = isBranch(next.toStation) || isThroughTrainAvailable(seg.fromStation, dt);
+                // ★ 修改：去支线不再无条件合并，让它断开以显示换乘
+                isThrough = isThroughTrainAvailable(seg.fromStation, dt);
             } else if (isBranch(seg.fromStation) && next.rawDirection.includes('海傍')) {
-                // ★ 新增：支线 -> 南段，常态化直达交路（如 华师 -> 体育西路 -> 傍江）
+                // 支线 -> 南段，保持常态化直达合并（如 华师 -> 体育西路 -> 傍江）
                 isThrough = true;
             }
         }
