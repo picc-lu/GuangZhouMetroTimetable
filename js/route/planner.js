@@ -311,8 +311,8 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         (item.boardingMargins || []).forEach(m => {
             if (m != null && m !== 'unknown' && !isNaN(m)) {
                 hasMargin = true;
-                // 将余量限制在 [0, 15] 之间并归一化，余量 >= 15 按 1 计算，不产生额外加成
-                const val = Math.max(0, Math.min(m, 15)) / 15;
+                // 将余量限制在 [0, 20] 之间并归一化，余量 >= 20 按 1 计算，不产生额外加成
+                const val = Math.max(0, Math.min(m, 20)) / 20;
                 // 连乘：任何一个环节极度危险，都会大幅拉低总分
                 score *= val;
             }

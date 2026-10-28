@@ -204,28 +204,38 @@ function ensureRouteOverlay() {
                 <div class="route-meta" id="route-meta" style="display:none">正在加载线路图…</div>
                 <div class="route-startend-warning" id="route-startend-warning" style="display:none"></div>
                 <div class="route-legend" id="route-legend" style="display:none">
-                    <!-- ★ 加上 ID -->
-                    <div class="route-legend-row" id="route-legend-row-15">
-                        <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                            <path d="M12 2 L22 20 L2 20 Z"
-                                  fill="#f59e0b"
-                                  stroke="#1f2b3c"
-                                  stroke-width="1.8"
-                                  stroke-linejoin="round"/>
-                            <line x1="12" y1="9" x2="12" y2="14"
-                                  stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/>
-                            <circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/>
-                        </svg>
-                        <span>到达该线路时，距离末班车<u>小于 15 分钟</u></span>
+                    <!-- 20分钟图例：倒三角 -->
+                    <div class="route-legend-row" id="route-legend-row-20">
+                        <div class="route-legend-icon-wrap">
+                            <svg class="route-legend-triangle" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2 2 L22 2 L12 22 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span>到达该线路时，末班车<u>小于 20 分钟</u></span>
                     </div>
-                    <!-- ★ 加上 ID -->
-                    <div class="route-legend-row" id="route-legend-row-5">
-                        <svg class="route-legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10" fill="#dc2626"/>
-                            <line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-                            <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
-                        </svg>
-                        <span>到达该线路时，距离末班车<u>小于 5 分钟</u>，请慎重选择</span>
+                    <!-- 10分钟图例：黄、橘、红三色示例 -->
+                    <div class="route-legend-row" id="route-legend-row-10">
+                        <div class="route-legend-icon-wrap route-legend-colors">
+                            <!-- 黄色示例 (8分) -->
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="rgb(255, 221, 0)"/>
+                                <line x1="12" y1="7" x2="12" y2="13" stroke="#1f2b3c" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="12" cy="17" r="1.5" fill="#1f2b3c"/>
+                            </svg>
+                            <!-- 橘色示例 (5分) -->
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="rgb(255, 110, 0)"/>
+                                <line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
+                            </svg>
+                            <!-- 红色示例 (1分) -->
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="#dc2626"/>
+                                <line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="12" cy="17" r="1.5" fill="#ffffff"/>
+                            </svg>
+                        </div>
+                        <span>到达该线路时，末班车<u>小于 10 分钟</u>，请慎重选择</span>
                     </div>
                 </div>
                 <div class="route-legend route-legend-3line" id="route-legend-3line" style="display:none">
@@ -449,10 +459,18 @@ function ensureRouteOverlay() {
         });
     }
 
-    // 排序方式切换 → 同步更新底部 meta 文案
+    // 排序方式切换 → 同步更新底部 meta 文案，并自动执行规划
     ov.querySelectorAll('input[name="route-sort"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            setRouteMeta(routeMetaText());
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                setRouteMeta(routeMetaText());
+                // ★ 新增：只要起点和终点有内容，就自动触发一次规划
+                const startVal = ov.querySelector('#route-start').value.trim();
+                const endVal = ov.querySelector('#route-end').value.trim();
+                if (startVal && endVal && typeof runRoutePlanning === 'function') {
+                    runRoutePlanning();
+                }
+            }
         });
     });
 

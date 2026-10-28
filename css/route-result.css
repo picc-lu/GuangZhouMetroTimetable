@@ -59,7 +59,16 @@
 /* 线路角标 */
 .route-segments { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .route-segment-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 8px; font-size: 14px; font-weight: 800; line-height: 1.3; letter-spacing: 0.3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); white-space: nowrap; }
-.route-segment-warn { position: absolute; right: -7px; bottom: -7px; width: 18px; height: 18px; display: block; pointer-events: none; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25)); }
+.route-segment-warn {
+    position: absolute;
+    right: -7px;
+    bottom: -7px;
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
+}
 .route-segment-warn-3line { position: absolute; left: -7px; top: -7px; width: 16px; height: 16px; display: block; pointer-events: none; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3)); z-index: 1; }
 .route-seg-arrow { color: #94a3b8; font-weight: 700; font-size: 13px; user-select: none; }
 
@@ -227,4 +236,36 @@
     width: 14px;
     height: 14px;
     flex-shrink: 0;
+}
+
+.route-legend-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    flex-shrink: 0;
+}
+
+.route-legend.single-row .route-legend-icon-wrap {
+    width: auto;
+}
+
+/* 图例里并排的三个颜色示例 */
+.route-legend-colors {
+    display: flex;
+    align-items: center;
+}
+
+/* 图例里的倒三角，缩小并居中 */
+.route-legend-triangle {
+    width: 11px;
+    height: 11px;
+}
+
+/* 卡片内的倒三角单独缩小，并调整位置使其贴合角标 */
+.route-segment-warn-triangle {
+    width: 11px !important;
+    height: 11px !important;
+    right: -4px !important;
+    bottom: -4px !important;
 }

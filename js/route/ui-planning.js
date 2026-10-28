@@ -567,31 +567,34 @@ async function runRoutePlanning() {
 
         // ---- 下面接着原来的 “渲染图例” 代码 ----
 
-        // 渲染图例
-        let hasUrgent5 = false;
-        let hasUrgent15 = false;
+        let hasUrgent10 = false;
+        let hasUrgent20 = false;
 
         r.results.forEach(item => {
             (item.boardingMargins || []).forEach(m => {
                 if (m != null && m !== 'unknown') {
-                    if (m >= 0 && m <= 5) hasUrgent5 = true;
-                    else if (m > 5 && m <= 15) hasUrgent15 = true;
+                    if (m >= 0 && m <= 10) hasUrgent10 = true;
+                    else if (m > 10 && m <= 20) hasUrgent20 = true;
                 }
             });
         });
 
         const legendEl = _routeOverlay.querySelector('#route-legend');
         if (legendEl) {
-            // 只要有任意一个警告，就显示外框
-            legendEl.style.display = (hasUrgent5 || hasUrgent15) ? 'flex' : 'none';
+            legendEl.style.display = (hasUrgent10 || hasUrgent20) ? 'flex' : 'none';
+
+            if (hasUrgent20 && !hasUrgent10) {
+                legendEl.classList.add('single-row');
+            } else {
+                legendEl.classList.remove('single-row');
+            }
         }
 
-        // 分别控制内部两行的显隐
-        const row15El = _routeOverlay.querySelector('#route-legend-row-15');
-        if (row15El) row15El.style.display = hasUrgent15 ? 'flex' : 'none';
+        const row20El = _routeOverlay.querySelector('#route-legend-row-20');
+        if (row20El) row20El.style.display = hasUrgent20 ? 'flex' : 'none';
 
-        const row5El = _routeOverlay.querySelector('#route-legend-row-5');
-        if (row5El) row5El.style.display = hasUrgent5 ? 'flex' : 'none';
+        const row10El = _routeOverlay.querySelector('#route-legend-row-10');
+        if (row10El) row10El.style.display = hasUrgent10 ? 'flex' : 'none';
 
         const has3LineWarning = r.results.some(item =>
             item.warnings && item.warnings.some(w => w.risky3LineFrom && w.risky3LineTo)
@@ -686,7 +689,6 @@ async function runRoutePlanning() {
                         routeBody.style.pointerEvents = '';
                     };
 
-                    // 2. 等待卡片 CSS 展开动画（约 350ms）完成
                     setTimeout(() => {
                         const bodyRect = routeBody.getBoundingClientRect();
                         const cardRect = card.getBoundingClientRect();
@@ -710,7 +712,7 @@ async function runRoutePlanning() {
                             // 不需要滚动则直接解锁
                             unlock();
                         }
-                    }, 360);
+                    }, 120);
                 }
             });
         });

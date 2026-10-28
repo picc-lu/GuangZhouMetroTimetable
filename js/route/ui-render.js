@@ -29,15 +29,35 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
 
     return `<span class="route-segments">` + segs.map((s, i) => {
         const m = margins[i];
-        const isExtremeUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 5);
-        const isUrgent = (m != null && m !== 'unknown' && m > 5 && m <= 15);
+        const isExtremeUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 10);
+        const isUrgent = (m != null && m !== 'unknown' && m > 10 && m <= 20);
         const is3LineWarn = has3LineWarning && s.fullLine === '3号线';
 
         let urgentSvg = '';
         if (isExtremeUrgent) {
-            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#dc2626"/><line x1="12" y1="7" x2="12" y2="13" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#ffffff"/></svg>`;
+            // 0-10分钟：圆形，动态黄到红渐变
+            let bgColor = '#dc2626';
+            let lineColor = '#ffffff'; // 默认白色
+
+            if (m != null && m !== 'unknown') {
+                const ratio = Math.max(0, Math.min(m, 10)) / 10;
+                const g = Math.round(221 * ratio); // #DD 是 221
+                bgColor = `rgb(255, ${g}, 0)`;
+
+                // ★ 新增：如果剩余时间 > 5分钟，感叹号用深色；<= 5分钟用白色
+                lineColor = (m <= 5) ? '#ffffff' : '#1f2b3c';
+            }
+
+            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true">
+                   <circle cx="12" cy="12" r="10" fill="${bgColor}"/>
+                   <line x1="12" y1="7" x2="12" y2="13" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round"/>
+                   <circle cx="12" cy="17" r="1.5" fill="${lineColor}"/>
+               </svg>`;
         } else if (isUrgent) {
-            urgentSvg = `<svg class="route-segment-warn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L22 20 L2 20 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="14" stroke="#1f2b3c" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="#1f2b3c"/></svg>`;
+            // 10-20分钟：倒三角，无感叹号
+            urgentSvg = `<svg class="route-segment-warn route-segment-warn-triangle" viewBox="0 0 24 24" aria-hidden="true">
+                   <path d="M2 2 L22 2 L12 22 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+               </svg>`;
         }
 
         const warn3Svg = is3LineWarn
@@ -794,7 +814,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             ? Math.round(item.boardingMargins[0]) : null;
 
         let marginHtml = '';
-        if (startMargin !== null && startMargin >= 0 && startMargin <= 15) {
+        if (startMargin !== null && startMargin >= 0 && startMargin <= 20) {
             const m = Math.round(startMargin);
             const text = m === 0 ? '即将结束运营' : `剩${m}分`;
             marginHtml = `<span class="route-guide-margin urgent">${text}</span>`;
@@ -835,11 +855,45 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 const nextSeg = segs[si + 1];
                 const nextTo = nextSeg ? nextSeg.toStation : null;
 
-                // ★ 修改：直接复用 getSegmentDirection，不要再写死南段逻辑
-                let virtualDir = '大石 / 番禺广场 / 海傍方向';
+                // 计算方向
+                let virtualDir = null;
                 if (nextTo) {
-                    const dir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
-                    if (dir) virtualDir = dir;
+                    virtualDir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
+                }
+                if (!virtualDir) {
+                    virtualDir = '大石 / 番禺广场 / 海傍方向';
+                }
+
+                // ★ 新增：计算虚拟换乘的时间数据
+                let vTimeMin = null;
+                let vWalkMin = 0;
+                let vBoardingTime = null;
+                let vMarginMin = null;
+                let vInterchangeIdx = null;
+
+                const o = item.interchanges[interchangeCursor];
+                if (o && o.key.split('|')[0] === '体育西路') {
+                    // 如果底层数据里有，直接用
+                    vTimeMin = o.timeMin;
+                    vWalkMin = 0;
+                    vBoardingTime = o.timeMin; // 候车时间 = 到达时间
+                    vMarginMin = o.marginMin;
+                    vInterchangeIdx = interchangeCursor;
+                    interchangeCursor++;
+                } else {
+                    // 如果底层没有记录，手动遍历节点计算到达体育西路的时间
+                    let t = (_routeActiveDepartMin != null) ? _routeActiveDepartMin : 0;
+                    for (let i = 0; i < item.path.nodes.length - 1; i++) {
+                        const u = item.path.nodes[i], v = item.path.nodes[i+1];
+                        const w = routeGetEdgeWeight(u, v);
+                        if (w !== null) t += w / 60;
+                        const vParts = v.split('|');
+                        if (vParts.length >= 4 && vParts[0].includes('3号线') && vParts[1] === '体育西路' && vParts[3] === '到站') {
+                            vTimeMin = t;
+                            vBoardingTime = t + vWalkMin;
+                            break;
+                        }
+                    }
                 }
 
                 boardingPoints.push({
@@ -851,11 +905,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                     direction: virtualDir,
                     note: null,
                     door: null,
-                    timeMin: null,
-                    walkMin: null,
-                    boardingTime: null,
-                    marginMin: null,
-                    interchangeIdx: null,
+                    timeMin: vTimeMin,
+                    walkMin: vWalkMin,
+                    boardingTime: vBoardingTime,
+                    marginMin: vMarginMin,
+                    interchangeIdx: vInterchangeIdx,
                     isVirtual3to3: true,
                 });
                 continue;
@@ -948,7 +1002,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             let marginStr = '';
             if (bp.marginMin != null && !isNaN(bp.marginMin)) {
                 const m = Math.round(bp.marginMin);
-                if (m >= 0 && m <= 15) {
+                if (m >= 0 && m <= 20) {
                     const text = m === 0 ? '即将结束运营' : `剩${m}分`;
                     marginStr = `<span class="route-guide-margin urgent">${text}</span>`;
                 }
