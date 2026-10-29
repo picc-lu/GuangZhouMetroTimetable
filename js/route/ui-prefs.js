@@ -10,7 +10,7 @@ function loadRoutePrefs() {
         if (!raw) return null;
         const obj = JSON.parse(raw);
         if (!obj || typeof obj !== 'object') return null;
-        // ★ 兼容旧版本：丢弃已废弃的 advancedOpen 字段
+        // 兼容旧版本：丢弃已废弃的 advancedOpen 字段
         delete obj.advancedOpen;
         return obj;
     } catch (_) { return null; }
@@ -82,7 +82,7 @@ function applyRoutePrefs(ov) {
                 b.classList.toggle('active',
                     (b.dataset.mode === 'arrive') === _routeArriveMode);
             });
-            // ★ 滑块动画：同步容器类
+            // 滑块动画：同步容器类
             wrap.classList.toggle('mode-arrive', _routeArriveMode);
         }
         const nowBtn = ov.querySelector('#route-now');
@@ -116,7 +116,7 @@ function applyRoutePrefs(ov) {
     const aoc = ov.querySelector('#route-avoid-outdoor-check');
     if (aoc) aoc.checked = !!prefs.avoidOutOfStation;
 
-    // ★ 新增：尽量不走客控中的换乘站
+    // 尽量不走客控中的换乘站
     const acc = ov.querySelector('#route-avoid-ctrl-check');
     if (acc) acc.checked = !!prefs.avoidCtrlTransfer;
 

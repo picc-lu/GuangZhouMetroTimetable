@@ -33,18 +33,24 @@ function loadRouteGraph() {
             const nodes = new Set(data.nodes);
             const edges = new Map();
             const succ = new Map();
-            const walkEdges = new Set();   // ★ 换乘步行边集合
+            const walkEdges = new Set();   // 换乘步行边集合
 
             for (const e of data.edges) {
                 let m = edges.get(e.f);
-                if (!m) { m = new Map(); edges.set(e.f, m); }
+                if (!m) {
+                    m = new Map();
+                    edges.set(e.f, m);
+                }
                 m.set(e.t, e.w);
 
                 let arr = succ.get(e.f);
-                if (!arr) { arr = []; succ.set(e.f, arr); }
+                if (!arr) {
+                    arr = [];
+                    succ.set(e.f, arr);
+                }
                 arr.push(e.t);
 
-                // ★ 判断换乘步行边：到站 → 站台
+                // 判断换乘步行边：到站 → 站台
                 const fp = e.f.split('|');
                 const tp = e.t.split('|');
                 if (fp.length >= 4 && tp.length >= 4
@@ -63,12 +69,12 @@ function loadRouteGraph() {
             ROUTE_GRAPH.nodes = nodes;
             ROUTE_GRAPH.edges = edges;
             ROUTE_GRAPH.succ = succ;
-            ROUTE_GRAPH.walkEdges = walkEdges;              // ★
+            ROUTE_GRAPH.walkEdges = walkEdges;
             ROUTE_GRAPH.guides = guides;
             ROUTE_GRAPH.walkSpeed = data.walkSpeed || 1.5;
-            ROUTE_GRAPH.userWalkSpeed = 1.5;                 // ★ 默认"正常"
+            ROUTE_GRAPH.userWalkSpeed = 1.5;                 // 默认"正常"
             ROUTE_GRAPH.version = data.version || '';
-            ROUTE_GRAPH.throughTrains = buildThroughTrains(throughData);  // ★ 新增
+            ROUTE_GRAPH.throughTrains = buildThroughTrains(throughData);  // 新增
             ROUTE_GRAPH.loaded = true;
         })
         .catch(err => {
@@ -122,7 +128,7 @@ function routeGetEdgeWeight(from, to) {
     const w = m.get(to);
     if (w === undefined) return null;
 
-    // ★ 换乘步行边按用户速度缩放
+    // 换乘步行边按用户速度缩放
     if (ROUTE_GRAPH.walkEdges && ROUTE_GRAPH.walkEdges.has(from + '\u0001' + to)) {
         const speed = ROUTE_GRAPH.userWalkSpeed || 1.5;
         if (speed !== 1.5) {

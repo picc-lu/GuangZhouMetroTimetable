@@ -158,12 +158,12 @@ async function fetchServiceTimes(stationsToFetch = null) {
     const total = uniqueStations.length;
     if (total === 0) return;
 
-    // ★ 核心新增：优先尝试获取全局预缓存数据
+    // 核心新增：优先尝试获取全局预缓存数据
     if (!isRetry) {
         try {
             updateLoadingMessage('正在获取今日全量运营数据包...');
 
-            // ★ 动态判断环境：Toy 环境从 GitHub 拉取，其他环境用相对路径
+            // 动态判断环境：Toy 环境从 GitHub 拉取，其他环境用相对路径
             let dailyTimesUrl = './data/daily-times.json';
 
             if (typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV) {
@@ -180,7 +180,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
                     const allRecords = [];
                     for (const st of uniqueStations) {
                         if (bundle.records[st]) {
-                            // ★ 核心修复：遍历每条记录，对字符串字段重新执行一遍清洗
+                            // 遍历每条记录，对字符串字段重新执行一遍清洗
                             bundle.records[st].forEach(rec => {
                                 const normalized = {};
                                 for (let [key, value] of Object.entries(rec)) {
@@ -201,7 +201,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
                     renderAllLines();
                     finishLoadingMessage();
 
-                    // ★ 新增：找出没有数据的站点，静默向官方补发请求
+                    // 找出没有数据的站点，静默向官方补发请求
                     const missing = uniqueStations.filter(st => {
                         const d = lineDirectionTime[st] || (Object.values(lineDirectionTime).find(l => l[st]));
                         return !d || (d.up && d.up.length === 0 && d.down && d.down.length === 0) || (!d.up && !d.down);

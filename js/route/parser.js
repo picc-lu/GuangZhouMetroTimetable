@@ -103,7 +103,7 @@ function parseInterchangeKeys(path, departMin) {
                 const walkMin = (w != null) ? w / 60 : 0;
                 const boardingTime = t + walkMin;
 
-                // ★ 收集 boarding 之后、同一线路上按顺序出现的所有站
+                // 收集 boarding 之后、同一线路上按顺序出现的所有站
                 // 与 checkReachability 保持一致，供多终点覆盖判断使用
                 const downstream = collectDownstreamStations(i + 1, path.nodes);
 
@@ -176,7 +176,7 @@ function parseRouteSegments(path, departMin) {
         let isThrough = false;
         if (next && seg.fullLine === '3号线' && next.fullLine === '3号线' && seg.toStation === '体育西路') {
             if (isNorthboundRawDir(next.rawDirection)) {
-                // ★ 修改：去支线不再无条件合并，让它断开以显示换乘
+                // 修改：去支线不再无条件合并，让它断开以显示换乘
                 isThrough = isThroughTrainAvailable(seg.fromStation, dt);
             } else if (isBranch(seg.fromStation) && next.rawDirection.includes('海傍')) {
                 // 支线 -> 南段，保持常态化直达合并（如 华师 -> 体育西路 -> 傍江）
@@ -199,7 +199,7 @@ function parseRouteSegments(path, departMin) {
         }
     }
 
-    // 👇 ★ 新增 2.5：检测 3 号线跨南北段且无直达车的情况，强制拆分为两段 👇
+    // 👇 新增 2.5：检测 3 号线跨南北段且无直达车的情况，强制拆分为两段 👇
     const splitMerged = [];
     for (let i = 0; i < merged.length; i++) {
         const seg = merged[i];
@@ -229,7 +229,7 @@ function parseRouteSegments(path, departMin) {
                 }
                 currentMin = currentMin || 0;
 
-                // ★ 核心：只要支线参与了跨段，就是常态化交路，无需拆分
+                // 核心：只要支线参与了跨段，就是常态化交路，无需拆分
                 if (isBranch(seg.fromStation) || isBranch(seg.toStation)) {
                     needsSplit = false;
                 } else if (fromIsNorthOrBranch && toIsSouth) {
@@ -270,11 +270,11 @@ function parseRouteSegments(path, departMin) {
 
     // 3. 合并零长度段（fromStation === toStation 的过渡段）
     const compacted = [];
-    for (let i = 0; i < splitMerged.length; i++) {  // ★ 修复：将 merged 改为 splitMerged
+    for (let i = 0; i < splitMerged.length; i++) {  // 将 merged 改为 splitMerged
         const cur = splitMerged[i];
         if (cur.fromStation === cur.toStation) {
             // 零长度段直接丢弃，把起点顺延给下一段（如果存在的话）
-            if (i + 1 < splitMerged.length) {  // ★ 修复：将 merged 改为 splitMerged
+            if (i + 1 < splitMerged.length) {  // 将 merged 改为 splitMerged
                 splitMerged[i + 1].fromStation = cur.fromStation;
             }
             continue;

@@ -162,7 +162,7 @@ function resolveGraphStationNode(rawName, kind) {
 async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false, avoidCtrlStations = null) {
     await loadRouteGraph();
 
-    // ★ 不同模式使用不同上限
+    // 不同模式使用不同上限
     let TARGET, MAX_K, MAX_CHECK;
     if (arriveMode) {
         TARGET    = PLAN_TARGET_ARRIVE;
@@ -197,7 +197,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         const stationRoute = parseStationRoute(p);
 
         const segs = parseRouteSegments(p);
-        // ★ 核心修复：加上 rawDirection，区分同起终点的内环/外环路径
+        // 加上 rawDirection，区分同起终点的内环/外环路径
         const semanticKey = segs
             .map(s => `${s.fullLine}|${s.fromStation}→${s.toStation}|${s.rawDirection || ''}`)
             .join('>');
@@ -368,7 +368,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             const scoreA = getSafetyScore(a);
             const scoreB = getSafetyScore(b);
 
-            // ★ 相乘结果大的排前面（按得分降序）
+            // 相乘结果大的排前面（按得分降序）
             if (Math.abs(scoreA - scoreB) > 0.00001) {
                 return scoreB - scoreA;
             }
@@ -547,7 +547,7 @@ function checkReachability(path, departMin) {
         const uParts = u.split('|');
         const vParts = v.split('|');
 
-        // ★ 核心拦截：只要到达体育西路，且后面还有 3号线 行程，无论是去南段还是北段，都必须检查
+        // 核心拦截：只要到达体育西路，且后面还有 3号线 行程，无论是去南段还是北段，都必须检查
         if (uParts.length >= 4 && uParts[0].includes('3号线') && uParts[1] === '体育西路' && uParts[3] === '到站') {
             // 寻找后面是否还有 3 号线的乘车段
             let nextLine3Station = null;
@@ -625,7 +625,7 @@ function checkReachability(path, departMin) {
         boardingMargins.push(margin);
     }
 
-    // ★ 将虚拟换乘的时间与余量返回
+    // 将虚拟换乘的时间与余量返回
     return {feasible: true, arriveMin: t, boardingMargins, tyxArriveTime, tyxMargin};
 }
 
@@ -648,7 +648,7 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
         return getLine11BoardingMargin(station, webDir, timeMin, downstreamStations);
     }
 
-    // ★ 3 号线南段往机场北方向：优先用「贯通车」数据判定
+    // 3 号线南段往机场北方向：优先用「贯通车」数据判定
     if (webLine === '3号线' && webDir.includes('机场北')) {
         const through = get3ThroughTrainMargin(station, timeMin, 'southToNorth');
         if (through !== 'unknown') return through;

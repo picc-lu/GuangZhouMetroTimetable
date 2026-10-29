@@ -1,271 +1,239 @@
 /* ==========================================
    结果列表、图例、卡片及换乘指引
    ========================================== */
-.route-meta { font-size: 12px; color: #64748b; margin: 4px 0 12px; text-align: center; white-space: normal; line-height: 1.55; word-break: break-word; }
-.route-meta-sub { display: inline-block; margin-top: 2px; color: #94a3b8; font-size: 11.5px; }
-
-.route-results { display: flex; flex-direction: column; gap: 10px; transition: opacity 0.18s ease, filter 0.18s ease; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.route-results.is-loading { opacity: 0.55; filter: saturate(0.6); pointer-events: none; user-select: none; }
+.route-meta { color: #64748b; font-size: 12px; line-height: 1.55; margin: 4px 0 12px; text-align: center; white-space: normal; word-break: break-word; }
+.route-meta-sub { color: #94a3b8; display: inline-block; font-size: 11.5px; margin-top: 2px; }
+.route-results { display: flex; flex-direction: column; gap: 10px; -webkit-touch-callout: none; transition: opacity 0.18s ease, filter 0.18s ease; -webkit-user-select: none; user-select: none; }
+.route-results.is-loading { filter: saturate(0.6); opacity: 0.55; pointer-events: none; user-select: none; }
 .route-results:empty { min-height: 0; }
 .route-results > .route-empty:only-child { min-height: 160px; }
-
-.route-empty, .route-loading, .route-error { padding: 40px 20px; text-align: center; color: #64748b; font-size: 14px; line-height: 1.7; }
+.route-empty, .route-loading, .route-error { color: #64748b; font-size: 14px; line-height: 1.7; padding: 40px 20px; text-align: center; }
 .route-error { color: #dc2626; }
-.route-empty-title { font-size: 15px; font-weight: 700; color: #1f2b3c; margin-bottom: 6px; }
-.route-empty-detail { margin-top: 8px; font-size: 13px; color: #64748b; line-height: 1.6; }
-
+.route-empty-title { color: #1f2b3c; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.route-empty-detail { color: #64748b; font-size: 13px; line-height: 1.6; margin-top: 8px; }
 .route-legend {
-    display: none;
-    flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
     background: #fef2f2;
     border: 1px solid #fecaca;
-    color: #991b1b;
-    padding: 10px 12px;
     border-radius: 10px;
-    margin: 0 0 12px;
+    color: #991b1b;
+    display: none;
+    flex-direction: column;
     font-size: 12.5px;
     font-weight: 600;
+    gap: 6px;
     line-height: 1.5;
+    margin: 0 0 12px;
+    padding: 10px 12px;
 }
-.route-legend-row { display: flex; align-items: center; gap: 8px; }
-.route-legend-icon { flex-shrink: 0; width: 16px; height: 16px; color: #1f2b3c; }
+.route-legend-row { align-items: center; display: flex; gap: 8px; }
+.route-legend-icon { color: #1f2b3c; flex-shrink: 0; height: 16px; width: 16px; }
 .route-legend-3line { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-
 /* 卡片 */
-.route-card { position: relative; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; cursor: pointer; }
+.route-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; cursor: pointer; overflow: hidden; position: relative; transition: border-color 0.15s, box-shadow 0.15s; }
 .route-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
 .route-card.expanded { border-color: #2b7de9; box-shadow: 0 4px 16px rgba(43, 125, 233, 0.12); }
-
-.route-rank { position: absolute; top: 0; left: 0; width: 34px; height: 34px; box-sizing: border-box; padding: 5px 0 0 6px; background: #bfdbfe; color: #1e40af; font-weight: 800; font-size: 12px; line-height: 1; display: flex; align-items: flex-start; justify-content: flex-start; clip-path: polygon(0 0, 100% 0, 0 100%); z-index: 2; pointer-events: none; }
+.route-rank { align-items: flex-start; background: #bfdbfe; box-sizing: border-box; clip-path: polygon(0 0, 100% 0, 0 100%); color: #1e40af; display: flex; font-size: 12px; font-weight: 800; height: 34px; justify-content: flex-start; left: 0; line-height: 1; padding: 5px 0 0 6px; pointer-events: none; position: absolute; top: 0; width: 34px; z-index: 2; }
 .route-card[data-rank="1"] .route-rank { background: #d4af37; color: #fff; }
 .route-card[data-rank="2"] .route-rank { background: #9ca3af; color: #fff; }
 .route-card[data-rank="3"] .route-rank { background: #b45309; color: #fff; }
-
-.route-card-head { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 34px; }
+.route-card-head { align-items: center; display: flex; gap: 12px; padding: 10px 14px 10px 34px; }
 .route-summary { flex: 1; min-width: 0; }
-.route-line-path { font-size: 15px; font-weight: 700; color: #1e293b; line-height: 1.3; margin-bottom: 5px; }
-.route-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: #64748b; }
-.route-delta { color: #94a3b8; font-weight: 500; font-size: 11.5px; letter-spacing: 0; }
-
-.route-arrive { text-align: right; flex-shrink: 0; }
-.route-arrive-line { display: flex; align-items: center; justify-content: flex-end; gap: 5px; line-height: 1.15; white-space: nowrap; }
+.route-line-path { color: #1e293b; font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 5px; }
+.route-sub { align-items: center; color: #64748b; display: flex; flex-wrap: wrap; font-size: 12px; gap: 4px 10px; }
+.route-delta { color: #94a3b8; font-size: 11.5px; font-weight: 500; letter-spacing: 0; }
+.route-arrive { flex-shrink: 0; text-align: right; }
+.route-arrive-line { align-items: center; display: flex; gap: 5px; justify-content: flex-end; line-height: 1.15; white-space: nowrap; }
 .route-arrive-line + .route-arrive-line { margin-top: 4px; }
 .route-arrive-line .route-arrive-label { font-size: 10.5px; }
-.route-arrive-time { font-size: 17px; font-weight: 800; color: #1e293b; font-variant-numeric: tabular-nums; }
-.route-arrive-label { font-size: 11px; color: #94a3b8; letter-spacing: 0.5px; }
-
+.route-arrive-time { color: #1e293b; font-size: 17px; font-variant-numeric: tabular-nums; font-weight: 800; }
+.route-arrive-label { color: #94a3b8; font-size: 11px; letter-spacing: 0.5px; }
 /* 线路角标 */
-.route-segments { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-.route-segment-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 8px; font-size: 14px; font-weight: 800; line-height: 1.3; letter-spacing: 0.3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); white-space: nowrap; }
+.route-segments { align-items: center; display: inline-flex; flex-wrap: wrap; gap: 5px; }
+.route-segment-badge { align-items: center; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); display: inline-flex; font-size: 14px; font-weight: 800; justify-content: center; letter-spacing: 0.3px; line-height: 1.3; padding: 4px 12px; position: relative; white-space: nowrap; }
 .route-segment-warn {
+    bottom: -7px;
+    display: block;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
+    height: 18px;
+    pointer-events: none;
     position: absolute;
     right: -7px;
-    bottom: -7px;
     width: 18px;
-    height: 18px;
-    display: block;
-    pointer-events: none;
-    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
 }
-.route-segment-warn-3line { position: absolute; left: -7px; top: -7px; width: 16px; height: 16px; display: block; pointer-events: none; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3)); z-index: 1; }
-.route-seg-arrow { color: #94a3b8; font-weight: 700; font-size: 13px; user-select: none; }
-
+.route-segment-warn-3line { display: block; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3)); height: 16px; left: -7px; pointer-events: none; position: absolute; top: -7px; width: 16px; z-index: 1; }
+.route-seg-arrow { color: #94a3b8; font-size: 13px; font-weight: 700; user-select: none; }
 /* 展开详情区 */
-.route-detail { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid transparent; }
-.route-card.expanded .route-detail { max-height: 2500px; border-top-color: #f1f5f9; }
-
+.route-detail { border-top: 1px solid transparent; max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+.route-card.expanded .route-detail { border-top-color: #f1f5f9; max-height: 2500px; }
 /* 站点列表 */
-.route-stations { padding: 12px 14px; font-size: 13px; color: #1f2b3c; line-height: 1.9; word-break: break-word; }
-.route-station { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; white-space: nowrap; display: inline-block; margin: 2px 0; }
-.route-arrow { color: #94a3b8; margin: 0 4px; font-weight: 600; }
+.route-stations { color: #1f2b3c; font-size: 13px; line-height: 1.9; padding: 12px 14px; word-break: break-word; }
+.route-station { background: #f1f5f9; border-radius: 6px; display: inline-block; margin: 2px 0; padding: 2px 8px; white-space: nowrap; }
+.route-arrow { color: #94a3b8; font-weight: 600; margin: 0 4px; }
 .route-stations-toggle-wrap { padding: 0 14px 10px; }
-.route-stations-toggle { display: inline-flex; align-items: center; gap: 5px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; line-height: 1.2; }
+.route-stations-toggle { align-items: center; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; cursor: pointer; display: inline-flex; font-family: inherit; font-size: 12px; font-weight: 600; gap: 5px; line-height: 1.2; padding: 5px 12px; transition: background 0.15s, border-color 0.15s, color 0.15s; }
 .route-stations-toggle:hover { background: #e2e8f0; border-color: #cbd5e1; color: #1f2b3c; }
 .route-stations-toggle:active { background: #cbd5e1; }
-.route-stations-toggle-icon { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
+.route-stations-toggle-icon { flex-shrink: 0; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 .route-stations-toggle[data-expanded="1"] .route-stations-toggle-icon { transform: rotate(180deg); }
-
-.route-station-more-btn { display: inline-block; background: #e2e8f0; color: #475569; border: none; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; font-family: inherit; line-height: 1.6; margin: 2px 0; letter-spacing: 0.3px; white-space: nowrap; cursor: pointer; transition: background 0.15s, color 0.15s, transform 0.1s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); vertical-align: middle; }
+.route-station-more-btn { background: #e2e8f0; border: none; border-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); color: #475569; cursor: pointer; display: inline-block; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.6; margin: 2px 0; padding: 3px 12px; transition: background 0.15s, color 0.15s, transform 0.1s; vertical-align: middle; white-space: nowrap; }
 .route-station-more-btn:hover { background: #cbd5e1; color: #1f2b3c; }
 .route-station-more-btn:active { background: #b8c4d4; transform: scale(0.97); }
-.route-station-more-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.25); }
-
+.route-station-more-btn:focus-visible { box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.25); outline: none; }
 /* 换乘指引 */
 .route-guide { background: #f8fafc; padding: 4px 0; }
-.route-guide-empty { padding: 12px 14px; font-size: 13px; color: #16a34a; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.route-guide-item { position: relative; padding: 10px 14px; min-height: 62px; box-sizing: border-box; border-bottom: 1px dashed #e2e8f0; }
+.route-guide-empty { align-items: center; color: #16a34a; display: flex; font-size: 13px; font-weight: 700; gap: 8px; justify-content: space-between; padding: 12px 14px; }
+.route-guide-item { border-bottom: 1px dashed #e2e8f0; box-sizing: border-box; min-height: 62px; padding: 10px 14px; position: relative; }
 .route-guide-item:last-child { border-bottom: none; }
-.route-guide-head { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 13px; padding-right: 118px; row-gap: 4px; min-height: 22px; }
-.route-guide-station { font-weight: 800; color: #1e293b; font-size: 14px; flex-shrink: 0; }
-.route-guide-change { background: #eceff3; color: #475569; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-.route-guide-direction { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-.route-guide-note { color: #64748b; font-size: 12px; font-weight: 500; flex: 0 1 auto; min-width: 0; line-height: 1.5; }
-.route-guide-doors { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-
+.route-guide-head { align-items: center; display: flex; flex-wrap: wrap; font-size: 13px; gap: 4px; min-height: 22px; padding-right: 118px; row-gap: 4px; }
+.route-guide-station { color: #1e293b; flex-shrink: 0; font-size: 14px; font-weight: 800; }
+.route-guide-change { background: #eceff3; border-radius: 6px; color: #475569; flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 2px 8px; }
+.route-guide-direction { background: #e0f2fe; border-radius: 6px; color: #0369a1; display: inline-block; flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 2px 8px; }
+.route-guide-note { color: #64748b; flex: 0 1 auto; font-size: 12px; font-weight: 500; line-height: 1.5; min-width: 0; }
+.route-guide-doors { background: #fef3c7; border-radius: 6px; color: #92400e; flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 2px 8px; }
 /* ==========================================
    换乘指引：时间区域统一字体与对齐
    ========================================== */
 .route-guide-time-wrap {
-    position: absolute;
-    top: 10px;
-    right: 14px;
+    align-items: flex-start; /* 改为左对齐，保证第一行和第二行起头对齐 */
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* ★ 改为左对齐，保证第一行和第二行起头对齐 */
     gap: 3px;
-    pointer-events: none;
     line-height: 1;
+    pointer-events: none;
+    position: absolute;
+    right: 14px;
+    top: 10px;
 }
-
 .route-guide-time-row {
+    align-items: center;
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: flex-start; /* ★ 改为左对齐 */
     gap: 5px;
-    white-space: nowrap;
-    line-height: 1.2;
     height: 16px;
+    justify-content: flex-start; /* 改为左对齐 */
+    line-height: 1.2;
+    white-space: nowrap;
 }
-
 /* 中间的圆点，稍微调浅作为分隔符 */
 .route-guide-dot {
     color: #94a3b8;
+    font-size: 12px;
     font-weight: 700;
-    font-size: 12px;
-    user-select: none;
     line-height: 1;
+    user-select: none;
 }
-
-/* ★ 统一“到”、“候”的文字样式 */
+/* 统一“到”、“候”的文字样式 */
 .rg-prefix {
-    font-weight: 500;
     color: #64748b;
-    margin-right: 2px;
     font-size: 12px;
+    font-weight: 500;
+    margin-right: 2px;
 }
-
-.route-guide-time{font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:#1f2b3c;line-height:1;white-space:nowrap;display:inline-flex;align-items:center;}
-.route-guide-walk{font-size:13px;font-weight:700;color:#1f2b3c;white-space:nowrap;line-height:1;font-family:inherit;background:#eceff3;padding:2px 6px;border-radius:4px;}
-.route-guide-margin{font-size:11.5px;font-weight:700;color:#64748b;white-space:nowrap;line-height:1;padding:2px 6px;border-radius:4px;background:#f1f5f9;}
-.route-guide-margin.urgent{color:#d97706;background:#fef3c7;}
-
+.route-guide-time {align-items: center;color: #1f2b3c;display: inline-flex;font-family: inherit;font-size: 13px;font-variant-numeric: tabular-nums;font-weight: 700;line-height: 1;white-space: nowrap;}
+.route-guide-walk {background: #eceff3;border-radius: 4px;color: #1f2b3c;font-family: inherit;font-size: 13px;font-weight: 700;line-height: 1;padding: 2px 6px;white-space: nowrap;}
+.route-guide-margin {background: #f1f5f9;border-radius: 4px;color: #64748b;font-size: 11.5px;font-weight: 700;line-height: 1;padding: 2px 6px;white-space: nowrap;}
+.route-guide-margin.urgent {background: #fef3c7;color: #d97706;}
 /* 警告信息 */
 .route-warnings { padding: 0 14px 10px; }
-.route-warning { display: flex; align-items: flex-start; gap: 8px; background: #fff8e1; border-left: 3px solid #f59e0b; color: #78350f; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.6; font-weight: 600; }
+.route-warning { align-items: flex-start; background: #fff8e1; border-left: 3px solid #f59e0b; border-radius: 8px; color: #78350f; display: flex; font-size: 12.5px; font-weight: 600; gap: 8px; line-height: 1.6; padding: 8px 12px; }
 .route-warning-text { flex: 1; min-width: 0; }
 .route-warning-icon { flex-shrink: 0; font-size: 14px; line-height: 1.4; }
-.route-warning-emphasis { font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; color: inherit; }
-.route-warning-meta { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 500; color: #a16207; opacity: 0.9; }
-
-.route-fare { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 6px; font-size: 12px; font-weight: 800; color: #b45309; background: #fef3c7; letter-spacing: 0.3px; }
-
+.route-warning-emphasis { color: inherit; font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.route-warning-meta { color: #a16207; display: block; font-size: 11.5px; font-weight: 500; margin-top: 5px; opacity: 0.9; }
+.route-fare { align-items: center; background: #fef3c7; border-radius: 6px; color: #b45309; display: inline-flex; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; padding: 1px 7px; }
 /* 空结果操作引导 */
-.route-empty-suggest { margin-top: 16px; font-size: 13px; font-weight: 600; color: #475569; text-align: left; padding-left: 4px; }
-.route-suggest-actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; text-align: left; }
-.route-suggest-btn { display: inline-flex; align-items: center; padding: 8px 14px; background: #f0f6ff; color: #1a6bd5; border: 1.5px solid #b8d4f0; border-radius: 20px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.1s; line-height: 1.2; }
+.route-empty-suggest { color: #475569; font-size: 13px; font-weight: 600; margin-top: 16px; padding-left: 4px; text-align: left; }
+.route-suggest-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; margin-top: 10px; text-align: left; }
+.route-suggest-btn { align-items: center; background: #f0f6ff; border: 1.5px solid #b8d4f0; border-radius: 20px; color: #1a6bd5; cursor: pointer; display: inline-flex; font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1.2; padding: 8px 14px; transition: background 0.15s, border-color 0.15s, transform 0.1s; }
 .route-suggest-btn:hover { background: #dbeafe; border-color: #7ab0e6; }
 .route-suggest-btn:active { background: #c0daf8; transform: scale(0.98); }
-
 /* 车站管制 / 起终点异常 */
-.route-station-ctrl { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
-.route-station-ctrl-item { display: flex; align-items: flex-start; gap: 8px; background: #fef2f2; border-left: 3px solid #dc2626; color: #7f1d1d; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.55; font-weight: 500; word-break: break-word; }
+.route-station-ctrl { display: flex; flex-direction: column; gap: 6px; padding: 10px; }
+.route-station-ctrl-item { align-items: flex-start; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 8px; color: #7f1d1d; display: flex; font-size: 12.5px; font-weight: 500; gap: 8px; line-height: 1.55; padding: 8px 12px; word-break: break-word; }
 .route-station-ctrl-icon { flex-shrink: 0; font-size: 13px; line-height: 1.5; }
 .route-station-ctrl-text { flex: 1; min-width: 0; }
 .route-station-ctrl-text b { font-weight: 800; margin-right: 6px; }
-.route-station-ctrl-count { display: inline-block; background: #dc2626; color: #fff; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-right: 6px; letter-spacing: 0.3px; line-height: 1.4; vertical-align: 1px; }
-
+.route-station-ctrl-count { background: #dc2626; border-radius: 6px; color: #fff; display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.4; margin-right: 6px; padding: 1px 6px; vertical-align: 1px; }
 .route-startend-warning { display: flex; flex-direction: column; gap: 6px; margin: 0 0 12px; }
-.route-sew-item { display: flex; align-items: center; gap: 8px; background: #fef2f2; border-left: 3px solid #dc2626; color: #7f1d1d; padding: 9px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.55; font-weight: 500; flex-wrap: wrap; }
-.route-sew-type { display: inline-block; background: #dc2626; color: #fff; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; letter-spacing: 0.3px; line-height: 1.4; flex-shrink: 0; }
-.route-sew-body { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; }
-.route-sew-tag { display: inline-block; background: rgba(220, 38, 38, 0.12); color: #b91c1c; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 5px; letter-spacing: 0.3px; line-height: 1.4; flex-shrink: 0; }
+.route-sew-item { align-items: center; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 8px; color: #7f1d1d; display: flex; flex-wrap: wrap; font-size: 12.5px; font-weight: 500; gap: 8px; line-height: 1.55; padding: 9px 12px; }
+.route-sew-type { background: #dc2626; border-radius: 6px; color: #fff; display: inline-block; flex-shrink: 0; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.4; padding: 2px 7px; }
+.route-sew-body { align-items: center; display: inline-flex; flex: 1; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.route-sew-tag { background: rgba(220, 38, 38, 0.12); border-radius: 5px; color: #b91c1c; display: inline-block; flex-shrink: 0; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.4; padding: 1px 6px; }
 .route-sew-name { font-weight: 700; }
 .route-sew-sep { color: #f87171; font-weight: 700; padding: 0 2px; }
-
 .route-outdated-notice {
     background: #fffbeb;
     border: 1px solid #fde68a;
-    color: #b45309;
-    padding: 12px 14px;
     border-radius: 10px;
+    color: #b45309;
+    display: flex;
+    flex-direction: column; /* 改为垂直排列 */
     font-size: 12.5px;
     font-weight: 600;
+    gap: 4px;
     line-height: 1.5;
     margin-bottom: 12px;
-    display: flex;
-    flex-direction: column; /* ★ 改为垂直排列 */
-    gap: 4px;
+    padding: 12px 14px;
 }
-
 /* 箭头及客控图标包裹层 */
 .route-seg-arrow-wrapper {
-    position: relative;
-    display: inline-flex;
     align-items: center;
+    display: inline-flex;
     justify-content: center;
+    position: relative;
 }
-
 .route-seg-arrow-wrapper .route-seg-arrow {
     margin: 0 2px;
 }
-
 .route-seg-ctrl-icon {
-    position: absolute;
-    top: -11px; /* 从 -12px 改为 -11px，稍微贴近箭头 */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
     display: flex;
     filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3)); /* 阴影稍微加强一点，更有立体感 */
+    left: 50%;
+    position: absolute;
+    top: -11px; /* 从 -12px 改为 -11px，稍微贴近箭头 */
+    transform: translateX(-50%);
+    z-index: 2;
 }
-
 .route-ctrl-lightning-hint {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 12px;
     color: #64748b;
-    margin: 4px 0 10px;
+    display: flex;
+    font-size: 12px;
     font-weight: 500;
+    gap: 6px;
+    justify-content: center;
+    margin: 4px 0 10px;
 }
 .ctrl-lightning-icon {
-    width: 14px;
-    height: 14px;
     flex-shrink: 0;
+    height: 14px;
+    width: 14px;
 }
-
 .route-legend-icon-wrap {
-    display: flex;
     align-items: center;
+    display: flex;
+    flex-shrink: 0;
     justify-content: center;
     width: 48px;
-    flex-shrink: 0;
 }
-
 .route-legend.single-row .route-legend-icon-wrap {
     width: auto;
 }
-
 /* 图例里并排的三个颜色示例 */
 .route-legend-colors {
-    display: flex;
     align-items: center;
+    display: flex;
 }
-
-/* 图例里的倒三角，缩小并居中 */
+/* 图例里的正三角，稍微放大 */
 .route-legend-triangle {
-    width: 11px;
-    height: 11px;
+    height: 14px;
+    width: 14px;
 }
-
-/* 卡片内的倒三角单独缩小，并调整位置使其贴合角标 */
+/* 卡片线路箭头上的正三角，放大并调整贴合位置 */
 .route-segment-warn-triangle {
-    width: 11px !important;
-    height: 11px !important;
-    right: -4px !important;
-    bottom: -4px !important;
+    bottom: -6px !important;
+    height: 16px !important;
+    right: -6px !important;
+    width: 16px !important;
 }

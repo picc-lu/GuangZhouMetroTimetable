@@ -27,12 +27,12 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
     if (segs.length === 0) return '';
     const margins = boardingMargins || [];
 
-    let marginCursor = 0; // ★ 余量数组游标
+    let marginCursor = 0; // 余量数组游标
 
     return `<span class="route-segments">` + segs.map((s, i) => {
         let m = null;
 
-        // ★ 核心修复：只在起点和真实跨线换乘时，才消耗一个余量
+        // 只在起点和真实跨线换乘时，才消耗一个余量
         if (i === 0) {
             m = margins[marginCursor++];
         } else {
@@ -40,7 +40,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
             if (prevSeg.fullLine !== s.fullLine) {
                 m = margins[marginCursor++];
             } else if (s.fullLine === '3号线' && prevSeg.toStation === '体育西路') {
-                // ★ 新增：如果是 3->3 虚拟换乘，使用传入的虚拟换乘余量
+                // 如果是 3->3 虚拟换乘，使用传入的虚拟换乘余量
                 m = virtual3to3Margin;
             }
         }
@@ -60,7 +60,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
                 const g = Math.round(221 * ratio); // #DD 是 221
                 bgColor = `rgb(255, ${g}, 0)`;
 
-                // ★ 新增：如果剩余时间 > 5分钟，感叹号用深色；<= 5分钟用白色
+                // 如果剩余时间 > 5分钟，感叹号用深色；<= 5分钟用白色
                 lineColor = (m <= 5) ? '#ffffff' : '#1f2b3c';
             }
 
@@ -70,9 +70,9 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
                    <circle cx="12" cy="17" r="1.5" fill="${lineColor}"/>
                </svg>`;
         } else if (isUrgent) {
-            // 10-20分钟：倒三角，无感叹号
+            // 10-20分钟：正三角，无感叹号
             urgentSvg = `<svg class="route-segment-warn route-segment-warn-triangle" viewBox="0 0 24 24" aria-hidden="true">
-                   <path d="M2 2 L22 2 L12 22 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+                   <path d="M12 3 L22 21 L2 21 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
                </svg>`;
         }
 
@@ -84,7 +84,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
 
         if (i === 0) return badge;
 
-        // ★ 新增：判断箭头前方的换乘站是否客控
+        // 判断箭头前方的换乘站是否客控
         const prevSeg = segs[i - 1];
         const transferStation = prevSeg.toStation;
         const isCtrl = ctrlStations && ctrlStations.includes(transferStation);
@@ -285,7 +285,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
     }
     if (!rawDirection) return null;
 
-    // ★ 用"在该站的 boarding 时刻"判断末班车是否仍运营，而不是整个路径的出发时刻
+    // 用"在该站的 boarding 时刻"判断末班车是否仍运营，而不是整个路径的出发时刻
     // 例：用户在 23:05 出发，23:16 才到石壁，用 23:05 判断会误以为还能赶上 23:08 的末班车
     const currentMin = getBoardingTimeAtStation(path, station, lineName);
 
@@ -298,7 +298,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         && LINE3_MAIN_SOUTH.has(station);
     const inNorth = _isLine3NorthStation(station);
 
-    // ★ 新增：起点是体育西路时的绝对精准特判，必须放在所有分支最前面
+    // 起点是体育西路时的绝对精准特判，必须放在所有分支最前面
     if (isL3 && station === '体育西路') {
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
         const SOUTH_ORDER = LINE3_SOUTH_ORDER;
@@ -353,7 +353,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         && (rawDirection.includes('机场北') || rawDirection.includes('体育西路'))) {
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
 
-        // ★ 新增：如果终点在支线，只能坐“天河客运站方向”的车
+        // 如果终点在支线，只能坐“天河客运站方向”的车
         const LINE3_BRANCH_STATIONS_LOCAL = new Set([
             '石牌桥', '岗顶', '华师', '五山', '天河客运站'
         ]);
@@ -392,7 +392,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
 
     // ---------- 分支 B：南段南向 ----------
     if (isL3 && inSouth) {
-        // ★ 删掉对 rawDirection 的严格限制，只要起点在南段或体育西路，就按 forcedEnd 或 segEnd 算
+        // 删掉对 rawDirection 的严格限制，只要起点在南段或体育西路，就按 forcedEnd 或 segEnd 算
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
         const SOUTH_TERMINALS = ['大石', '番禺广场', '海傍'];
         const idxSegEnd = LINE3_SOUTH_ORDER.indexOf(segEnd);
@@ -429,7 +429,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         && (rawDirection.includes('体育西路') || rawDirection.includes('海傍'))) {
         const segEnd = forcedEnd || getSegmentEndStation(path, station, lineName);
 
-        // ★ 新增：如果目的地是支线，直接返回天河客运站方向
+        // 如果目的地是支线，直接返回天河客运站方向
         const LINE3_BRANCH_STATIONS_LOCAL = new Set([
             '石牌桥', '岗顶', '华师', '五山', '天河客运站'
         ]);
@@ -554,7 +554,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         }
     }
 
-    // ★ 新增：追加短路车终点（只要方向一致且能覆盖当前路径）
+    // 追加短路车终点（只要方向一致且能覆盖当前路径）
     if (typeof getShortServicesOfLine === 'function') {
         const shortServices = getShortServicesOfLine(lineName);
         for (const svc of shortServices) {
@@ -724,7 +724,7 @@ function routeShortLineName(line) {
 function buildArriveBlockHtml(item) {
     const arriveTime = fmtHM(item.arriveMin);
 
-    // ★ 使用该路线自己计算出的极限出发时间
+    // 使用该路线自己计算出的极限出发时间
     if (_routeArriveMode && item.actualDepartMin != null) {
         const boardingTime = fmtHM(item.actualDepartMin);
         return `
@@ -772,11 +772,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
     let warningHtml = '';
 
     let stationCtrlHtml = '';
-    const ctrlStationNames = []; // ★ 新增：提取客控站名字
+    const ctrlStationNames = []; // 提取客控站名字
     if (item.stationWarnings && item.stationWarnings.length > 0) {
         const grouped = new Map();
         for (const w of item.stationWarnings) {
-            ctrlStationNames.push(w.station); // ★ 存入数组
+            ctrlStationNames.push(w.station); // 存入数组
             if (!grouped.has(w.typeText)) grouped.set(w.typeText, []);
             grouped.get(w.typeText).push(w.station);
         }
@@ -815,7 +815,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             const isFromBranch = LINE3_BRANCH_STATIONS_LOCAL.has(segs[i].fromStation);
             const isToBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextSeg.toStation);
 
-            // ★ 修改：只要不是“支线去南段”，统统加上换乘提示
+            // 修改：只要不是“支线去南段”，统统加上换乘提示
             if (!isToBranch || (!isFromBranch && isToBranch)) {
                 virtualSplitAfter.add(i);
             }
@@ -876,7 +876,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 if (nextTo) {
                     virtualDir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
                 }
-                // ★ 修复：如果底层算不出方向，直接根据目的地强行兜底
+                // 如果底层算不出方向，直接根据目的地强行兜底
                 if (!virtualDir) {
                     if (nextTo && LINE3_SOUTH_ORDER.includes(nextTo)) {
                         virtualDir = '大石 / 番禺广场 / 海傍方向';
@@ -901,7 +901,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                     vInterchangeIdx = interchangeCursor;
                     interchangeCursor++;
                 } else if (vTimeMin === null) {
-                    // ★ 修复：如果底层依然没给时间，UI 层再兜底算一次
+                    // 如果底层依然没给时间，UI 层再兜底算一次
                     let t = (_routeActiveDepartMin != null) ? _routeActiveDepartMin : 0;
                     for (let i = 0; i < item.path.nodes.length - 1; i++) {
                         const u = item.path.nodes[i], v = item.path.nodes[i+1];
@@ -1034,7 +1034,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 let row2 = '';
 
                 if (arriveStr) {
-                    // ★ 将“到”直接写进 route-guide-time 里面
+                    // 将“到”直接写进 route-guide-time 里面
                     const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
                     if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
                     row1 = `<span class="route-guide-time-row">${row1Parts.join('')}</span>`;
@@ -1042,7 +1042,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
 
                 if (boardingStr || marginStr) {
                     const row2Parts = [];
-                    // ★ 将“候”直接写进 route-guide-time 里面
+                    // 将“候”直接写进 route-guide-time 里面
                     if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
                     if (marginStr) row2Parts.push(marginStr);
                     row2 = row2Parts.length > 0

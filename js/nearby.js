@@ -36,7 +36,7 @@ function findNearbyStations() {
             let msg = '定位失败';
 
             if (err.code === 1) {
-                // ★ 检测是否为 iframe 权限策略拦截
+                // 检测是否为 iframe 权限策略拦截
                 if (err.message && err.message.includes('permissions policy')) {
                     msg = '当前平台禁止获取位置权限。请直接使用上方的搜索框，输入站点名称进行查询。';
                 } else if (!window.isSecureContext) {

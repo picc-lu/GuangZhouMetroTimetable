@@ -2,42 +2,187 @@
    移动端适配（≤ 768px & ≤ 480px）
    ========================================== */
 @media (max-width: 768px) {
-    .route-container { width: 96%; max-height: 92vh; }
-    .route-field { flex: 1 1 100%; }
-    .route-stops { gap: 6px; }
-    .route-swap-btn { width: 28px; height: 28px; }
-    .route-swap-btn svg { width: 14px; height: 14px; }
-    .route-go { width: 100%; padding: 12px 0; }
-    .route-card-head { padding: 10px 12px 10px 30px; gap: 10px; }
-    .route-rank { width: 30px; height: 30px; padding: 4px 0 0 5px; font-size: 11px; }
-    .route-line-path { font-size: 14px; }
-    .route-arrive-time { font-size: 15px; }
-    .route-arrive-line .route-arrive-label { font-size: 10px; }
-    .route-arrive-line + .route-arrive-line { margin-top: 3px; }
-    .route-segment-badge { padding: 3px 8px; font-size: 13px; }
-    .route-header-note { font-size: 11px; }
-    .route-segment-warn { width: 16px; height: 16px; right: -6px; bottom: -6px; }
-    .route-segment-warn-3line { width: 14px; height: 14px; left: -6px; top: -6px; }
-    .route-stations { font-size: 12px; padding: 10px 12px; }
-    .route-stations-toggle-wrap { padding: 0 12px 10px; }
-    .route-stations-toggle { padding: 4px 10px; font-size: 11.5px; }
-    .route-guide-item { padding: 8px 12px; min-height: 58px; }
-    .route-guide-head { padding-right: 108px; font-size: 12px; }
-    .route-guide-station { font-size: 13px; }
-    .route-guide-time-wrap { top: 8px; right: 12px; }
-    .route-guide-time { font-size: 11px; }
-    .route-guide-walk, .route-guide-margin { font-size: 11px; }
-    .route-plan-btn { width: 40px; height: 36px; padding: 0; }
-    .route-plan-btn span { display: none; }
-    .route-plan-btn svg { width: 18px; height: 18px; }
-    .route-extra-option { padding: 5px 10px; font-size: 12px; }
-    .route-extra-option-title { font-size: 12px; }
-    .route-extra-option-sub { font-size: 10px; }
-    .route-max-transfer-input { width: 60px; height: 36px; font-size: 16px; transform: scale(0.82); transform-origin: center; margin: -4px -5px; }
-    .route-station-more-btn { padding: 3px 10px; font-size: 11.5px; }
-}
+    .route-container { max-height: 92vh; width: 96%; }
 
+    .route-field { flex: 1 1 100%; }
+
+    .route-stops { gap: 6px; }
+
+    .route-swap-btn { height: 28px; width: 28px; }
+
+    .route-swap-btn svg { height: 14px; width: 14px; }
+
+    .route-go { padding: 12px 0; width: 100%; }
+
+    .route-card-head { gap: 10px; padding: 10px 12px 10px 30px; }
+
+    .route-rank { font-size: 11px; height: 30px; padding: 4px 0 0 5px; width: 30px; }
+
+    .route-line-path { font-size: 14px; }
+
+    .route-arrive-time { font-size: 15px; }
+
+    .route-arrive-line .route-arrive-label { font-size: 10px; }
+
+    .route-arrive-line + .route-arrive-line { margin-top: 3px; }
+
+    .route-segment-badge { font-size: 13px; padding: 3px 8px; }
+
+    .route-header-note { font-size: 11px; }
+
+    .route-segment-warn { bottom: -6px; height: 16px; right: -6px; width: 16px; }
+
+    .route-segment-warn-3line { height: 14px; left: -6px; top: -6px; width: 14px; }
+
+    .route-stations { font-size: 12px; padding: 10px 12px; }
+
+    .route-stations-toggle-wrap { padding: 0 12px 10px; }
+
+    .route-stations-toggle { font-size: 11.5px; padding: 4px 10px; }
+
+    .route-guide-item { min-height: 58px; padding: 8px 12px; }
+
+    .route-guide-head { font-size: 12px; padding-right: 108px; }
+
+    .route-guide-station { font-size: 13px; }
+
+    .route-guide-time-wrap { right: 12px; top: 8px; }
+
+    .route-guide-time { font-size: 11px; }
+
+    .route-guide-walk, .route-guide-margin { font-size: 11px; }
+
+    .route-plan-btn { height: 36px; padding: 0; width: 40px; }
+
+    .route-plan-btn span { display: none; }
+
+    .route-plan-btn svg { height: 18px; width: 18px; }
+
+    .route-extra-option { font-size: 12px; padding: 5px 10px; }
+
+    .route-extra-option-title { font-size: 12px; }
+
+    .route-extra-option-sub { font-size: 10px; }
+
+    .route-max-transfer-input { font-size: 16px; height: 36px; margin: -4px -5px; transform: scale(0.82); transform-origin: center; width: 60px; }
+
+    .route-station-more-btn { font-size: 11.5px; padding: 3px 10px; }
+}
 @media (max-width: 480px) {
-    .route-time-cell { min-width: 40px; height: 36px; font-size: 15px; padding: 6px 2px; }
+    .route-time-cell { font-size: 15px; height: 36px; min-width: 40px; padding: 6px 2px; }
+
     .route-time-panel.rows-3, .route-time-panel.rows-2 { gap: 3px; padding: 8px; }
+}
+/* ==========================================
+   PC端路径规划弹窗专属：宽度限制 & 字体+2px
+   ========================================== */
+@media (min-width: 769px) {
+    /* 1. 限制弹窗宽度 */
+    .route-container {
+        max-width: 500px !important;
+    }
+
+    /* 2. 基础文字大小 +2px */
+    .route-header h3 { font-size: 19px !important; }
+
+    .route-header-note { font-size: 14px !important; }
+
+    .route-input { font-size: 18px !important; }
+
+    .route-field label { font-size: 15px !important; }
+
+    .route-time-trigger { font-size: 17px !important; }
+
+    .route-time-sep { font-size: 17px !important; }
+
+    .route-time-mode-btn { font-size: 16px !important; }
+
+    .route-now-btn { font-size: 14px !important; }
+
+    .route-sort-label { font-size: 15px !important; }
+
+    .route-sort-hint { font-size: 13px !important; }
+
+    .route-extra-option { font-size: 15px !important; }
+
+    .route-extra-option-title { font-size: 15px !important; }
+
+    .route-extra-option-sub { font-size: 12.5px !important; }
+
+    .route-extra-speed-label { font-size: 15px !important; }
+
+    .route-max-transfer-input { font-size: 15px !important; }
+
+    .route-go { font-size: 17px !important; }
+
+    .route-advanced-toggle svg { height: 22px !important; width: 22px !important; }
+
+    /* 图标微调 */
+    .route-meta { font-size: 14px !important; }
+
+    .route-meta-sub { font-size: 13.5px !important; }
+
+    .route-outdated-notice { font-size: 14.5px !important; }
+
+    .route-ctrl-lightning-hint { font-size: 14px !important; }
+
+    .route-legend { font-size: 14.5px !important; }
+
+    .route-tooltip { font-size: 14px !important; }
+
+    /* 3. 结果卡片内文字 +2px */
+    .route-segment-badge { font-size: 16px !important; }
+
+    .route-line-path { font-size: 17px !important; }
+
+    .route-sub { font-size: 14px !important; }
+
+    .route-arrive-time { font-size: 19px !important; }
+
+    .route-arrive-label { font-size: 13px !important; }
+
+    /* 4. 换乘指引内文字 +2px */
+    .route-guide-station { font-size: 16px !important; }
+
+    .route-guide-change, .route-guide-direction, .route-guide-doors { font-size: 14px !important; }
+
+    .route-guide-note { font-size: 14px !important; }
+
+    .route-guide-time { font-size: 15px !important; }
+
+    .route-guide-walk, .route-guide-margin { font-size: 13.5px !important; }
+
+    .route-guide-empty { font-size: 15px !important; }
+
+    /* 5. 站点列表、警告、按钮等 +2px */
+    .route-station { font-size: 15px !important; }
+
+    .route-stations-toggle { font-size: 14px !important; }
+
+    .route-station-more-btn { font-size: 14px !important; }
+
+    .route-empty-title { font-size: 17px !important; }
+
+    .route-empty-detail { font-size: 15px !important; }
+
+    .route-suggest-btn { font-size: 15px !important; }
+
+    .route-warning { font-size: 14.5px !important; }
+
+    .route-station-ctrl-item { font-size: 14.5px !important; }
+
+    .route-sew-item { font-size: 14.5px !important; }
+
+    .route-fare { font-size: 14px !important; }
+
+    /* 6. 输入框下拉列表 & 时间面板 */
+    .route-suggestion { font-size: 16px !important; }
+
+    .route-suggestions-header { font-size: 13px !important; }
+
+    #route-hour-panel .route-time-cell,
+    #route-minute-panel .route-time-cell {
+        font-size: 19px !important;
+        height: 44px !important; /* 稍微加高一点点适应大字 */
+    }
 }

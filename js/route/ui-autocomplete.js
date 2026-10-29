@@ -122,7 +122,7 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
                 e.preventDefault();
                 inputEl.value = el.dataset.value;
 
-                // ★ 核心修复：手动触发 input 事件，让清除红框和隐藏定位按钮的逻辑生效
+                // 手动触发 input 事件，让清除红框和隐藏定位按钮的逻辑生效
                 inputEl.dispatchEvent(new Event('input'));
 
                 hide();

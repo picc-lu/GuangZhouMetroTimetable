@@ -148,7 +148,7 @@ function forceFetchLatestData() {
             await fetchLineStations();
             await fetchServiceTimes();
 
-            // 新增：移除凌晨时段的昨日数据提示
+            // 移除凌晨时段的昨日数据提示
             const notice = document.querySelector('.yesterday-data-notice');
             if (notice) notice.remove();
 
@@ -242,7 +242,7 @@ if (typeof loadShortServices === 'function') loadShortServices();
 initStationSearch();
 initNearbyButton();
 initRouteUI();
-loadManualTransfers();   // ★ 新增：后台加载手工换乘映射
+loadManualTransfers();   // 后台加载手工换乘映射
 
 // 绑定获取数据按钮事件
 document.getElementById('fetch-data-btn').addEventListener('click', async () => {

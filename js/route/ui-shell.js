@@ -187,7 +187,7 @@ function ensureRouteOverlay() {
                         </div>
                     </div>
                     
-                                       <!-- ★ 底部操作栏：规划 + 齿轮 -->
+                                       <!-- 底部操作栏：规划 + 齿轮 -->
                     <div class="route-footer-actions">
                         <button id="route-go" class="route-go" type="button">
                             <span class="route-go-text">规划</span>
@@ -208,7 +208,7 @@ function ensureRouteOverlay() {
                     <div class="route-legend-row" id="route-legend-row-20">
                         <div class="route-legend-icon-wrap">
                             <svg class="route-legend-triangle" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M2 2 L22 2 L12 22 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+                                <path d="M12 3 L22 21 L2 21 Z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
                             </svg>
                         </div>
                         <span>到达该线路时，末班车<u>小于 20 分钟</u></span>
@@ -256,7 +256,7 @@ function ensureRouteOverlay() {
     document.body.appendChild(ov);
     _routeOverlay = ov;
 
-    // ★ 把建议列表挂到 body 下，避免被 .route-overlay 的 backdrop-filter
+    // 把建议列表挂到 body 下，避免被 .route-overlay 的 backdrop-filter
     //   和 .route-container 的 transform 建立 containing block，导致 fixed 定位错乱
     document.body.appendChild(ov.querySelector('#route-start-suggestions'));
     document.body.appendChild(ov.querySelector('#route-end-suggestions'));
@@ -303,7 +303,7 @@ function ensureRouteOverlay() {
             timeModeWrap.querySelectorAll('.route-time-mode-btn').forEach(b => {
                 b.classList.toggle('active', b === btn);
             });
-            // ★ 滑块动画：切换容器上的 mode-arrive 类
+            // 滑块动画：切换容器上的 mode-arrive 类
             timeModeWrap.classList.toggle('mode-arrive', _routeArriveMode);
             // 到达模式：隐藏"现在"按钮
             const nowBtn = ov.querySelector('#route-now');
@@ -314,7 +314,7 @@ function ensureRouteOverlay() {
         });
     }
 
-    // ★ 新增：起点定位按钮逻辑
+    // 起点定位按钮逻辑
     const startLocateBtn = ov.querySelector('#route-start-locate');
     if (startLocateBtn) {
         if (typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV) {
@@ -464,7 +464,7 @@ function ensureRouteOverlay() {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
                 setRouteMeta(routeMetaText());
-                // ★ 新增：只要起点和终点有内容，就自动触发一次规划
+                // 只要起点和终点有内容，就自动触发一次规划
                 const startVal = ov.querySelector('#route-start').value.trim();
                 const endVal = ov.querySelector('#route-end').value.trim();
                 if (startVal && endVal && typeof runRoutePlanning === 'function') {
@@ -642,11 +642,11 @@ function positionTimePanel(panel, trigger) {
     panel.style.right = 'auto';
     panel.style.width = pw + 'px';
 
-    // ★ 强行先显示，才能获取到真实高度
+    // 强行先显示，才能获取到真实高度
     panel.style.display = 'grid';
     const ph = panel.offsetHeight;
 
-    // ★ 如果下方空间不足以容纳面板高度（留 20px 的安全边距），则改为向上弹出
+    // 如果下方空间不足以容纳面板高度（留 20px 的安全边距），则改为向上弹出
     if (rect.bottom + 6 + ph > vh - 20) {
         panel.style.top = 'auto';
         panel.style.bottom = (vh - rect.top + 6) + 'px';
@@ -707,7 +707,7 @@ function closeRoutePlanner() {
         el.style.display = 'none';
         el.innerHTML = '';
     });
-    // ★ 关闭移出的面板
+    // 关闭移出的面板
     const hPanel = document.getElementById('route-hour-panel');
     const mPanel = document.getElementById('route-minute-panel');
     if (hPanel) hPanel.style.display = 'none';
@@ -730,7 +730,7 @@ function routeMetaText(showFewerDetail = false) {
     }
 
     const line1 = `出发时刻 ${fmtHM(min)}（${mode}）`;
-    // ★ 修改此处：仅当传入 showFewerDetail = true 时才显示副标题，并更新文案
+    // 仅当传入 showFewerDetail = true 时才显示副标题，并更新文案
     if (sortMode === 'fewer-transfers' && showFewerDetail) {
         return line1
             + `<br><span class="route-meta-sub">最多显示 5 个比「最快优先」首位慢 30 分钟以内的结果</span>`;

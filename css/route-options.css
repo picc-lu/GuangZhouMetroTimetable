@@ -4,313 +4,293 @@
 .route-time-field {
     flex: 1 1 100%;
     gap: 6px;
-    position: relative;
     justify-content: flex-start;
+    position: relative;
 }
-
 .route-time-trigger {
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 15px;
-    font-weight: 700;
     color: #1f2b3c;
-    font-family: 'SF Mono', Consolas, Menlo, monospace;
-    font-variant-numeric: tabular-nums;
     cursor: pointer;
-    text-align: center;
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
     min-width: 62px;
-    user-select: none;
+    padding: 6px 12px;
+    text-align: center;
     transition: border-color 0.15s, background 0.15s;
+    user-select: none;
 }
-
 .route-time-trigger:hover { background: #e6ecf5; border-color: #a3b6cd; }
-.route-time-sep { font-weight: 700; color: #64748b; font-size: 15px; }
-
+.route-time-sep { color: #64748b; font-size: 15px; font-weight: 700; }
 .route-now-btn {
     background: #eef2f8;
-    color: #1f2b3c;
     border: none;
     border-radius: 8px;
-    padding: 7px 14px;
+    color: #1f2b3c;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
     font-size: 12px;
     font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    flex-shrink: 0;
-    transition: background 0.15s;
     letter-spacing: 0.3px;
     margin-left: auto;
+    padding: 7px 14px;
+    transition: background 0.15s;
 }
 .route-now-btn:hover { background: #dde5f0; }
 .route-now-btn:active { background: #cfd9e8; }
-
 .route-time-panel {
-    position: fixed;
-    z-index: 3000;
     background: #ffffff;
     border: 1px solid #cbe0f5;
     border-radius: 14px;
     box-shadow: 0 10px 28px rgba(31, 43, 60, 0.18);
-    padding: 10px;
+    box-sizing: border-box;
     display: none;
     max-width: 96vw;
     overflow: hidden;
-    box-sizing: border-box;
+    padding: 10px;
+    position: fixed;
+    z-index: 3000;
 }
-.route-time-panel.rows-3 { grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.route-time-panel.rows-2 { grid-template-columns: repeat(6, 1fr); gap: 4px; }
-
+.route-time-panel.rows-3 { gap: 4px; grid-template-columns: repeat(7, 1fr); }
+.route-time-panel.rows-2 { gap: 4px; grid-template-columns: repeat(6, 1fr); }
 .route-time-cell {
-    padding: 8px 4px;
-    text-align: center;
-    font-size: 17px;
-    font-weight: 700;
-    font-family: 'SF Mono', Consolas, Menlo, monospace;
-    font-variant-numeric: tabular-nums;
-    color: #1f2b3c;
+    align-items: center;
     background: #f8fafc;
     border-radius: 7px;
+    color: #1f2b3c;
     cursor: pointer;
-    user-select: none;
-    min-width: 44px;
-    height: 40px;
     display: flex;
-    align-items: center;
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    height: 40px;
     justify-content: center;
+    min-width: 44px;
+    padding: 8px 4px;
+    text-align: center;
     transition: background 0.1s, color 0.1s;
+    user-select: none;
 }
 .route-time-cell:hover { background: #e0efff; color: #1a6bd5; }
 .route-time-cell:active { background: #2b7de9; color: #fff; }
-
 /* 时间切换 Tab */
 .route-time-mode {
-    position: relative;
-    display: inline-flex;
     background: #eef2f8;
     border-radius: 8px;
-    padding: 2px;
-    margin-left: 8px;
+    display: inline-flex;
     flex-shrink: 0;
     isolation: isolate;
+    margin-left: 8px;
+    padding: 2px;
+    position: relative;
 }
 .route-time-mode::before {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: calc(50% - 2px);
-    height: calc(100% - 4px);
     background: #2b7de9;
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(43, 125, 233, 0.35);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 0;
+    content: '';
+    height: calc(100% - 4px);
+    left: 2px;
     pointer-events: none;
+    position: absolute;
+    top: 2px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(50% - 2px);
+    z-index: 0;
 }
 .route-time-mode.mode-arrive::before { transform: translateX(100%); }
 .route-time-mode-btn {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    min-width: 44px;
     background: transparent;
     border: none;
-    padding: 4px 10px;
     border-radius: 6px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: inherit;
     color: #64748b;
     cursor: pointer;
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    min-width: 44px;
+    padding: 4px 10px;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
     transition: color 0.2s ease;
     white-space: nowrap;
-    line-height: 1.2;
-    -webkit-tap-highlight-color: transparent;
+    z-index: 1;
 }
 .route-time-mode-btn:hover { color: #1f2b3c; }
 .route-time-mode-btn.active { color: #ffffff; }
-
 /* 排序方式 */
 .route-sort-row {
-    flex: 1 1 100%;
-    display: flex;
-    gap: 8px;
-    padding: 4px;
-    margin: 0 -4px;
-    width: calc(100% + 8px);
     box-sizing: border-box;
+    display: flex;
+    flex: 1 1 100%;
+    gap: 8px;
+    margin: 0 -4px;
+    padding: 4px;
+    width: calc(100% + 8px);
 }
 .route-sort-option {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
     background: #ffffff;
     border: 2px solid #d0ddee;
     border-radius: 12px;
-    padding: 8px 14px;
     cursor: pointer;
-    user-select: none;
-    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    align-items: center;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 2px;
     justify-content: center;
+    min-width: 0;
+    padding: 8px 14px;
     text-align: center;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    user-select: none;
 }
 .route-sort-option input[type="radio"] { display: none; }
-.route-sort-label { font-size: 13px; font-weight: 700; color: #1f2b3c; line-height: 1.2; }
-.route-sort-hint { font-size: 11px; font-weight: 500; color: #94a3b8; line-height: 1.3; }
+.route-sort-label { color: #1f2b3c; font-size: 13px; font-weight: 700; line-height: 1.2; }
+.route-sort-hint { color: #94a3b8; font-size: 11px; font-weight: 500; line-height: 1.3; }
 .route-sort-option:hover { border-color: #a3b6cd; }
-.route-sort-option:has(input:checked) { border-color: #2b7de9; background: #f0f6ff; box-shadow: inset 0 0 0 3px rgba(43, 125, 233, 0.12); }
+.route-sort-option:has(input:checked) { background: #f0f6ff; border-color: #2b7de9; box-shadow: inset 0 0 0 3px rgba(43, 125, 233, 0.12); }
 .route-sort-option:has(input:checked) .route-sort-label { color: #1a6bd5; }
-.route-sort-option.is-disabled { opacity: 0.5; cursor: not-allowed; background: #f8fafc !important; border-color: #e2e8f0 !important; box-shadow: none !important; }
+.route-sort-option.is-disabled { background: #f8fafc !important; border-color: #e2e8f0 !important; box-shadow: none !important; cursor: not-allowed; opacity: 0.5; }
 .route-sort-option.is-disabled .route-sort-label, .route-sort-option.is-disabled .route-sort-hint { color: #94a3b8 !important; }
-
 /* 高级设置面板与开关 */
 .route-advanced-body {
-    width: 100%;
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 0;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
 }
 .route-advanced.open .route-advanced-body { grid-template-rows: 1fr; }
-.route-advanced-inner { min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
-
-.route-extra-options { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+.route-advanced-inner { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+.route-extra-options { display: flex; flex: 1 1 100%; flex-wrap: wrap; gap: 8px; }
 .route-extra-option {
-    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
     background: #f8fafc;
     border: 1.5px solid #e2e8f0;
     border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
     color: #475569;
     cursor: pointer;
-    user-select: none;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 6px;
     line-height: 1.2;
     min-height: 32px;
+    padding: 6px 12px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
 }
-.route-extra-option:hover { border-color: #a3b6cd; background: #f1f6ff; }
-.route-extra-option input[type="checkbox"] { margin: 0; cursor: pointer; accent-color: #2b7de9; width: 15px; height: 15px; flex-shrink: 0; }
+.route-extra-option:hover { background: #f1f6ff; border-color: #a3b6cd; }
+.route-extra-option input[type="checkbox"] { accent-color: #2b7de9; cursor: pointer; flex-shrink: 0; height: 15px; margin: 0; width: 15px; }
 .route-extra-option-label { display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
-.route-extra-option-title { font-size: 13px; font-weight: 600; color: #475569; }
-.route-extra-option-sub { font-size: 10.5px; font-weight: 500; color: #94a3b8; letter-spacing: 0.2px; }
-
+.route-extra-option-title { color: #475569; font-size: 13px; font-weight: 600; }
+.route-extra-option-sub { color: #94a3b8; font-size: 10.5px; font-weight: 500; letter-spacing: 0.2px; }
 /* 专门针对单选框包裹的置灰 */
-.route-extra-row { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
-.route-extra-row .route-extra-option { flex: 0 1 auto; width: auto; margin: 0; }
-.route-extra-option.is-disabled { opacity: 0.5; cursor: not-allowed; background: #f8fafc !important; border-color: #e2e8f0 !important; box-shadow: none !important; }
+.route-extra-row { align-items: center; display: inline-flex; gap: 8px; max-width: 100%; }
+.route-extra-row .route-extra-option { flex: 0 1 auto; margin: 0; width: auto; }
+.route-extra-option.is-disabled { background: #f8fafc !important; border-color: #e2e8f0 !important; box-shadow: none !important; cursor: not-allowed; opacity: 0.5; }
 .route-extra-option.is-disabled .route-extra-option-title, .route-extra-option.is-disabled .route-extra-option-sub { color: #94a3b8 !important; }
-.route-extra-reason { font-size: 11.5px; font-weight: 600; color: #94a3b8; white-space: nowrap; display: none; margin-left: 2px; }
+.route-extra-reason { color: #94a3b8; display: none; font-size: 11.5px; font-weight: 600; margin-left: 2px; white-space: nowrap; }
 .route-extra-reason.show { display: inline-block; }
-
 /* Switch 开关 */
-.route-switch { position: relative; display: inline-block; width: 34px; height: 20px; flex-shrink: 0; }
-.route-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 2; }
-.route-switch-track { position: absolute; inset: 0; background: #cbd5e1; border-radius: 999px; transition: background 0.2s; }
-.route-switch-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #ffffff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); transition: transform 0.2s; }
+.route-switch { display: inline-block; flex-shrink: 0; height: 20px; position: relative; width: 34px; }
+.route-switch input { cursor: pointer; height: 100%; margin: 0; opacity: 0; position: absolute; width: 100%; z-index: 2; }
+.route-switch-track { background: #cbd5e1; border-radius: 999px; inset: 0; position: absolute; transition: background 0.2s; }
+.route-switch-thumb { background: #ffffff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); height: 16px; left: 2px; position: absolute; top: 2px; transition: transform 0.2s; width: 16px; }
 .route-switch input:checked + .route-switch-track { background: #2b7de9; }
 .route-switch input:checked + .route-switch-track .route-switch-thumb { transform: translateX(14px); }
-
 /* 输入框 & 步速 */
 .route-max-transfer-input {
-    width: 52px;
-    height: 30px;
-    padding: 0 6px;
+    -moz-appearance: textfield;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #ffffff;
     border: 1.5px solid #cbd5e1;
     border-radius: 6px;
+    box-sizing: border-box;
+    color: #1f2b3c;
+    font-family: inherit;
     font-size: 16px;
     font-weight: 700;
-    font-family: inherit;
-    color: #1f2b3c;
-    text-align: center;
-    background: #ffffff;
+    height: 30px;
     outline: none;
+    padding: 0 6px;
+    text-align: center;
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    -webkit-appearance: none;
-    appearance: none;
-    -moz-appearance: textfield;
-    box-sizing: border-box;
+    width: 52px;
 }
 .route-max-transfer-input:focus { border-color: #2b7de9; box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15); }
-.route-max-transfer-input:disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; }
+.route-max-transfer-input:disabled { background: #f1f5f9; cursor: not-allowed; opacity: 0.5; }
 .route-max-transfer-input::-webkit-outer-spin-button, .route-max-transfer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
 .route-extra-speed { gap: 8px; }
 .route-walk-speed-select {
-    appearance: none;
     -webkit-appearance: none;
+    appearance: none;
     background: #ffffff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 8px center;
     background-size: 12px;
     border: 1.5px solid #cbd5e1;
     border-radius: 6px;
-    padding: 3px 26px 3px 10px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
+    box-sizing: border-box;
     color: #1f2b3c;
     cursor: pointer;
-    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
     min-width: 118px;
+    outline: none;
+    padding: 3px 26px 3px 10px;
     transition: border-color 0.15s, box-shadow 0.15s;
-    box-sizing: border-box;
 }
 .route-walk-speed-select:focus { border-color: #2b7de9; box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.15); }
 /* ==========================================
    步行速度选项组
    ========================================== */
 .route-extra-speed-group {
-    flex: 1 1 100%;
-    display: flex;
     align-items: center; /* 垂直居中对齐 */
-    justify-content: flex-start;
+    display: flex;
+    flex: 1 1 100%;
     gap: 12px;
+    justify-content: flex-start;
     margin-top: 6px;
     padding-left: 4px;
 }
-
 .route-extra-speed-label {
-    font-size: 13px;
-    font-weight: 600;
     color: #475569;
     flex-shrink: 0; /* 防止文字被压缩 */
+    font-size: 13px;
+    font-weight: 600;
 }
-
 .route-speed-options-wrap {
     display: flex;
-    gap: 8px;
     flex-wrap: nowrap; /* 保持单行不换行 */
+    gap: 8px;
 }
-
 /* 覆盖默认的满宽样式，变成紧凑小按钮 */
 .route-speed-options-wrap .route-speed-option {
-    flex: 0 0 auto !important; /* 取消等宽拉伸 */
-    padding: 4px 12px !important; /* 缩小内边距 */
-    gap: 1px !important;
     border-radius: 8px !important;
+    flex: 0 0 auto !important; /* 取消等宽拉伸 */
+    gap: 1px !important;
     min-height: 36px;
+    padding: 4px 12px !important; /* 缩小内边距 */
 }
-
 /* 缩小字号 */
 .route-speed-options-wrap .route-speed-option .route-sort-label {
     font-size: 12px !important;
 }
-
 .route-speed-options-wrap .route-speed-option .route-sort-hint {
     font-size: 10px !important;
 }
-
 [data-theme="dark"] .route-extra-speed-label {
     color: #cbd5e1;
 }
-
 /* 移动端极窄屏幕适配：如果放不下一行，自动换行 */
 @media (max-width: 480px) {
     .route-extra-speed-group {

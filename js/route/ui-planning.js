@@ -51,7 +51,7 @@ function buildRouteSuggestions(r, currentCfg) {
             label: '关闭"单次换乘时间不超过"',
             value: '',
         });
-        // ★ 动态计算：当前设置 + 1 分钟，最大不超过 60 分钟
+        // 动态计算：当前设置 + 1 分钟，最大不超过 60 分钟
         if (currentCfg.maxTransferMin < 60) {
             const nextLimit = currentCfg.maxTransferMin + 1;
             suggestions.push({
@@ -247,7 +247,7 @@ async function runRoutePlanning() {
         return;
     }
 
-    // ★ 核心修复：只有当前没有任何结果卡片时（比如刚打开弹窗），才清空默认的空态提示文字
+    // 只有当前没有任何结果卡片时（比如刚打开弹窗），才清空默认的空态提示文字
     // 如果已经存在规划结果，则保留原有内容，后续会被加上 is-loading 变成半透明
     if (!resultsEl.querySelector('.route-card')) {
         resultsEl.innerHTML = '';
@@ -310,7 +310,7 @@ async function runRoutePlanning() {
     goBtn.classList.add('loading');
     resultsEl.classList.add('is-loading');
 
-    // ★ 核心修复：如果刚才触发了收起动画，给 CSS 留出 300ms 播放时间，防止主线程计算阻塞动画
+    // 如果刚才触发了收起动画，给 CSS 留出 300ms 播放时间，防止主线程计算阻塞动画
     if (wasOpen) {
         await new Promise(resolve => setTimeout(resolve, 300));
     } else {
@@ -363,7 +363,7 @@ async function runRoutePlanning() {
         if (_routeArriveMode) {
             const targetArriveMin = departMin;
 
-            // ★ 1. 用中午 12:00 这个所有线路都在运营的安全时间，获取 Top 15 的拓扑路线
+            // 1. 用中午 12:00 这个所有线路都在运营的安全时间，获取 Top 15 的拓扑路线
             // 这样底层的末班车过滤逻辑就不会误杀任何一条路线
             r = await planRoutes(displayStart, displayEnd, 12 * 60, sortMode,
                 maxTransferMin, avoidOutOfStation, true, ctrlStationsForPlanner);
@@ -372,7 +372,7 @@ async function runRoutePlanning() {
                 const validResults = [];
 
                 for (const item of r.results) {
-                    // ★ 2. 对每条路线进行二分查找，找出它的“最晚极限出发时间”
+                    // 2. 对每条路线进行二分查找，找出它的“最晚极限出发时间”
                     let lo = 5 * 60; // 最早的底线 05:00
                     let hi = targetArriveMin; // 最晚不能晚于目标到达时间
                     let bestCheck = null;
@@ -406,7 +406,7 @@ async function runRoutePlanning() {
                     }
                 }
 
-                // ★ 3. 排序：出发时间越晚越靠前（让用户睡懒觉）；出发时间一样，耗时短的靠前
+                // 3. 排序：出发时间越晚越靠前（让用户睡懒觉）；出发时间一样，耗时短的靠前
                 validResults.sort((a, b) => {
                     if (Math.abs(b.actualDepartMin - a.actualDepartMin) > 0.01) {
                         return b.actualDepartMin - a.actualDepartMin;
@@ -537,7 +537,7 @@ async function runRoutePlanning() {
                     html += `</div>`;
                 }
             }
-            // ★ 调整布局：左对齐，间距紧凑，样式与上方按钮一致
+            // 调整布局：左对齐，间距紧凑，样式与上方按钮一致
             html += `<div style="margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 4px;">`;
             html += `<button type="button" class="route-suggest-btn" id="route-btn-external">`;
             html += `🗺️ 使用外部地图导航`;
@@ -547,7 +547,7 @@ async function runRoutePlanning() {
             hideAllRouteLegends();
             resultsEl.innerHTML = html;
 
-            // ★ 绑定外部导航按钮事件
+            // 绑定外部导航按钮事件
             const extBtn = resultsEl.querySelector('#route-btn-external');
             if (extBtn) {
                 extBtn.addEventListener('click', (e) => {
@@ -604,7 +604,7 @@ async function runRoutePlanning() {
 
         let headlineHtml = '';
 
-        // ★ 获取未收录站点并按线路分组
+        // 获取未收录站点并按线路分组
         const outdated = getOutdatedStations();
         if (outdated.length > 0) {
             const grouped = {};
@@ -788,7 +788,7 @@ async function runRoutePlanning() {
         }
         resultsEl.classList.remove('is-loading');
 
-        // ★ 修改此处：传入 true，表示规划结束后允许显示详细说明
+        // 修改此处：传入 true，表示规划结束后允许显示详细说明
         setRouteMeta(routeMetaText(true));
     }
 }

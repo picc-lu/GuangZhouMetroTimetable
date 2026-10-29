@@ -80,10 +80,10 @@ self.addEventListener('fetch', (event) => {
 
     // API 请求交给浏览器处理
     if (url.hostname === 'apis.gzmtr.com') return;
-    if (url.hostname === 'ydyc.gzmtr.cn') return;   // ★ 新增：车站管制 API
+    if (url.hostname === 'ydyc.gzmtr.cn') return;   // 车站管制 API
 
     // changelog 每次实时拉取，不走缓存
-    if (url.pathname.endsWith('/data/changelog.json')) return;   // ★ 新增
+    if (url.pathname.endsWith('/data/changelog.json')) return;   // 新增
 
     if (event.request.method !== 'GET') return;
 

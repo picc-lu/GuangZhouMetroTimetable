@@ -123,7 +123,7 @@ function renderAllLines() {
             computeLineActivity(line, stations, currentMin);
         const color = hasActiveStation ? originalColor : getGrayscaleColor(originalColor);
 
-        // ★ 新增：把"是否运营中"的状态同步给顶部线路按钮
+        // 把"是否运营中"的状态同步给顶部线路按钮
         if (typeof setLineButtonState === 'function') {
             setLineButtonState(line, hasActiveStation);
         }
@@ -131,7 +131,7 @@ function renderAllLines() {
         const lineDiv = document.createElement('div');
         lineDiv.className = 'line-container';
         lineDiv.dataset.line = line;
-        lineDiv.style.setProperty('--line-color', color);   // 新增：卡片边框用线路色
+        lineDiv.style.setProperty('--line-color', color);   // 卡片边框用线路色
 
         // 线路名卡片
         const meta = document.createElement('div');
@@ -276,7 +276,7 @@ function updateLinesTime() {
 
         const color = hasActiveStation ? originalColor : getGrayscaleColor(originalColor);
 
-        // ★ 新增：把"是否运营中"的状态同步给顶部线路按钮
+        // 把"是否运营中"的状态同步给顶部线路按钮
         if (typeof setLineButtonState === 'function') {
             setLineButtonState(line, hasActiveStation);
         }

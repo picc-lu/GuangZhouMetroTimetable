@@ -45,8 +45,8 @@ function applyFilter() {
     for (let option of select.options) {
         if (option.selected) selectedLines.add(option.value);
     }
-    populateLineButtons();   // ★ 先重建按钮
-    renderAllLines();        // ★ 再渲染（内部会同步按钮颜色）
+    populateLineButtons();   // 先重建按钮
+    renderAllLines();        // 再渲染（内部会同步按钮颜色）
 }
 
 function populateLineButtons() {
