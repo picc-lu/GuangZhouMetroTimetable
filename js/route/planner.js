@@ -246,6 +246,34 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             continue;
         }
 
+        const segsCheck = (typeof parseRouteSegments === 'function') ? parseRouteSegments(p) : [];
+        let isCrossSegInfeasible = false;
+        for (let i = 0; i < segsCheck.length - 1; i++) {
+            const segA = segsCheck[i];
+            const segB = segsCheck[i + 1];
+            // 发现是在体育西路被拆开的 3号线 虚拟换乘
+            if (segA.fullLine === '3号线' && segB.fullLine === '3号线' && segA.toStation === '体育西路' && segB.fromStation === '体育西路') {
+                // 计算到达体育西路的时间
+                const arriveTyx = getBoardingTimeAtStation(p, '体育西路', '3号线') || departMin;
+                const boardTyx = arriveTyx + 1; // 假设同站换乘最快 1 分钟
+                const dir = getSegmentDirection(p, '体育西路', '3号线', segB.toStation);
+
+                if (dir) {
+                    // 检查在体育西路是否还能坐上这一段的末班车
+                    const margin = getBoardingMargin('3号线', '体育西路', dir, boardTyx, [segB.toStation]);
+                    if (margin === null) {
+                        rejected.push({
+                            reason: `在体育西路换乘3号线往${dir.replace('方向', '')}，到达时已无运营`,
+                            totalCost: p.totalCost,
+                        });
+                        isCrossSegInfeasible = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (isCrossSegInfeasible) continue;
+
         const urgentCount = (check.boardingMargins || [])
             .filter(m => m != null && m !== 'unknown' && m < 15)
             .length;
@@ -278,6 +306,8 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             urgentCount,
             boardingMargins: check.boardingMargins,
             startMargin,
+            tyxArriveTime: check.tyxArriveTime,
+            tyxMargin: check.tyxMargin,
         });
 
         checkedCount++;
@@ -506,6 +536,8 @@ function getOutOfStationBannedEdges() {
 function checkReachability(path, departMin) {
     let t = departMin;
     const boardings = [];
+    let tyxArriveTime = null;
+    let tyxMargin = null;
 
     for (let i = 0; i < path.nodes.length - 1; i++) {
         const u = path.nodes[i], v = path.nodes[i + 1];
@@ -515,12 +547,45 @@ function checkReachability(path, departMin) {
         const uParts = u.split('|');
         const vParts = v.split('|');
 
+        // ★ 核心拦截：只要到达体育西路，且后面还有 3号线 行程，无论是去南段还是北段，都必须检查
+        if (uParts.length >= 4 && uParts[0].includes('3号线') && uParts[1] === '体育西路' && uParts[3] === '到站') {
+            // 寻找后面是否还有 3 号线的乘车段
+            let nextLine3Station = null;
+            for (let j = i + 1; j < path.nodes.length; j++) {
+                const nextParts = path.nodes[j].split('|');
+                if (nextParts.length >= 4 && nextParts[0].includes('3号线') && nextParts[1] !== '体育西路' && nextParts[3] === '到站') {
+                    nextLine3Station = nextParts[1];
+                    break;
+                }
+            }
+
+            if (nextLine3Station) {
+                const arriveTime = t + (w !== null ? w / 60 : 0);
+
+                // 智能判断要查哪个方向
+                let dirStr = '海傍方向';
+                if (typeof LINE3_SOUTH_ORDER !== 'undefined' && LINE3_SOUTH_ORDER.includes(nextLine3Station)) {
+                    dirStr = '海傍方向';
+                } else if (typeof LINE3_NORTH_ORDER !== 'undefined' && LINE3_NORTH_ORDER.includes(nextLine3Station)) {
+                    dirStr = '机场北方向';
+                } else if (['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(nextLine3Station)) {
+                    dirStr = '天河客运站方向';
+                }
+
+                const margin = getBoardingMargin('3号线', '体育西路', dirStr, arriveTime, [nextLine3Station]);
+                if (margin === null) {
+                    return { feasible: false, reason: `约 ${fmtHM(arriveTime)} 到达体育西路时，往${dirStr.replace('方向', '')}的末班车已发出` };
+                }
+                tyxArriveTime = arriveTime;
+                tyxMargin = margin;
+            }
+        }
+
         if (vParts.length >= 4 && vParts[3] === PLATFORM) {
             const isBoarding =
                 (uParts[1] === '开始') ||
                 (uParts.length >= 4 && uParts[3] === ARRIVED && uParts[0] !== vParts[0]);
             if (isBoarding) {
-                // 收集 boarding 之后、同一线路上按顺序出现的所有站（连续同名去重）
                 const downstream = [];
                 for (let j = i + 1; j < path.nodes.length; j++) {
                     const p = path.nodes[j].split('|');
@@ -559,7 +624,9 @@ function checkReachability(path, departMin) {
         }
         boardingMargins.push(margin);
     }
-    return {feasible: true, arriveMin: t, boardingMargins};
+
+    // ★ 将虚拟换乘的时间与余量返回
+    return {feasible: true, arriveMin: t, boardingMargins, tyxArriveTime, tyxMargin};
 }
 
 /**
@@ -570,6 +637,8 @@ function checkReachability(path, departMin) {
  * @param {string[]} [downstreamStations] 该 boarding 之后、同一线路上按顺序出现的站名（可选）
  */
 function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
+    if (!dirStr) return 'unknown';
+
     const resolved = resolveJavaDirectionToWeb(line, station, dirStr);
     const webLine = resolved.line;
     const webDir = resolved.dir;
