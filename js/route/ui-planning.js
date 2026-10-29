@@ -391,8 +391,10 @@ async function runRoutePlanning() {
                         }
                     }
 
-                    // 如果找到了合法的出发时间
                     if (bestDepart !== null && bestCheck) {
+                        if (targetArriveMin - bestCheck.arriveMin > 20) {
+                            continue;
+                        }
                         item.actualDepartMin = bestDepart;
                         item.arriveMin = bestCheck.arriveMin;
                         item.boardingMargins = bestCheck.boardingMargins;

@@ -1,4 +1,4 @@
-const CACHE_NAME = `gz-metro-v1.1.34a`;
+const CACHE_NAME = `gz-metro-v1.1.35`;
 const ASSETS = [
     './',
     './index.html',

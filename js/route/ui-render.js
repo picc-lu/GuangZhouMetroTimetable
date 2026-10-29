@@ -363,7 +363,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
 
         const arr3 = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS['3号线']) || [];
         const idxSegEnd = findStationIndex(arr3, segEnd);
-        const idxTyxl   = findStationIndex(arr3, '体育西路');
+        const idxTyxl = findStationIndex(arr3, '体育西路');
         const notCrossTyx = idxSegEnd >= 0 && idxTyxl >= 0 && idxSegEnd <= idxTyxl;
 
         // 👇 新增：判断当前时刻是否还有开往机场北方向的贯通车 👇
@@ -515,7 +515,7 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
     if (!dirArray || dirArray.length === 0) return mappedDir;
 
     const idxStation = findStationIndex(lineStations, station);
-    const idxEnd     = findStationIndex(lineStations, segmentEnd);
+    const idxEnd = findStationIndex(lineStations, segmentEnd);
     if (idxStation < 0 || idxEnd < 0) return mappedDir;
 
     if (currentMin == null) return mappedDir;
@@ -722,21 +722,40 @@ function routeShortLineName(line) {
  *  - 到达模式：两行"xx:xx 候车 / xx:xx 到达"（候车时刻取自全局建议出发时刻）
  */
 function buildArriveBlockHtml(item) {
-    const arriveTime = fmtHM(item.arriveMin);
+    const arriveMin = item.arriveMin;
+    const arriveTime = fmtHM(arriveMin);
 
-    // 使用该路线自己计算出的极限出发时间
-    if (_routeArriveMode && item.actualDepartMin != null) {
-        const boardingTime = fmtHM(item.actualDepartMin);
+    if (_routeArriveMode) {
+        const targetArriveMin = getRouteDepartMin();
+        const isEarly = arriveMin < targetArriveMin;
+        const arriveTimeStyle = isEarly ? ' style="color: #f59e0b;"' : '';
+
+        if (item.actualDepartMin != null) {
+            const boardingTime = fmtHM(item.actualDepartMin);
+            return `
+                <div class="route-arrive">
+                    <div class="route-arrive-line">
+                        <span class="route-arrive-time">${boardingTime}</span>
+                        <span class="route-arrive-label">候车</span>
+                    </div>
+                    <div class="route-arrive-line">
+                        <span class="route-arrive-time"${arriveTimeStyle}>${arriveTime}</span>
+                        <span class="route-arrive-label">到达</span>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    const isNextDay = arriveMin >= 1440;
+    const nextDayHtml = isNextDay ? '<div style="color:#94a3b8;font-size:11px;line-height:1;margin-bottom:2px;">次日</div>' : '';
+
+    if (isNextDay) {
         return `
             <div class="route-arrive">
-                <div class="route-arrive-line">
-                    <span class="route-arrive-time">${boardingTime}</span>
-                    <span class="route-arrive-label">候车</span>
-                </div>
-                <div class="route-arrive-line">
-                    <span class="route-arrive-time">${arriveTime}</span>
-                    <span class="route-arrive-label">到达</span>
-                </div>
+                ${nextDayHtml}
+                <div class="route-arrive-time">${arriveTime}</div>
+                <div class="route-arrive-label">到达</div>
             </div>
         `;
     }
@@ -761,22 +780,19 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
     }
 
     // 换乘路径：显示换乘站；直达路径：显示乘车方向（如"往龙潭"）
-    let transferText;
+    let transferText = '';
     if (transferStations.length > 0) {
-        transferText = transferStations.join(' · ');
-    } else {
-        const directDir = getDirectDirectionText(item.path, startName);
-        transferText = directDir || '直达';
+        transferText = `<span>🚏 ${escapeHtml(transferStations.join(' · '))}</span>`;
     }
 
     let warningHtml = '';
 
     let stationCtrlHtml = '';
-    const ctrlStationNames = []; // 提取客控站名字
+    const ctrlStationNames = [];
     if (item.stationWarnings && item.stationWarnings.length > 0) {
         const grouped = new Map();
         for (const w of item.stationWarnings) {
-            ctrlStationNames.push(w.station); // 存入数组
+            ctrlStationNames.push(w.station);
             if (!grouped.has(w.typeText)) grouped.set(w.typeText, []);
             grouped.get(w.typeText).push(w.station);
         }
@@ -823,248 +839,228 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
     }
 
     let guideHtml;
-    if (item.interchanges.length === 0 && virtualSplitAfter.size === 0) {
-        const startMargin = (item.boardingMargins && item.boardingMargins.length > 0
-            && item.boardingMargins[0] != null
-            && item.boardingMargins[0] !== 'unknown')
-            ? Math.round(item.boardingMargins[0]) : null;
+    const boardingPoints = [];
+    const firstSeg = segs[0] || null;
+    const firstDir = firstSeg
+        ? getSegmentDirection(item.path, startName, firstSeg.fullLine, firstSeg.toStation)
+        : null;
 
-        let marginHtml = '';
-        if (startMargin !== null && startMargin >= 0 && startMargin <= 20) {
-            const m = Math.round(startMargin);
-            const text = m === 0 ? '即将结束运营' : `剩${m}分`;
-            marginHtml = `<span class="route-guide-margin urgent">${text}</span>`;
-        }
-
-        guideHtml = `<div class="route-guide">
-            <div class="route-guide-empty">
-                <span>✓ 直达，无需换乘</span>
-                ${marginHtml}
-            </div>
-        </div>`;
+    let firstBoardTime = null;
+    if (_routeArriveMode && item.actualDepartMin != null) {
+        firstBoardTime = item.actualDepartMin;
+    } else if (_routeActiveDepartMin != null) {
+        firstBoardTime = _routeActiveDepartMin;
     } else {
-        const boardingPoints = [];
-        const firstSeg = segs[0] || null;
-        const firstDir = firstSeg
-            ? getSegmentDirection(item.path, startName, firstSeg.fullLine, firstSeg.toStation)
-            : null;
+        const d = new Date();
+        firstBoardTime = d.getHours() * 60 + d.getMinutes();
+        if (firstBoardTime < 120) firstBoardTime += 1440;
+    }
 
-        boardingPoints.push({
-            station: startName,
-            fromShort: null,
-            toShort: firstSeg ? firstSeg.shortName : null,
-            fullLine: firstSeg ? firstSeg.fullLine : null,
-            direction: firstDir,
-            note: null,
-            door: null,
-            timeMin: null,
-            walkMin: null,
-            boardingTime: null,
-            marginMin: item.startMargin,
-            interchangeIdx: null,
-            isVirtual3to3: false,
-        });
+    boardingPoints.push({
+        station: startName,
+        fromShort: null,
+        toShort: firstSeg ? firstSeg.shortName : null,
+        fullLine: firstSeg ? firstSeg.fullLine : null,
+        direction: firstDir,
+        note: null,
+        door: null,
+        timeMin: null,
+        walkMin: null,
+        boardingTime: firstBoardTime,
+        marginMin: item.startMargin,
+        interchangeIdx: null,
+        isVirtual3to3: false,
+    });
 
-        let interchangeCursor = 0;
-        for (let si = 0; si < segs.length - 1; si++) {
-            if (virtualSplitAfter.has(si)) {
-                const nextSeg = segs[si + 1];
-                const nextTo = nextSeg ? nextSeg.toStation : null;
+    let interchangeCursor = 0;
+    for (let si = 0; si < segs.length - 1; si++) {
+        if (virtualSplitAfter.has(si)) {
+            const nextSeg = segs[si + 1];
+            const nextTo = nextSeg ? nextSeg.toStation : null;
 
-                // 计算方向
-                let virtualDir = null;
-                if (nextTo) {
-                    virtualDir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
-                }
-                // 如果底层算不出方向，直接根据目的地强行兜底
-                if (!virtualDir) {
-                    if (nextTo && LINE3_SOUTH_ORDER.includes(nextTo)) {
-                        virtualDir = '大石 / 番禺广场 / 海傍方向';
-                    } else if (nextTo && ['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(nextTo)) {
-                        virtualDir = '天河客运站方向';
-                    } else {
-                        virtualDir = '机场北 / 嘉禾望岗 / 同和方向';
-                    }
-                }
-
-                let vTimeMin = item.tyxArriveTime || null;
-                let vWalkMin = 0;
-                let vBoardingTime = vTimeMin;
-                let vMarginMin = item.tyxMargin !== undefined ? item.tyxMargin : null;
-                let vInterchangeIdx = null;
-
-                const o = item.interchanges[interchangeCursor];
-                if (o && o.key.split('|')[0] === '体育西路') {
-                    vTimeMin = o.timeMin;
-                    vBoardingTime = o.timeMin;
-                    vMarginMin = o.marginMin;
-                    vInterchangeIdx = interchangeCursor;
-                    interchangeCursor++;
-                } else if (vTimeMin === null) {
-                    // 如果底层依然没给时间，UI 层再兜底算一次
-                    let t = (_routeActiveDepartMin != null) ? _routeActiveDepartMin : 0;
-                    for (let i = 0; i < item.path.nodes.length - 1; i++) {
-                        const u = item.path.nodes[i], v = item.path.nodes[i+1];
-                        const w = routeGetEdgeWeight(u, v);
-                        if (w !== null) t += w / 60;
-                        const vParts = v.split('|');
-                        if (vParts.length >= 4 && vParts[0].includes('3号线') && vParts[1] === '体育西路' && vParts[3] === '到站') {
-                            vTimeMin = t;
-                            vBoardingTime = t;
-                            break;
-                        }
-                    }
-                }
-
-                boardingPoints.push({
-                    station: '体育西路',
-                    fromShort: '3',
-                    toShort: '3',
-                    fullLine: '3号线',
-                    lineShort: null,
-                    direction: virtualDir,
-                    note: null,
-                    door: null,
-                    timeMin: vTimeMin,
-                    walkMin: vWalkMin,
-                    boardingTime: vBoardingTime,
-                    marginMin: vMarginMin,
-                    interchangeIdx: vInterchangeIdx,
-                    isVirtual3to3: true,
-                });
-                continue;
+            let virtualDir = null;
+            if (nextTo) {
+                virtualDir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
             }
+            if (!virtualDir) {
+                if (nextTo && LINE3_SOUTH_ORDER.includes(nextTo)) {
+                    virtualDir = '大石 / 番禺广场 / 海傍方向';
+                } else if (nextTo && ['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(nextTo)) {
+                    virtualDir = '天河客运站方向';
+                } else {
+                    virtualDir = '机场北 / 嘉禾望岗 / 同和方向';
+                }
+            }
+
+            let vTimeMin = item.tyxArriveTime || null;
+            let vWalkMin = 0;
+            let vBoardingTime = vTimeMin;
+            let vMarginMin = item.tyxMargin !== undefined ? item.tyxMargin : null;
+            let vInterchangeIdx = null;
 
             const o = item.interchanges[interchangeCursor];
-            if (o) {
-                const g = ROUTE_GRAPH.guides.get(o.key);
-                const parts = o.key.split('|');
-                const toLine   = g ? g.toLine   : parts[3];
-                const toStation = g ? g.station : parts[0];
-
-                boardingPoints.push({
-                    station: toStation,
-                    fromShort: routeShortLineName(g ? g.fromLine : parts[1]),
-                    toShort:   routeShortLineName(toLine),
-                    fullLine:  toLine,
-                    lineShort: null,
-                    direction: getSegmentDirection(item.path, toStation, toLine, segs[si+1] ? segs[si+1].toStation : null),
-                    note: g && g.detail ? g.detail : null,
-                    door: null,
-                    timeMin: o.timeMin,
-                    walkMin: o.walkMin,
-                    boardingTime: o.boardingTime,
-                    marginMin: o.marginMin,
-                    interchangeIdx: interchangeCursor,
-                    isVirtual3to3: false,
-                });
-            }
-            interchangeCursor++;
-        }
-
-        // ---- 门号填充 ----
-        for (let i = 0; i < boardingPoints.length - 1; i++) {
-            const bp = boardingPoints[i];
-            const nextBp = boardingPoints[i + 1];
-
-            if (nextBp.isVirtual3to3) {
-                bp.door = '2\\3\\6\\10\\11\\16\\19';
-                continue;
-            }
-
-            if (typeof nextBp.interchangeIdx === 'number' && nextBp.interchangeIdx !== null) {
-                const o = item.interchanges[nextBp.interchangeIdx];
-                if (o) {
-                    const g = ROUTE_GRAPH.guides.get(o.key);
-                    if (g && g.screenDoors && g.screenDoors.length > 0) {
-                        bp.door = formatScreenDoorsRange(g.screenDoors);
+            if (o && o.key.split('|')[0] === '体育西路') {
+                vTimeMin = o.timeMin;
+                vBoardingTime = o.timeMin;
+                vMarginMin = o.marginMin;
+                vInterchangeIdx = interchangeCursor;
+                interchangeCursor++;
+            } else if (vTimeMin === null) {
+                let t = (_routeActiveDepartMin != null) ? _routeActiveDepartMin : 0;
+                for (let i = 0; i < item.path.nodes.length - 1; i++) {
+                    const u = item.path.nodes[i], v = item.path.nodes[i + 1];
+                    const w = routeGetEdgeWeight(u, v);
+                    if (w !== null) t += w / 60;
+                    const vParts = v.split('|');
+                    if (vParts.length >= 4 && vParts[0].includes('3号线') && vParts[1] === '体育西路' && vParts[3] === '到站') {
+                        vTimeMin = t;
+                        vBoardingTime = t;
+                        break;
                     }
                 }
             }
+
+            boardingPoints.push({
+                station: '体育西路',
+                fromShort: '3',
+                toShort: '3',
+                fullLine: '3号线',
+                lineShort: null,
+                direction: virtualDir,
+                note: null,
+                door: null,
+                timeMin: vTimeMin,
+                walkMin: vWalkMin,
+                boardingTime: vBoardingTime,
+                marginMin: vMarginMin,
+                interchangeIdx: vInterchangeIdx,
+                isVirtual3to3: true,
+            });
+            continue;
         }
 
-        // ---- 渲染 ----
-        guideHtml = `<div class="route-guide">` + boardingPoints.map((bp, bpIdx) => {
-            const stationHtml = `<span class="route-guide-station">${escapeHtml(bp.station)}</span>`;
+        const o = item.interchanges[interchangeCursor];
+        if (o) {
+            const g = ROUTE_GRAPH.guides.get(o.key);
+            const parts = o.key.split('|');
+            const toLine = g ? g.toLine : parts[3];
+            const toStation = g ? g.station : parts[0];
 
-            // 提取线路文本
-            const baseLineText = bp.fromShort ? `${bp.fromShort}→${bp.toShort}` : bp.toShort;
-            // 提取方向文本（去掉“方向”二字）
-            const dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
-
-            let changeHtml = '';
-            let dirHtml = '';
-            const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
-            const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
-
-            // 核心逻辑：无论是否有备注，线路和方向始终分开显示，不再合并
-            changeHtml = `<span class="route-guide-change">${escapeHtml(baseLineText)}</span>`;
-            if (dirName) {
-                // 如果是 内环/外环 或者 已经以“往”开头，直接使用
-                if (dirName.startsWith('内环') || dirName.startsWith('外环') || dirName.startsWith('往')) {
-                    dirHtml = `<span class="route-guide-direction">${escapeHtml(dirName)}</span>`;
-                } else {
-                    dirHtml = `<span class="route-guide-direction">往${escapeHtml(dirName)}</span>`;
-                }
-            }
-
-            const arriveStr = (bp.timeMin != null && !isNaN(bp.timeMin)) ? fmtHM(bp.timeMin) : '';
-            const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
-            let walkStr = '';
-            if (bp.walkMin != null && bp.walkMin > 0) {
-                if (bp.walkMin < 1) {
-                    walkStr = `走${Math.max(1, Math.round(bp.walkMin * 60))}秒`;
-                } else {
-                    walkStr = `走${Math.round(bp.walkMin)}分`;
-                }
-            }
-
-            let marginStr = '';
-            if (bp.marginMin != null && !isNaN(bp.marginMin)) {
-                const m = Math.round(bp.marginMin);
-                if (m >= 0 && m <= 20) {
-                    const text = m === 0 ? '即将结束运营' : `剩${m}分`;
-                    marginStr = `<span class="route-guide-margin urgent">${text}</span>`;
-                }
-            }
-
-            let timeHtml = '';
-            if (arriveStr || marginStr) {
-                let row1 = '';
-                let row2 = '';
-
-                if (arriveStr) {
-                    // 将“到”直接写进 route-guide-time 里面
-                    const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
-                    if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
-                    row1 = `<span class="route-guide-time-row">${row1Parts.join('')}</span>`;
-                }
-
-                if (boardingStr || marginStr) {
-                    const row2Parts = [];
-                    // 将“候”直接写进 route-guide-time 里面
-                    if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
-                    if (marginStr) row2Parts.push(marginStr);
-                    row2 = row2Parts.length > 0
-                        ? `<span class="route-guide-time-row">${row2Parts.join('')}</span>`
-                        : '';
-                }
-
-                timeHtml = `<span class="route-guide-time-wrap">${row1}${row2}</span>`;
-            }
-
-            return `<div class="route-guide-item">
-                <div class="route-guide-head">
-                    ${stationHtml}
-                    ${changeHtml}
-                    ${noteHtml}
-                    ${dirHtml}
-                    ${doorHtml}
-                </div>
-                ${timeHtml}
-            </div>`;
-        }).join('') + `</div>`;
+            boardingPoints.push({
+                station: toStation,
+                fromShort: routeShortLineName(g ? g.fromLine : parts[1]),
+                toShort: routeShortLineName(toLine),
+                fullLine: toLine,
+                lineShort: null,
+                direction: getSegmentDirection(item.path, toStation, toLine, segs[si + 1] ? segs[si + 1].toStation : null),
+                note: g && g.detail ? g.detail : null,
+                door: null,
+                timeMin: o.timeMin,
+                walkMin: o.walkMin,
+                boardingTime: o.boardingTime,
+                marginMin: o.marginMin,
+                interchangeIdx: interchangeCursor,
+                isVirtual3to3: false,
+            });
+        }
+        interchangeCursor++;
     }
+
+    for (let i = 0; i < boardingPoints.length - 1; i++) {
+        const bp = boardingPoints[i];
+        const nextBp = boardingPoints[i + 1];
+
+        if (nextBp.isVirtual3to3) {
+            bp.door = '2\\3\\6\\10\\11\\16\\19';
+            continue;
+        }
+
+        if (typeof nextBp.interchangeIdx === 'number' && nextBp.interchangeIdx !== null) {
+            const o = item.interchanges[nextBp.interchangeIdx];
+            if (o) {
+                const g = ROUTE_GRAPH.guides.get(o.key);
+                if (g && g.screenDoors && g.screenDoors.length > 0) {
+                    bp.door = formatScreenDoorsRange(g.screenDoors);
+                }
+            }
+        }
+    }
+
+    guideHtml = `<div class="route-guide">` + boardingPoints.map((bp, bpIdx) => {
+        const stationHtml = `<span class="route-guide-station">${escapeHtml(bp.station)}</span>`;
+
+        const baseLineText = bp.fromShort ? `${bp.fromShort}→${bp.toShort}` : bp.toShort;
+        const dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
+
+        let changeHtml = '';
+        let dirHtml = '';
+        const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
+        const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
+
+        changeHtml = `<span class="route-guide-change">${escapeHtml(baseLineText)}</span>`;
+        if (dirName) {
+            if (dirName.startsWith('内环') || dirName.startsWith('外环') || dirName.startsWith('往')) {
+                dirHtml = `<span class="route-guide-direction">${escapeHtml(dirName)}</span>`;
+            } else {
+                dirHtml = `<span class="route-guide-direction">往${escapeHtml(dirName)}</span>`;
+            }
+        }
+
+        const arriveStr = (bp.timeMin != null && !isNaN(bp.timeMin)) ? fmtHM(bp.timeMin) : '';
+        const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
+        let walkStr = '';
+        if (bp.walkMin != null && bp.walkMin > 0) {
+            if (bp.walkMin < 1) {
+                walkStr = `走${Math.max(1, Math.round(bp.walkMin * 60))}秒`;
+            } else {
+                walkStr = `走${Math.round(bp.walkMin)}分`;
+            }
+        }
+
+        let marginStr = '';
+        if (bp.marginMin != null && !isNaN(bp.marginMin)) {
+            const m = Math.round(bp.marginMin);
+            if (m >= 0 && m <= 20) {
+                const text = m === 0 ? '即将结束运营' : `剩${m}分`;
+                marginStr = `<span class="route-guide-margin urgent">${text}</span>`;
+            }
+        }
+
+        let timeHtml = '';
+        if (arriveStr || marginStr || boardingStr) {
+            let row1 = '';
+            let row2 = '';
+
+            if (arriveStr) {
+                const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
+                if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
+                row1 = `<span class="route-guide-time-row">${row1Parts.join('')}</span>`;
+            }
+
+            if (boardingStr || marginStr) {
+                const row2Parts = [];
+                if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
+                if (marginStr) row2Parts.push(marginStr);
+                row2 = row2Parts.length > 0
+                    ? `<span class="route-guide-time-row">${row2Parts.join('')}</span>`
+                    : '';
+            }
+
+            timeHtml = `<span class="route-guide-time-wrap">${row1}${row2}</span>`;
+        }
+
+        return `<div class="route-guide-item">
+            <div class="route-guide-head">
+                ${stationHtml}
+                ${changeHtml}
+                ${noteHtml}
+                ${dirHtml}
+                ${doorHtml}
+            </div>
+            ${timeHtml}
+        </div>`;
+    }).join('') + `</div>`;
+
 
     return `
         <div class="route-card" data-rank="${rank}">
@@ -1075,7 +1071,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                     <div class="route-sub">
                         <span>⏱ ${formatDuration(item.totalCost)}</span>
                         <span>${item.stationRoute.length + 2} 站</span>
-                        <span>🚏 ${escapeHtml(transferText)}</span>
+                        ${transferText}
                         ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
                         ${deltaHtml}
                     </div>

@@ -662,8 +662,6 @@ function refreshRouteTimeTriggers() {
     let h = Math.floor(mm / 60);
     const m = mm % 60;
 
-    if (!ROUTE_HOURS.includes(h)) h = 5;
-
     _routeOverlay.querySelector('#route-hour-trigger').textContent = String(h).padStart(2, '0');
     _routeOverlay.querySelector('#route-minute-trigger').textContent = String(m).padStart(2, '0');
 }
