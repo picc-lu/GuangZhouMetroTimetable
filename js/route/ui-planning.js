@@ -200,6 +200,8 @@ async function runRoutePlanning() {
 
     if (!startInput || !endInput || !resultsEl || !goBtn) return;
 
+    if (goBtn.disabled || goBtn.classList.contains('loading')) return;
+
     // 1. 如果处于系统时间模式，点击规划时自动同步刷新时间为当前时间
     if (_routeDepartMin === null) {
         refreshRouteTimeTriggers();
