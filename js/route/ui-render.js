@@ -22,13 +22,29 @@ function formatDelta(seconds) {
     return `${m}分${r}秒`;
 }
 
-function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlStations = null) {
+function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlStations = null, virtual3to3Margin = null) {
     const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(path) : [];
     if (segs.length === 0) return '';
     const margins = boardingMargins || [];
 
+    let marginCursor = 0; // ★ 余量数组游标
+
     return `<span class="route-segments">` + segs.map((s, i) => {
-        const m = margins[i];
+        let m = null;
+
+        // ★ 核心修复：只在起点和真实跨线换乘时，才消耗一个余量
+        if (i === 0) {
+            m = margins[marginCursor++];
+        } else {
+            const prevSeg = segs[i - 1];
+            if (prevSeg.fullLine !== s.fullLine) {
+                m = margins[marginCursor++];
+            } else if (s.fullLine === '3号线' && prevSeg.toStation === '体育西路') {
+                // ★ 新增：如果是 3->3 虚拟换乘，使用传入的虚拟换乘余量
+                m = virtual3to3Margin;
+            }
+        }
+
         const isExtremeUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 10);
         const isUrgent = (m != null && m !== 'unknown' && m > 10 && m <= 20);
         const is3LineWarn = has3LineWarning && s.fullLine === '3号线';
@@ -860,40 +876,23 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 if (nextTo) {
                     virtualDir = getSegmentDirection(item.path, '体育西路', '3号线', nextTo);
                 }
-                if (!virtualDir) {
-                    virtualDir = '大石 / 番禺广场 / 海傍方向';
-                }
+                if (!virtualDir) virtualDir = '大石 / 番禺广场 / 海傍方向';
 
-                // ★ 新增：计算虚拟换乘的时间数据
-                let vTimeMin = null;
+                // ★ 直接读取底层算好的虚拟换乘时间和余量
+                let vTimeMin = item.tyxArriveTime || null;
                 let vWalkMin = 0;
-                let vBoardingTime = null;
-                let vMarginMin = null;
+                let vBoardingTime = vTimeMin;
+                let vMarginMin = item.tyxMargin !== undefined ? item.tyxMargin : null;
                 let vInterchangeIdx = null;
 
                 const o = item.interchanges[interchangeCursor];
                 if (o && o.key.split('|')[0] === '体育西路') {
-                    // 如果底层数据里有，直接用
+                    // 如果真实换乘路径里有，覆盖一下
                     vTimeMin = o.timeMin;
-                    vWalkMin = 0;
-                    vBoardingTime = o.timeMin; // 候车时间 = 到达时间
+                    vBoardingTime = o.timeMin;
                     vMarginMin = o.marginMin;
                     vInterchangeIdx = interchangeCursor;
                     interchangeCursor++;
-                } else {
-                    // 如果底层没有记录，手动遍历节点计算到达体育西路的时间
-                    let t = (_routeActiveDepartMin != null) ? _routeActiveDepartMin : 0;
-                    for (let i = 0; i < item.path.nodes.length - 1; i++) {
-                        const u = item.path.nodes[i], v = item.path.nodes[i+1];
-                        const w = routeGetEdgeWeight(u, v);
-                        if (w !== null) t += w / 60;
-                        const vParts = v.split('|');
-                        if (vParts.length >= 4 && vParts[0].includes('3号线') && vParts[1] === '体育西路' && vParts[3] === '到站') {
-                            vTimeMin = t;
-                            vBoardingTime = t + vWalkMin;
-                            break;
-                        }
-                    }
                 }
 
                 boardingPoints.push({
@@ -1051,15 +1050,14 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                     <!-- ★ 传入 ctrlStationNames -->
-                     <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames)}</div>
-                        <div class="route-sub">
-                            <span>⏱ ${formatDuration(item.totalCost)}</span>
-                            <span>${item.stationRoute.length + 2} 站</span>
-                            <span>🚏 ${escapeHtml(transferText)}</span>
-                            ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
-                            ${deltaHtml}
-                        </div>
+                    <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames, item.tyxMargin)}</div>
+                    <div class="route-sub">
+                        <span>⏱ ${formatDuration(item.totalCost)}</span>
+                        <span>${item.stationRoute.length + 2} 站</span>
+                        <span>🚏 ${escapeHtml(transferText)}</span>
+                        ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
+                        ${deltaHtml}
+                    </div>
                 </div>
                 ${buildArriveBlockHtml(item)}
             </div>
