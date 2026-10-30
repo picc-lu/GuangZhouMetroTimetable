@@ -68,6 +68,11 @@ document.getElementById('apply-custom-time').addEventListener('click', () => {
     renderAllLines();
 });
 
+if (typeof topoRefreshTimer !== 'undefined' && topoRefreshTimer) {
+    clearInterval(topoRefreshTimer);
+    topoRefreshTimer = null;
+}
+
 // 抽出一个可复用的处理函数
 function applySystemTime() {
     currentCustomTime = null;
@@ -360,3 +365,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+if (typeof initTopoUI === 'function') initTopoUI();

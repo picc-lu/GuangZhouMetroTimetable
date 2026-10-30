@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.1.35",
+  "current": "1.2.0",
   "entries": [
+    {
+      "version": "1.2.0",
+      "date": "2026-10-30",
+      "items": [
+        { "type": "新增", "text": "增加全线网末班车拓扑图" }
+      ]
+    },
     {
       "version": "1.1.35",
       "date": "2026-10-30",
