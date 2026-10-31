@@ -49,6 +49,7 @@ function cleanGeoName(name, isTram = false) {
 let topoData = [];
 let topoBounds = {minLng: 999, maxLng: -999, minLat: 999, maxLat: -999};
 let topoTransform = {x: 0, y: 0, scale: 1};
+let topoViewInitialized = false;
 let topoStationCount = {};
 
 let topoRefreshTimer = null;
@@ -350,13 +351,28 @@ function renderTopo(svg) {
             let cB = stationCoordsMap[stB];
             if (!cA || !cB) continue;
 
-            let idxA = 0, idxB = lineCoords.length - 1;
+            // 找出所有距离最小的候选点（环线首尾坐标相同，如11号线赤沙会出现两次）
             let minDistA = Infinity, minDistB = Infinity;
+            const distsA = new Array(lineCoords.length);
+            const distsB = new Array(lineCoords.length);
             for (let j = 0; j < lineCoords.length; j++) {
-                const distA = Math.pow(lineCoords[j][0] - cA[0], 2) + Math.pow(lineCoords[j][1] - cA[1], 2);
-                const distB = Math.pow(lineCoords[j][0] - cB[0], 2) + Math.pow(lineCoords[j][1] - cB[1], 2);
-                if (distA < minDistA) { minDistA = distA; idxA = j; }
-                if (distB < minDistB) { minDistB = distB; idxB = j; }
+                distsA[j] = Math.pow(lineCoords[j][0] - cA[0], 2) + Math.pow(lineCoords[j][1] - cA[1], 2);
+                distsB[j] = Math.pow(lineCoords[j][0] - cB[0], 2) + Math.pow(lineCoords[j][1] - cB[1], 2);
+                if (distsA[j] < minDistA) minDistA = distsA[j];
+                if (distsB[j] < minDistB) minDistB = distsB[j];
+            }
+            const candA = [], candB = [];
+            for (let j = 0; j < lineCoords.length; j++) {
+                if (distsA[j] <= minDistA + 1e-12) candA.push(j);
+                if (distsB[j] <= minDistB + 1e-12) candB.push(j);
+            }
+            // 邻站应取线路上相距最近的一对下标，保证环线收尾站（琶洲->赤沙）取到直接相连的那段
+            let idxA = candA[0], idxB = candB[0], bestGap = Infinity;
+            for (const ia of candA) {
+                for (const ib of candB) {
+                    const gap = Math.abs(ia - ib);
+                    if (gap < bestGap) { bestGap = gap; idxA = ia; idxB = ib; }
+                }
             }
 
             let segmentCoords = [];
@@ -400,13 +416,26 @@ function renderTopo(svg) {
 
             if (isUpActive !== isDownActive) {
                 if (pathParts.length >= 2) {
-                    const midIdx = Math.floor(pathParts.length / 2);
-                    const p0 = pathParts[Math.max(0, midIdx - 1)].split(',');
-                    const p1 = pathParts[Math.min(pathParts.length - 1, midIdx)].split(',');
-                    const p2 = pathParts[Math.min(pathParts.length - 1, midIdx + 1)].split(',');
-
-                    const midP = p1;
-                    const angle = Math.atan2(p2[1] - p0[1], p2[0] - p0[0]) * 180 / Math.PI;
+                    // 箭头放在邻站间线路长度的 1/2 处（按弧长而非折点序号取中点）
+                    const pts = pathParts.map(p => p.split(',').map(Number));
+                    const cum = [0];
+                    for (let k = 1; k < pts.length; k++) {
+                        cum[k] = cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]);
+                    }
+                    const total = cum[cum.length - 1];
+                    let midP = pts[0], angle = 0;
+                    if (total > 0) {
+                        const half = total / 2;
+                        let k = 1;
+                        while (k < cum.length - 1 && cum[k] < half) k++;
+                        const segLen = cum[k] - cum[k - 1];
+                        const t = segLen > 0 ? (half - cum[k - 1]) / segLen : 0;
+                        midP = [
+                            pts[k - 1][0] + (pts[k][0] - pts[k - 1][0]) * t,
+                            pts[k - 1][1] + (pts[k][1] - pts[k - 1][1]) * t
+                        ];
+                        angle = Math.atan2(pts[k][1] - pts[k - 1][1], pts[k][0] - pts[k - 1][0]) * 180 / Math.PI;
+                    }
 
                     const arrowFill = getContrastColor(strokeColor);
                     const arrowStroke = arrowFill === '#000000' ? '#ffffff' : '#000000';
@@ -491,15 +520,19 @@ function renderTopo(svg) {
     svg.appendChild(gMap);
     svg.appendChild(gLabel);
 
-    const [cx, cy] = project((topoBounds.minLng + topoBounds.maxLng) / 2, (topoBounds.minLat + topoBounds.maxLat) / 2);
-    const wrap = document.getElementById('topo-canvas-wrap');
-    const w = wrap.clientWidth;
-    const h = wrap.clientHeight;
+    // 仅在首次渲染时居中并适配缩放，后续（含30秒自动刷新）保持用户当前视图
+    if (!topoViewInitialized) {
+        const [cx, cy] = project((topoBounds.minLng + topoBounds.maxLng) / 2, (topoBounds.minLat + topoBounds.maxLat) / 2);
+        const wrap = document.getElementById('topo-canvas-wrap');
+        const w = wrap.clientWidth;
+        const h = wrap.clientHeight;
 
-    const initialScale = Math.min(w / 2000, h / 2000) * 0.9;
-    topoTransform = {x: w / 2, y: h / 2, scale: initialScale};
-    topoTransform.x -= cx * initialScale;
-    topoTransform.y -= cy * initialScale;
+        const initialScale = Math.min(w / 2000, h / 2000) * 0.9;
+        topoTransform = {x: w / 2, y: h / 2, scale: initialScale};
+        topoTransform.x -= cx * initialScale;
+        topoTransform.y -= cy * initialScale;
+        topoViewInitialized = true;
+    }
 
     applyTopoTransform();
 }
@@ -591,10 +624,13 @@ function applyTopoTransform() {
         gMap.setAttribute('transform', `translate(${topoTransform.x}, ${topoTransform.y}) scale(${scale})`);
 
         const realLineWidth = Math.max(2, Math.min(6, 3 * scale));
+        // 有轨电车 / APM 线使用更细的线宽
+        const realSpecialLineWidth = Math.max(1, realLineWidth * 0.5);
 
         gMap.querySelectorAll('.topo-line').forEach(el => {
-            el.setAttribute('stroke-width', realLineWidth / scale);
-            if (el.getAttribute('data-special-line') === 'true') {
+            const isSpecial = el.getAttribute('data-special-line') === 'true';
+            el.setAttribute('stroke-width', (isSpecial ? realSpecialLineWidth : realLineWidth) / scale);
+            if (isSpecial) {
                 el.style.display = showSpecial ? '' : 'none';
             }
         });
