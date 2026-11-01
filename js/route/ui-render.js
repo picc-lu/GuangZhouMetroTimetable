@@ -768,7 +768,7 @@ function buildArriveBlockHtml(item) {
     `;
 }
 
-function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
+function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', displayStart = startName, displayEnd = endName) {
     const rank = item.rank || (idx + 1);
     const transferStations = item.interchanges.map(o => o.key.split('|')[0]).filter(Boolean);
 
@@ -857,7 +857,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
     }
 
     boardingPoints.push({
-        station: startName,
+        station: displayStart,
         fromShort: null,
         toShort: firstSeg ? firstSeg.shortName : null,
         fullLine: firstSeg ? firstSeg.fullLine : null,
@@ -1067,7 +1067,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                    <div class="route-line-path">${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames, item.tyxMargin)}</div>
+                    <div class="route-line-path">
+                        ${item._mappedStart ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedStart.replace(/[()（）]/g, ''))}</span>` : ''}
+                        ${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames, item.tyxMargin)}
+                        ${item._mappedEnd ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedEnd.replace(/[()（）]/g, ''))}</span>` : ''}
+                    </div>
                     <div class="route-sub">
                         <span>⏱ ${formatDuration(item.totalCost)}</span>
                         <span>${item.stationRoute.length + 2} 站</span>
@@ -1082,7 +1086,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest') {
                 ${warningHtml}
                 ${stationCtrlHtml}
                 ${guideHtml}
-                ${buildStationListHtml(startName, endName, item.stationRoute)}
+                ${buildStationListHtml(startName, endName, item.stationRoute)} 
             </div>
         </div>
     `;

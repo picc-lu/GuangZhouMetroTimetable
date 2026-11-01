@@ -130,3 +130,14 @@
 [data-theme="dark"] .ctrl-lightning-icon path {
     stroke: #ffffff;
 }
+/* 线网图按钮夜间样式 */
+[data-theme="dark"] #topo-btn {
+    background: #082f49;
+    border-color: #0369a1;
+    color: #38bdf8;
+}
+[data-theme="dark"] #topo-btn:hover {
+    background: #0c4a6e;
+    border-color: #0284c7;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
