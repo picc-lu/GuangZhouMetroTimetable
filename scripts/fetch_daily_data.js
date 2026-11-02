@@ -32,7 +32,26 @@ function normalizeMetroText(str) {
     return str
         .replace(/^一号线/g, '1号线')
         .replace(/^二号线/g, '2号线')
-        // ... (请把你前端 api.js 里的 normalizeMetroText 完整复制过来)
+        .replace(/^三北线/g, '3号线北')
+        .replace(/^三号线/g, '3号线')
+        .replace(/^四号线/g, '4号线')
+        .replace(/^五号线/g, '5号线')
+        .replace(/^六号线/g, '6号线')
+        .replace(/^七号线/g, '7号线')
+        .replace(/^八号线/g, '8号线')
+        .replace(/^九号线/g, '9号线')
+        .replace(/^十号线/g, '10号线')
+        .replace(/^十一号线/g, '11号线')
+        .replace(/^十二号线（二沙岛-大学城南）/g, '12号线东')
+        .replace(/^十二号线$/g, '12号线西')
+        .replace(/^十三号线/g, '13号线')
+        .replace(/^十四号线/g, '14号线')
+        .replace(/^十八号线/g, '18号线')
+        .replace(/二十一号线/g, '21号线')
+        .replace(/二十二号线/g, '22号线')
+        .replace(/佛山地铁二号线|佛山地铁2号线/g, '佛山2号线')
+        .replace(/佛山地铁三号线|佛山地铁3号线/g, '佛山3号线')
+        .replace(/\(联和-佛山大学\)/g, '北')
         .replace(/^海珠有轨$/g, '海珠有轨1号线');
 }
 
