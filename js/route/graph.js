@@ -76,6 +76,15 @@ function loadRouteGraph() {
             ROUTE_GRAPH.version = data.version || '';
             ROUTE_GRAPH.throughTrains = buildThroughTrains(throughData);  // 新增
             ROUTE_GRAPH.loaded = true;
+
+            const originalEdges = new Map();
+            for (const [from, toMap] of edges.entries()) {
+                originalEdges.set(from, new Map(toMap));
+            }
+            ROUTE_GRAPH.originalEdges = originalEdges;
+
+            ROUTE_GRAPH.loaded = true;
+
         })
         .catch(err => {
             ROUTE_GRAPH.loading = null;

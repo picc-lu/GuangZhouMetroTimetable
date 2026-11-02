@@ -997,6 +997,18 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
         const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
 
+        // ====== 新增：计算平均等车时间 ======
+        let waitTimeHtml = '';
+        if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
+            const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
+            if (typeof headway === 'number' && headway > 0) {
+                const avgWait = headway / 2;
+                // 如果结果是整数（如3），显示3；如果是小数（如1.5），保留1位小数
+                const waitStr = Number.isInteger(avgWait) ? `${avgWait}` : `${avgWait.toFixed(1)}`;
+                waitTimeHtml = `<span class="route-guide-headway">平均等${waitStr}分</span>`;
+            }
+        }
+
         changeHtml = `<span class="route-guide-change">${escapeHtml(baseLineText)}</span>`;
         if (dirName) {
             if (dirName.startsWith('内环') || dirName.startsWith('外环') || dirName.startsWith('往')) {
@@ -1056,6 +1068,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 ${noteHtml}
                 ${dirHtml}
                 ${doorHtml}
+                ${waitTimeHtml}
             </div>
             ${timeHtml}
         </div>`;

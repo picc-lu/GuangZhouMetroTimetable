@@ -237,3 +237,20 @@
     right: -6px !important;
     width: 16px !important;
 }
+/* ==========================================
+   换乘指引：平均等车时间徽章
+   ========================================== */
+.route-guide-headway {
+    background: #ecfdf5;
+    border-radius: 6px;
+    color: #059669;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+}
+
+[data-theme="dark"] .route-guide-headway {
+    background: #064e3b;
+    color: #34d399;
+}

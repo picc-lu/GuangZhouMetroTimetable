@@ -603,11 +603,62 @@ async function runRoutePlanning() {
             return;
         }
 
-        // 通用空结果处理
+        // 通用空结果处理（补回了“推荐操作”和“外部导航”）
         if (r.results.length === 0) {
-            let html = `<div class="route-empty"><div class="route-empty-title">当前时刻没有可用的路径</div></div>`;
+            let html = `<div class="route-empty">`;
+            html += `<div class="route-empty-title">当前时刻没有可用的路径</div>`;
+
+            // 如果是到达模式且没结果，提供延后建议
+            if (_routeArriveMode) {
+                const targetArriveMin = departMin;
+                const suggestions = [];
+                const later30 = targetArriveMin + 30;
+                const later60 = targetArriveMin + 60;
+                const LIMIT = 26 * 60;
+                if (later30 <= LIMIT) suggestions.push({ action: 'later-arrive', label: `目标到达延后 30 分钟（${fmtHM(later30)}）`, value: 30 });
+                if (later60 <= LIMIT) suggestions.push({ action: 'later-arrive', label: `目标到达延后 1 小时（${fmtHM(later60)}）`, value: 60 });
+
+                if (suggestions.length > 0) {
+                    html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
+                    html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
+                    html += `</div>`;
+                }
+            } else {
+                // 出发模式的建议
+                const suggestions = buildRouteSuggestions(r, {maxTransferMin, avoidOutOfStation, sortMode});
+                if (suggestions.length > 0) {
+                    html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
+                    html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
+                    html += `</div>`;
+                }
+            }
+
+            // 补回“外部地图导航”按钮
+            html += `<div style="margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 4px;">`;
+            html += `<button type="button" class="route-suggest-btn" id="route-btn-external">`;
+            html += `🗺️ 使用外部地图导航`;
+            html += `</button>`;
+            html += `</div>`;
+            html += `</div>`;
             hideAllRouteLegends();
             resultsEl.innerHTML = html;
+
+            // 绑定外部导航按钮事件
+            const extBtn = resultsEl.querySelector('#route-btn-external');
+            if (extBtn) {
+                extBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openExternalMap(start, end);
+                });
+            }
+
+            // 绑定推荐操作按钮事件
+            resultsEl.querySelectorAll('.route-suggest-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    applyRouteSuggestion(btn.dataset.action, btn.dataset.value);
+                });
+            });
             return;
         }
 
@@ -648,6 +699,26 @@ async function runRoutePlanning() {
                     <div style="font-weight: 500; font-size: 12px; line-height: 1.6; opacity: 0.9;">${detailsHtml}</div>
                 </div>
             `;
+        }
+
+        // 检测是否有客控换乘站，并渲染提示
+        let hasCtrlLightning = false;
+        r.results.forEach(item => {
+            if (item.stationWarnings && item.stationWarnings.length > 0) {
+                const transferStations = item.interchanges.map(o => o.key.split('|')[0]);
+                if (item.stationWarnings.some(w => transferStations.includes(w.station))) {
+                    hasCtrlLightning = true;
+                }
+            }
+        });
+
+        if (hasCtrlLightning) {
+            headlineHtml += `<div class="route-ctrl-lightning-hint">
+                <svg viewBox="0 0 24 24" class="ctrl-lightning-icon">
+                    <path d="M13 2 L5 13 h6 l-1 9 l9 -12 h-6 l1 -8 z" fill="#f59e0b" stroke="#1f2b3c" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+                <span>换乘站客控中，请留意车站指引</span>
+            </div>`;
         }
 
         // 渲染卡片

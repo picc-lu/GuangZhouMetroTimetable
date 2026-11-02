@@ -158,9 +158,12 @@ function resolveGraphStationNode(rawName, kind) {
  * @param {number} departMin
  * @param {'fastest'|'conservative'|'fewer-transfers'} sortMode
  */
-// 增加第 8 个参数
 async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false, avoidCtrlStations = null) {
     await loadRouteGraph();
+    await loadHeadwayData(); // 确保发车间隔数据已加载
+
+    // 核心：根据出发时间，动态调整图的边权重（加入候车时间）
+    applyDynamicHeadway(departMin);
 
     // 不同模式使用不同上限
     let TARGET, MAX_K, MAX_CHECK;
