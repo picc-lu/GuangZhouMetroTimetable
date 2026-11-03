@@ -384,7 +384,7 @@ async function fetchRouteFare(startStation, endStation) {
         + encodeURIComponent(endStation);
 
     try {
-        const data = await requestWithRetry(url, { method: 'POST' }, 2, 5000);
+        const data = await requestWithRetry(url, { method: 'POST' }, 2, 2000);
         const price = data?.businessObject?.price;
         const fare = (typeof price === 'number' && price > 0) ? price : null;
 

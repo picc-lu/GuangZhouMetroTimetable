@@ -296,15 +296,111 @@
         gap: 8px;
     }
 }
-.route-extra-wait-group{display:flex;flex:1 1 100%;flex-direction:column;gap:4px;margin-top:4px;padding:4px 2px}
-.route-wait-header{align-items:center;display:flex;padding-right:4px}
-.route-wait-slider-wrap{box-sizing:border-boxpadding:0 24px 32px;position:relative;}
-.route-wait-slider-wrap input[type="range"]{-webkit-appearance:none;border-radius:3px;cursor:pointerheight:6px;margin:6px 0;outline:none;width:100%;}
-.route-wait-slider-wrap input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;background:#2b7de9;border:2px solid #fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.3);box-sizing:border-boxcursor:pointer;height:24px;margin-top:-9px;transition:transform 0.1s;width:16px;}
-.route-wait-slider-wrap input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.05)}
-.route-wait-slider-wrap input[type="range"]::-moz-range-thumb{background:#2b7de9;border:2px solid #fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.3);box-sizing:border-boxcursor:pointer;height:24px;width:16px;}
-.route-wait-ticks{height:30px;left:32px;pointer-events:noneposition:absolute;right:32px;top:18px;}
-.route-wait-tick{align-items:centerdisplay:flex;flex-direction:column;position:absolute;transform:translateX(-50%);}
-.route-wait-tick .tick-mark{background:#94a3b8;height:6px;margin-bottom:2pxwidth:2px;}
-.route-wait-tick .tick-label{color:#64748b;font-size:11px;font-weight:600;line-height:1.2;text-align:centerwhite-space:nowrap;}
-.route-wait-tick .tick-sub{color:#94a3b8;font-size:10px;font-weight:500;margin-top:1pxtransform:scale(0.9);}
+.route-extra-wait-group{box-sizing:border-box;display:flex;flex:1 1 100%;flex-direction:column;gap:4px;margin-top:4px;padding:4px 0;width:100%}
+.route-wait-header{align-items:center;display:flex;padding:0 8px}
+.route-wait-slider-wrap{box-sizing:border-box;height:64px;margin-top:4pxpadding:0 24px;position:relative;width:100%;}
+
+/* 轨道 */
+.route-wait-slider-wrap input[type="range"] {
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+    height: 45px;
+    left: 24px;
+    margin: 0;
+    outline: none;
+    position: absolute;
+    top: 0;
+    touch-action: pan-y;
+    width: calc(100% - 48px);
+    z-index: 10;
+}
+
+/* 修正：保持原来的垂直偏移 */
+.route-wait-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--track-bg, #cbd5e1);
+    border-radius: 3px;
+    height: 6px;
+    transform: translateY(-14px);
+    width: 100%;
+}
+.route-wait-slider-wrap input[type="range"]::-moz-range-track {
+    background: var(--track-bg, #cbd5e1);
+    border-radius: 3px;
+    height: 6px;
+    transform: translateY(-14px);
+    width: 100%;
+}
+
+/* 滑块 */
+.route-wait-slider-wrap input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background: #2b7de9;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+    cursor: pointer;
+    height: 26px;
+    margin-top: -10px;
+    transition: transform 0.1s;
+    width: 16px;
+}
+.route-wait-slider-wrap input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.05);
+}
+.route-wait-slider-wrap input[type="range"]::-moz-range-thumb {
+    background: #2b7de9;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+    cursor: pointer;
+    height: 26px;
+    width: 16px;
+}
+
+/* 刻度层：使用 32px 偏移以精准对应滑块中心点 */
+.route-wait-ticks {
+    left: 32px;
+    pointer-events: none;
+    position: absolute;
+    right: 32px;
+    top: 24px;
+    z-index: 20;
+}
+
+/* 核心修改：所有刻度节点统一居中对齐，不再做首尾特殊处理 */
+.route-wait-tick {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+}
+
+/* 刻度竖线 */
+.route-wait-tick .tick-mark {
+    background: #64748b;
+    height: 5px;
+    margin-bottom: 6px;
+    width: 2px;
+}
+
+/* 刻度文字 */
+.route-wait-tick .tick-label {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+}
+.route-wait-tick .tick-sub {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 1px;
+    text-align: center;
+}

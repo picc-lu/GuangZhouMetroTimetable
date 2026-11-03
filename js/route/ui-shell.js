@@ -423,7 +423,7 @@ function ensureRouteOverlay() {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const activeColor = isDark ? '#5da0ff' : '#2b7de9';
         const inactiveColor = isDark ? '#3a4559' : '#cbd5e1';
-        waitSlider.style.background = `linear-gradient(to right, ${activeColor} ${percent}%, ${inactiveColor} ${percent}%)`;
+        waitSlider.style.setProperty('--track-bg', `linear-gradient(to right, ${activeColor} ${percent}%, ${inactiveColor} ${percent}%)`);
     };
 
     if (waitSlider) {
@@ -438,6 +438,54 @@ function ensureRouteOverlay() {
             localStorage.setItem('gz_route_wait_ratio', _routeWaitRatio);
             syncWaitSlider(val);
         });
+
+        // 新增：接管文字与空白区域的点击和拖动
+        const waitSliderWrap = ov.querySelector('.route-wait-slider-wrap');
+        if (waitSliderWrap) {
+            let isDragging = false;
+
+            const updateFromX = (clientX) => {
+                const rect = waitSliderWrap.getBoundingClientRect();
+                const trackLeft = rect.left + 32;
+                const trackWidth = rect.width - 64;
+
+                let x = clientX - trackLeft;
+                x = Math.max(0, Math.min(x, trackWidth));
+
+                const ratio = x / trackWidth;
+                let val = Math.round(ratio * 6);
+
+                if (parseInt(waitSlider.value, 10) !== val) {
+                    waitSlider.value = val;
+                    waitSlider.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+
+            waitSliderWrap.addEventListener('pointerdown', (e) => {
+                // 如果点的是原生 input 的区域，就让原生处理，不干涉
+                if (e.target === waitSlider) return;
+
+                isDragging = true;
+                waitSliderWrap.setPointerCapture(e.pointerId);
+                updateFromX(e.clientX);
+                e.preventDefault(); // 阻止页面滚动
+            });
+
+            waitSliderWrap.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                updateFromX(e.clientX);
+            });
+
+            const stopDrag = (e) => {
+                if (isDragging) {
+                    isDragging = false;
+                    waitSliderWrap.releasePointerCapture(e.pointerId);
+                }
+            };
+
+            waitSliderWrap.addEventListener('pointerup', stopDrag);
+            waitSliderWrap.addEventListener('pointercancel', stopDrag);
+        }
     }
 
     // 交换起终点
