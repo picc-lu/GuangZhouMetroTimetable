@@ -1,14 +1,13 @@
 const fs = require('fs');
 
+// 回退到最基础的伪装
 const HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Referer': 'https://www.gzmtr.com/',
-    'Origin': 'https://www.gzmtr.com',
-    'Accept': 'application/json, text/plain, */*'
+    'Origin': 'https://www.gzmtr.com'
 };
 
-// 升级版 fetch：延长超时、指数退避、容错 JSON 解析
-async function fetchWithRetry(url, options = {}, retries = 5, timeout = 20000) {
+async function fetchWithRetry(url, options = {}, retries = 3, timeout = 15000) {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
@@ -22,7 +21,6 @@ async function fetchWithRetry(url, options = {}, retries = 5, timeout = 20000) {
 
             if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
 
-            // 使用 text 接收，防止接口返回 HTML 错误页导致 json 解析崩溃
             const text = await resp.text();
             try {
                 return JSON.parse(text);
@@ -30,9 +28,11 @@ async function fetchWithRetry(url, options = {}, retries = 5, timeout = 20000) {
                 throw new Error(`JSON 解析失败，返回内容: ${text.substring(0, 100)}`);
             }
         } catch (err) {
-            console.warn(`[重试 ${i + 1}/${retries}] 请求失败 (${url}): ${err.message}`);
+            // 打印底层真实错误原因
+            const causeMsg = err.cause ? ` | 原因: ${err.cause.message || err.cause.code || err.cause}` : '';
+            console.warn(`[重试 ${i + 1}/${retries}] 请求失败 (${url}): ${err.message}${causeMsg}`);
+
             if (i === retries - 1) throw err;
-            // 指数退避等待：2s, 4s, 8s, 16s...
             await new Promise(r => setTimeout(r, 2000 * Math.pow(2, i)));
         }
     }
