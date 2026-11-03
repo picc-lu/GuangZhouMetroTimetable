@@ -177,7 +177,6 @@
     地铁运营数据版权归 <b>广州地铁</b> 所有，本页面仅供查询参考
 </div>
 
-<!-- 新增：个人信息展示区 -->
 <div class="author-footer">
     <a href="https://space.bilibili.com/586431" target="_blank" class="bilibili-link">
         <span class="bilibili-icon">
@@ -187,6 +186,7 @@
         </span>
         <span>B站 AB君小子</span>
     </a>
+    <button class="changelog-btn" id="changelog-btn" type="button">📄 更新日志</button>
 </div>
 
 <!-- 回到顶部按钮 -->
@@ -237,6 +237,18 @@
                 刷新
             </button>
             <button id="topo-close-btn" style="padding: 12px 28px; border-radius: 30px; border: none; background: #3b82f6; color: white; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); cursor: pointer;">关闭</button>
+        </div>
+    </div>
+</div>
+
+<div class="changelog-overlay" id="changelog-overlay" style="display: none;">
+    <div class="changelog-container">
+        <div class="changelog-header">
+            <h3>更新日志</h3>
+            <button aria-label="关闭" class="changelog-close" type="button">✕</button>
+        </div>
+        <div class="changelog-body" id="changelog-body">
+            正在加载...
         </div>
     </div>
 </div>

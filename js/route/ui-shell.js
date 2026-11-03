@@ -890,28 +890,27 @@ function updateCtrlOptionStatus() {
 
     if (!ctrlCheck || !label || !reasonEl) return;
 
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const isDeadTime = now.getHours() >= 2 && now.getHours() <= 4;
     const isFar = isTimeFarFromNow();
 
-    if (isFar) {
+    if (isFar || isDeadTime) {
         ctrlCheck.disabled = true;
         ctrlCheck.checked = false;
         label.classList.add('is-disabled');
 
-        const now = new Date();
-        const nowMin = now.getHours() * 60 + now.getMinutes();
-        const startMin = nowMin;
-        // 到达模式 3小时，出发模式 2小时
-        const limitMinutes = _routeArriveMode ? 180 : 120;
-        const endMin = nowMin + limitMinutes;
-
-        const fmt = (min) => {
-            const m = ((min % 1440) + 1440) % 1440;
-            return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
-        };
-
-        const rangeStr = `${fmt(startMin)} ~ ${fmt(endMin)}`;
-
-        reasonEl.textContent = `仅 ${rangeStr} 可用`;
+        if (isDeadTime) {
+            reasonEl.textContent = `02:00 ~ 04:59 停运时段不获取客控`;
+        } else {
+            const limitMinutes = _routeArriveMode ? 180 : 120;
+            const endMin = nowMin + limitMinutes;
+            const fmt = (min) => {
+                const m = ((min % 1440) + 1440) % 1440;
+                return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
+            };
+            reasonEl.textContent = `仅 ${fmt(nowMin)} ~ ${fmt(endMin)} 可用`;
+        }
         reasonEl.classList.add('show');
     } else {
         ctrlCheck.disabled = false;

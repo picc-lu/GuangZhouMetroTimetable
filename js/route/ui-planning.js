@@ -340,15 +340,15 @@ async function _executePlanningPipeline(start, end, resultsEl) {
     // 3. 获取客控数据
     let ctrlStationsForPlanner = null;
     let stationCtrl = null;
-    if (!isTimeFarFromNow()) {
+    const now = new Date();
+    const isDeadTime = now.getHours() >= 2 && now.getHours() <= 4;
+    if (!isTimeFarFromNow() && !isDeadTime) {
         try {
             stationCtrl = await fetchStationControllers();
             if (cfg.avoidCtrlTransfer && stationCtrl) {
                 ctrlStationsForPlanner = Object.keys(stationCtrl);
             }
-        } catch (_) {
-            console.warn('获取客控数据失败，忽略此选项');
-        }
+        } catch (_) {}
     }
 
     // 4. 分支执行算路

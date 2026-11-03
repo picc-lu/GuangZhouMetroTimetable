@@ -367,3 +367,65 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 if (typeof initTopoUI === 'function') initTopoUI();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('changelog-btn');
+    const overlay = document.getElementById('changelog-overlay');
+    if (!btn || !overlay) return;
+
+    const closeBtn = overlay.querySelector('.changelog-close');
+    const body = document.getElementById('changelog-body');
+    let changelogData = null;
+    let isFetching = false;
+
+    const renderChangelog = () => {
+        if (!changelogData || !changelogData.entries) {
+            body.innerHTML = '暂无数据';
+            return;
+        }
+        let html = '';
+        changelogData.entries.forEach(entry => {
+            html += `<div class="log-entry">`;
+            html += `<div class="log-version">v${entry.version} <span>${entry.date}</span></div>`;
+            if (entry.items) {
+                entry.items.forEach(item => {
+                    if (!item.text) return;
+                    html += `<div class="log-item">`;
+                    html += `<span class="log-tag tag-${item.type}">${item.type}</span>`;
+                    html += `<span>${item.text}</span>`;
+                    html += `</div>`;
+                });
+            }
+            html += `</div>`;
+        });
+        body.innerHTML = html;
+    };
+
+    btn.addEventListener('click', async () => {
+        overlay.style.display = 'flex';
+        if (changelogData) {
+            renderChangelog();
+            return;
+        }
+        if (isFetching) return;
+
+        isFetching = true;
+        body.innerHTML = '正在加载...';
+        try {
+            const res = await fetch('./data/changelog.json');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            changelogData = await res.json();
+            renderChangelog();
+        } catch (e) {
+            body.innerHTML = '加载更新日志失败，请稍后重试。';
+        } finally {
+            isFetching = false;
+        }
+    });
+
+    const closeModal = () => { overlay.style.display = 'none'; };
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+    });
+});

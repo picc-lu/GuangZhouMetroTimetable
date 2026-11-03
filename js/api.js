@@ -364,38 +364,61 @@ function updateFetchErrorBadge() {
 
 // ========== 票价查询（官方 API） ==========
 
-// 同一对起终点票价固定（广州地铁按最短路径计价），做 session 级缓存
-const _fareCache = new Map();
+let _localFaresData = null;
+let _localFaresPromise = null;
 
-/**
- * 查询两地之间票价。
- * @returns {Promise<number|null>}  元；失败返回 null
- */
 async function fetchRouteFare(startStation, endStation) {
-    if (!startStation || !endStation) return null;
-    const key = `${startStation}|${endStation}`;
-    const cache = getFareCache();
-
-    // 检查缓存
-    if (cache[key] !== undefined) return cache[key];
-
-    const url = 'https://apis.gzmtr.com/app-map/metroweb/route/'
-        + encodeURIComponent(startStation) + '/'
-        + encodeURIComponent(endStation);
-
-    try {
-        const data = await requestWithRetry(url, { method: 'POST' }, 2, 2000);
-        const price = data?.businessObject?.price;
-        const fare = (typeof price === 'number' && price > 0) ? price : null;
-
-        // 写入内存与 localStorage
-        cache[key] = fare;
-        saveFareCache(cache);
-        return fare;
-    } catch (err) {
-        console.warn(`[票价] ${startStation} → ${endStation} 获取失败：`, err);
-        return null;   // 失败不缓存，下次可重试
+    if (!_localFaresData) {
+        if (!_localFaresPromise) {
+            _localFaresPromise = fetch('./data/fares.json')
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    _localFaresData = data;
+                    return data;
+                })
+                .catch(err => {
+                    console.warn('[票价] 加载本地 fares.json 失败', err);
+                    _localFaresData = {};
+                    return _localFaresData;
+                });
+        }
+        await _localFaresPromise;
     }
+
+    if (!_localFaresData) return null;
+
+    // 1. 直接查询
+    if (_localFaresData[startStation] && _localFaresData[startStation][endStation] != null) {
+        return _localFaresData[startStation][endStation];
+    }
+
+    // 2. 兼容特殊站名后缀（如“机场北”与“机场北（T2）”、“嘉禾望岗”等）
+    const cleanName = (name) => name.replace(/[（(].*[）)]/g, '').trim();
+    const sClean = cleanName(startStation);
+    const eClean = cleanName(endStation);
+
+    if (sClean !== startStation || eClean !== endStation) {
+        if (_localFaresData[sClean] && _localFaresData[sClean][eClean] != null) {
+            return _localFaresData[sClean][eClean];
+        }
+    }
+
+    // 3. 尝试查询临近站（比如 A -> 流花，如果没有，则查 A -> 越秀公园）
+    if (typeof NEARBY_STATION_MAP !== 'undefined') {
+        const mappedEnd = NEARBY_STATION_MAP[endStation];
+        if (mappedEnd && _localFaresData[startStation] && _localFaresData[startStation][mappedEnd] != null) {
+            return _localFaresData[startStation][mappedEnd];
+        }
+        const mappedStart = NEARBY_STATION_MAP[startStation];
+        if (mappedStart && _localFaresData[mappedStart] && _localFaresData[mappedStart][endStation] != null) {
+            return _localFaresData[mappedStart][endStation];
+        }
+    }
+
+    return null;
 }
 
 // ========== 车站管制查询（官方 API） ==========
