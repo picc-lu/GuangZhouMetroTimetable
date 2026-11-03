@@ -1,43 +1,23 @@
 const fs = require('fs');
 
-// 回退到最基础的伪装
-const HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Referer': 'https://www.gzmtr.com/',
-    'Origin': 'https://www.gzmtr.com'
-};
-
-async function fetchWithRetry(url, options = {}, retries = 3, timeout = 15000) {
+// 封装一个带重试的 fetch（防止单次网络波动导致整个脚本失败）
+async function fetchWithRetry(url, options = {}, retries = 3, timeout = 10000) {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeout);
-            const resp = await fetch(url, {
-                ...options,
-                headers: { ...HEADERS, ...options.headers },
-                signal: controller.signal
-            });
+            const resp = await fetch(url, { ...options, signal: controller.signal });
             clearTimeout(timer);
-
-            if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-
-            const text = await resp.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                throw new Error(`JSON 解析失败，返回内容: ${text.substring(0, 100)}`);
-            }
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return await resp.json();
         } catch (err) {
-            // 打印底层真实错误原因
-            const causeMsg = err.cause ? ` | 原因: ${err.cause.message || err.cause.code || err.cause}` : '';
-            console.warn(`[重试 ${i + 1}/${retries}] 请求失败 (${url}): ${err.message}${causeMsg}`);
-
             if (i === retries - 1) throw err;
-            await new Promise(r => setTimeout(r, 2000 * Math.pow(2, i)));
+            await new Promise(r => setTimeout(r, 1000 * (i + 1)));
         }
     }
 }
 
+/** 地铁名称规范化：线路名与站点名通用 */
 function normalizeMetroText(str) {
     if (!str) return str;
     return str
@@ -70,13 +50,13 @@ async function main() {
     console.log('开始获取所有线路和站点...');
     const lineUrl = 'https://apis.gzmtr.com/app-map/metroweb/linestation';
 
+    // 1. 动态获取所有站点
     let linesData;
     try {
-        // 增加重试次数到 6 次，超时时间延长到 25 秒，防止国内 API 响应慢被掐断
-        linesData = await fetchWithRetry(lineUrl, { method: 'POST' }, 6, 25000);
+        linesData = await fetchWithRetry(lineUrl, { method: 'POST' });
     } catch (e) {
-        console.error('获取线路站点彻底失败，脚本终止：', e.message);
-        process.exit(1);
+        console.error('获取线路站点失败，脚本终止：', e);
+        process.exit(1); // 如果线路获取失败，退出脚本，让 GitHub Action 报警
     }
 
     const lines = linesData.businessObject;
@@ -85,6 +65,7 @@ async function main() {
         process.exit(1);
     }
 
+    // 提取所有站名并去重
     const allStations = new Set();
     lines.forEach(line => {
         if (line.stations) {
@@ -98,73 +79,64 @@ async function main() {
     const uniqueStations = Array.from(allStations);
     console.log(`成功提取到 ${uniqueStations.length} 个独立站点。开始抓取运营时间...`);
 
+    // 2. 并发请求每个站点的运营时间
     const result = {};
-    const concurrency = 5;
+    const concurrency = 5; // 并发数，不要设太高以免被风控
+    let completed = 0;
 
-    // 第一次抓取
     for (let i = 0; i < uniqueStations.length; i += concurrency) {
         const batch = uniqueStations.slice(i, i + concurrency);
         await Promise.all(batch.map(async (st) => {
             try {
                 const timeUrl = `https://apis.gzmtr.com/app-map/serviceTime/list/${encodeURIComponent(st)}`;
-                const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 3, 15000);
+                const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 2); // 单站重试 2 次
                 if (data.businessObject) {
                     result[st] = data.businessObject;
                 }
             } catch (e) {
-                console.error(`站点 ${st} 第一次抓取失败`);
+                console.error(`站点 ${st} 获取失败:`, e.message);
+            } finally {
+                completed++;
+                if (completed % 50 === 0) {
+                    console.log(`进度: ${completed}/${uniqueStations.length}`);
+                }
             }
         }));
-        await new Promise(r => setTimeout(r, 800)); // 稍微拉长一点间隔，降低被风控概率
+        // 每批之间停顿 50 毫秒，模拟真实网络请求，防止被封 IP
+        await new Promise(r => setTimeout(r, 50));
     }
 
-    // ====== 检查遗漏并补抓 ======
-    const missingStations = uniqueStations.filter(st => !result[st] || result[st].length === 0);
-    if (missingStations.length > 0) {
-        console.log(`⚠️ 发现有 ${missingStations.length} 个站点缺失，正在尝试补抓...`);
-        for (let i = 0; i < missingStations.length; i += 2) { // 补抓时并发更低
-            const batch = missingStations.slice(i, i + 2);
-            await Promise.all(batch.map(async (st) => {
-                try {
-                    const timeUrl = `https://apis.gzmtr.com/app-map/serviceTime/list/${encodeURIComponent(st)}`;
-                    const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 6, 25000); // 补抓大幅增加超时和重试
-                    if (data.businessObject) {
-                        result[st] = data.businessObject;
-                        console.log(`✅ 补抓成功: ${st}`);
-                    }
-                } catch (e) {
-                    console.error(`❌ 补抓依然失败: ${st} - ${e.message}`);
-                }
-            }));
-            await new Promise(r => setTimeout(r, 1500)); // 补抓间隔久一点
-        }
-    }
-
-    const finalMissing = uniqueStations.filter(st => !result[st]);
-    if (finalMissing.length > 0) {
-        console.warn(`🚨 最终仍有 ${finalMissing.length} 个站点缺失数据:`, finalMissing.join(', '));
-    } else {
-        console.log('🎉 完美！所有站点数据均已抓取成功。');
-    }
-
+    // 3. 写入数据包（强制使用北京时间）
     const now = new Date();
+    // 将 UTC 时间戳加上 8 小时的毫秒数
     const bjTime = new Date(now.getTime() + 8 * 3600 * 1000);
+
+    // 用 getUTC* 方法读取偏移后的北京时间
     let year = bjTime.getUTCFullYear();
     let month = String(bjTime.getUTCMonth() + 1).padStart(2, '0');
     let day = String(bjTime.getUTCDate()).padStart(2, '0');
     let hours = bjTime.getUTCHours();
+
+    // 如果是北京时间凌晨 5 点之前，日期算作前一天（运营日逻辑）
     if (hours < 5) {
         bjTime.setUTCDate(bjTime.getUTCDate() - 1);
         year = bjTime.getUTCFullYear();
         month = String(bjTime.getUTCMonth() + 1).padStart(2, '0');
         day = String(bjTime.getUTCDate()).padStart(2, '0');
     }
-    const serviceDate = `${year}-${month}-${day}`;
 
-    const outData = { serviceDate: serviceDate, records: result };
+    const serviceDate = `${year}-${month}-${day}`;
+    console.log(`当前计算出的服务日期 (北京时间): ${serviceDate}`);
+
+    const outData = {
+        serviceDate: serviceDate,
+        records: result
+    };
+
+    // 确保 data 目录存在
     if (!fs.existsSync('./data')) fs.mkdirSync('./data');
     fs.writeFileSync('./data/daily-times.json', JSON.stringify(outData));
-    console.log(`抓取完成！已成功保存 ${Object.keys(result).length} 个站点的数据。`);
+    console.log(`抓取完成！已成功保存 ${Object.keys(result).length} 个站点的数据到 data/daily-times.json`);
 }
 
 main();
