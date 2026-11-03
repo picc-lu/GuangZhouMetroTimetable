@@ -141,3 +141,11 @@
     border-color: #0284c7;
     box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
 }
+[data-theme="dark"] .route-wait-slider-wrap input[type="range"]::-webkit-slider-thumb{background:#5da0ff;border-color:#131a26}
+[data-theme="dark"] .route-wait-slider-wrap input[type="range"]::-moz-range-thumb{background:#5da0ff;border-color:#131a26}
+[data-theme="dark"] .route-wait-tick .tick-label{color:#94a3b8}
+[data-theme="dark"] .route-wait-tick .tick-mark{background:#64748b}
+[data-theme="dark"] .route-wait-tick .tick-sub{color:#64748b}
+[data-theme="dark"] .route-station-ctrl-item.is-future{background:#1a2030;border-left:3px dashed #475569;color:#94a3b8}
+[data-theme="dark"] .route-station-ctrl-item.is-future .route-station-ctrl-count{background:#475569;color:#e2e8f0}
+[data-theme="dark"] .route-station-ctrl-note{color:#64748b}

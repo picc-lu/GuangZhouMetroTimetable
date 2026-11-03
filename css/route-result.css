@@ -254,3 +254,6 @@
     background: #064e3b;
     color: #34d399;
 }
+.route-station-ctrl-item.is-future{background:#f8fafc;border-left:3px dashed #cbd5e1;color:#64748b}
+.route-station-ctrl-item.is-future .route-station-ctrl-count{background:#94a3b8;color:#f8fafc}
+.route-station-ctrl-note{color:#94a3b8;display:inline-block;font-size:11px;font-weight:500margin-left:4px;}

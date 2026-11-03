@@ -1,5 +1,6 @@
 // ========== 路径规划 UI · 弹窗壳与时间选择器 ==========
 
+let _routeWaitRatio = 0.5;
 let _routeTooltipTimer = null;
 
 function showRouteTooltip(targetEl, text) {
@@ -161,6 +162,23 @@ function ensureRouteOverlay() {
                                             <span class="route-extra-option-sub">目前仅琶洲 8↔11 与五羊邨 5↔10</span>
                                         </span>
                                     </label>
+<div class="route-extra-wait-group">
+    <div class="route-wait-header">
+        <span class="route-extra-option-title">等车时间估算</span>
+    </div>
+    <div class="route-wait-slider-wrap">
+        <input type="range" id="route-wait-slider" min="0" max="6" step="1" value="0">
+        <div class="route-wait-ticks">
+            <span class="route-wait-tick" style="left: 0%;"><span class="tick-mark"></span><span class="tick-label">50%<br><span class="tick-sub">平均情况</span></span></span>
+            <span class="route-wait-tick" style="left: 16.66%;"><span class="tick-mark"></span></span>
+            <span class="route-wait-tick" style="left: 33.33%;"><span class="tick-mark"></span></span>
+            <span class="route-wait-tick" style="left: 50%;"><span class="tick-mark"></span><span class="tick-label">75%<br><span class="tick-sub">较坏情况</span></span></span>
+            <span class="route-wait-tick" style="left: 66.66%;"><span class="tick-mark"></span></span>
+            <span class="route-wait-tick" style="left: 83.33%;"><span class="tick-mark"></span></span>
+            <span class="route-wait-tick" style="left: 100%;"><span class="tick-mark"></span><span class="tick-label">100%<br><span class="tick-sub">最坏情况</span></span></span>
+        </div>
+    </div>
+</div>
 <div class="route-extra-speed-group">
     <span class="route-extra-speed-label">步行速度</span>
     <div class="route-speed-options-wrap">
@@ -391,6 +409,36 @@ function ensureRouteOverlay() {
             }
         });
     });
+    let savedWaitRatio = localStorage.getItem('gz_route_wait_ratio');
+    if (savedWaitRatio !== null) {
+        _routeWaitRatio = parseFloat(savedWaitRatio);
+        if (isNaN(_routeWaitRatio) || _routeWaitRatio < 0.5 || _routeWaitRatio > 1.0) _routeWaitRatio = 0.5;
+    }
+    const waitSlider = ov.querySelector('#route-wait-slider');
+
+    const syncWaitSlider = (val) => {
+        if (!waitSlider) return;
+        waitSlider.value = val;
+        const percent = (val / 6) * 100;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const activeColor = isDark ? '#5da0ff' : '#2b7de9';
+        const inactiveColor = isDark ? '#3a4559' : '#cbd5e1';
+        waitSlider.style.background = `linear-gradient(to right, ${activeColor} ${percent}%, ${inactiveColor} ${percent}%)`;
+    };
+
+    if (waitSlider) {
+        let initVal = Math.round((_routeWaitRatio - 0.5) / 0.5 * 6);
+        if (initVal < 0) initVal = 0;
+        if (initVal > 6) initVal = 6;
+        syncWaitSlider(initVal);
+
+        waitSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            _routeWaitRatio = 0.5 + (val / 6) * 0.5;
+            localStorage.setItem('gz_route_wait_ratio', _routeWaitRatio);
+            syncWaitSlider(val);
+        });
+    }
 
     // 交换起终点
     ov.querySelector('#route-swap').addEventListener('click', () => {

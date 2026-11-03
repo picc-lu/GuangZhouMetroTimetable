@@ -41,8 +41,9 @@ function getDayType() {
  * 获取某条线路在指定时刻（分钟数）的发车间隔
  * @param {string} lineName 线路名（如 "1号线"）
  * @param {number} timeMin 距离0点的分钟数
+ * @param {string} direction 方向（如 "广州东站方向"），可选
  */
-function getHeadwayAt(lineName, timeMin) {
+function getHeadwayAt(lineName, timeMin, direction = null) {
     if (!HEADWAY_DATA) return DEFAULT_HEADWAY;
 
     const dayType = getDayType();
@@ -54,38 +55,42 @@ function getHeadwayAt(lineName, timeMin) {
         if (!lineData) return DEFAULT_HEADWAY;
     }
 
-    // 将 timeMin 转换为 "HH:MM" 格式 (例如 "07:05")
+    let targetData = lineData;
+    if (direction && lineData[direction] && typeof lineData[direction] === 'object') {
+        targetData = lineData[direction];
+    } else if (!targetData['start']) {
+        const firstDirKey = Object.keys(lineData).find(k => typeof lineData[k] === 'object' && lineData[k] !== null);
+        if (firstDirKey) {
+            targetData = lineData[firstDirKey];
+        }
+    }
+
     const mm = ((timeMin % 1440) + 1440) % 1440;
     const h = Math.floor(mm / 60);
-    const m = mm % 60;
+    const m = Math.floor(mm % 60);
     const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
-    // 找出数据中配置的所有时间点（排除 start）
-    const rawTimes = Object.keys(lineData).filter(k => k !== 'start');
+    const rawTimes = Object.keys(targetData).filter(k => k !== 'start' && /^\d{1,2}:\d{2}$/.test(k));
 
-    // ====== 新增：标准化时间格式，兼容 "7:00" 和 "07:00" ======
     const times = rawTimes.map(t => {
         const parts = t.split(':');
         if (parts.length === 2) {
-            // 补全小时的前导零，例如 "7:00" -> "07:00"
             return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
         }
-        return t; // 兜底
+        return t;
     }).sort();
-    // ========================================================
 
-    let currentHeadway = lineData['start'] || DEFAULT_HEADWAY;
+    let currentHeadway = targetData['start'] || DEFAULT_HEADWAY;
 
     for (const t of times) {
         if (timeStr >= t) {
-            // 注意：这里要反向查找回原始的 key 去取值，因为原始 key 可能没有前导零
             const originalKey = rawTimes.find(rk => {
                 const p = rk.split(':');
                 return p.length === 2
                     ? `${p[0].padStart(2, '0')}:${p[1].padStart(2, '0')}` === t
                     : rk === t;
             });
-            currentHeadway = lineData[originalKey];
+            currentHeadway = targetData[originalKey];
         } else {
             break;
         }
@@ -94,10 +99,6 @@ function getHeadwayAt(lineName, timeMin) {
     return currentHeadway;
 }
 
-/**
- * 根据规划的出发时间，动态调整 ROUTE_GRAPH 的边权重
- * @param {number} departMin 出发时间（距离0点的分钟数）
- */
 function applyDynamicHeadway(departMin) {
     if (typeof ROUTE_GRAPH === 'undefined' || !ROUTE_GRAPH.loaded || !ROUTE_GRAPH.originalEdges) {
         return;
@@ -118,7 +119,10 @@ function applyDynamicHeadway(departMin) {
         if (fp.length < 4 || fp[3] !== '站台') continue;
 
         const lineName = fp[0];
-        const headwayMin = getHeadwayAt(lineName, departMin);
+        const direction = fp[2]; // 提取方向字段，例如 "广州东站方向"
+
+        // 获取候车时间（加入方向参数）
+        const headwayMin = getHeadwayAt(lineName, departMin, direction);
         const waitSeconds = (headwayMin / 2) * 60; // 候车时间转为秒
 
         for (const [to, w] of toMap.entries()) {

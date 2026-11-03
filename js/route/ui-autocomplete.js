@@ -122,16 +122,17 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
                 e.preventDefault();
                 inputEl.value = el.dataset.value;
 
-                // 手动触发 input 事件，让清除红框和隐藏定位按钮的逻辑生效
-                inputEl.dispatchEvent(new Event('input'));
+                if (typeof pushRouteHistory === 'function') {
+                    const kind = routeHistoryKind(inputEl);
+                    if (kind) pushRouteHistory(kind, inputEl.value);
+                }
 
+                inputEl.dispatchEvent(new Event('input'));
                 hide();
                 try {
                     inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
                 } catch (_) {}
 
-                // iOS Safari：mousedown 里 preventDefault 会让键盘状态机不复位，
-                // 主动 blur 让下一次点击其他输入框能立即聚焦
                 if (_isIOSDevice) {
                     inputEl.blur();
                 }
@@ -192,12 +193,16 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
             e.preventDefault();
             if (activeIndex >= 0 && currentItems[activeIndex]) {
                 inputEl.value = currentItems[activeIndex];
+
+                if (typeof pushRouteHistory === 'function') {
+                    const kind = routeHistoryKind(inputEl);
+                    if (kind) pushRouteHistory(kind, inputEl.value);
+                }
+
                 hide();
             } else {
                 runRoutePlanning();
             }
-        } else if (e.key === 'Escape') {
-            hide();
         }
     });
 
@@ -230,5 +235,13 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
         setTimeout(() => {
             if (document.activeElement !== inputEl) hide();
         }, 120);
+
+        const val = inputEl.value.trim();
+        if (val && typeof STATION_INDEX !== 'undefined' && STATION_INDEX[val]) {
+            if (typeof pushRouteHistory === 'function') {
+                const kind = routeHistoryKind(inputEl);
+                if (kind) pushRouteHistory(kind, val);
+            }
+        }
     });
 }

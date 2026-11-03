@@ -22,12 +22,16 @@ function formatDelta(seconds) {
     return `${m}分${r}秒`;
 }
 
-function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlStations = null, virtual3to3Margin = null) {
+function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlStations = null, virtual3to3Margin = null, interchanges = null) {
     const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(path) : [];
     if (segs.length === 0) return '';
     const margins = boardingMargins || [];
 
-    let marginCursor = 0; // 余量数组游标
+    const now = new Date();
+    let nowMin = now.getHours() * 60 + now.getMinutes();
+    if (nowMin < 120) nowMin += 1440;
+
+    let marginCursor = 0;
 
     return `<span class="route-segments">` + segs.map((s, i) => {
         let m = null;
@@ -84,20 +88,28 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
 
         if (i === 0) return badge;
 
-        // 判断箭头前方的换乘站是否客控
         const prevSeg = segs[i - 1];
         const transferStation = prevSeg.toStation;
         const isCtrl = ctrlStations && ctrlStations.includes(transferStation);
 
+        let isFutureCtrl = false;
+        if (isCtrl && interchanges) {
+            const inter = interchanges.find(o => o.key.split('|')[0] === transferStation);
+            if (inter && inter.timeMin != null && (inter.timeMin - nowMin) >= 60) {
+                isFutureCtrl = true;
+            }
+        }
+
         let arrowHtml = `<span class="route-seg-arrow">→</span>`;
         if (isCtrl) {
-            const ctrlSvg = `<span class="route-seg-ctrl-icon" title="换乘站客控中">
+            const ctrlSvg = `<span class="route-seg-ctrl-icon${isFutureCtrl ? ' is-future' : ''}" title="换乘站客控中${isFutureCtrl ? '（距当前时间超过1小时，客控可能变化）' : ''}">
                 <svg viewBox="0 0 24 24" width="13" height="13" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13 2 L5 13 h6 l-1 9 l9 -12 h-6 l1 -8 z" 
-                          fill="#f59e0b" 
-                          stroke="#1f2b3c" 
+                          fill="${isFutureCtrl ? 'none' : '#f59e0b'}" 
+                          stroke="${isFutureCtrl ? '#94a3b8' : '#1f2b3c'}" 
                           stroke-width="1.8" 
-                          stroke-linejoin="round"/>
+                          stroke-linejoin="round"
+                          ${isFutureCtrl ? 'stroke-dasharray="2,2"' : ''}/>
                 </svg>
             </span>`;
             arrowHtml = `<span class="route-seg-arrow-wrapper">${arrowHtml}${ctrlSvg}</span>`;
@@ -797,15 +809,43 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             grouped.get(w.typeText).push(w.station);
         }
 
+        const now = new Date();
+        let nowMin = now.getHours() * 60 + now.getMinutes();
+        if (nowMin < 120) nowMin += 1440;
+        const interchangeTimes = {};
+        if (item.interchanges) {
+            item.interchanges.forEach(o => {
+                interchangeTimes[o.key.split('|')[0]] = o.timeMin;
+            });
+        }
+
         stationCtrlHtml = `<div class="route-station-ctrl">` +
             [...grouped.entries()].map(([typeText, stations]) => {
                 const list = stations.map(s => escapeHtml(s)).join(' · ');
-                return `<div class="route-station-ctrl-item">
-                    <span class="route-station-ctrl-icon">⛔</span>
+
+                let hasTime = false;
+                let allFuture = true;
+
+                stations.forEach(s => {
+                    const t = interchangeTimes[s];
+                    if (t != null) {
+                        hasTime = true;
+                        if (t - nowMin <= 60) {
+                            allFuture = false;
+                        }
+                    }
+                });
+
+                const isFuture = hasTime && allFuture;
+                const futureClass = isFuture ? ' is-future' : '';
+                const noteHtml = isFuture ? `<span class="route-station-ctrl-note">（距当前时间超过1小时，客控可能变化）</span>` : '';
+
+                return `<div class="route-station-ctrl-item${futureClass}">
+                    <span class="route-station-ctrl-icon">${isFuture ? '⏳' : '⛔'}</span>
                     <span class="route-station-ctrl-text">
                         <b>${escapeHtml(typeText)}</b>
                         <span class="route-station-ctrl-count">${stations.length} 站</span>
-                        ${list}
+                        ${list} ${noteHtml}
                     </span>
                 </div>`;
             }).join('') +
@@ -997,15 +1037,19 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
         const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
 
-        // ====== 新增：计算平均等车时间 ======
         let waitTimeHtml = '';
         if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
             const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
+            console.log('线路:', bp.fullLine, '时刻:', bp.boardingTime, '发车间隔:', headway);
             if (typeof headway === 'number' && headway > 0) {
-                const avgWait = headway / 2;
-                // 如果结果是整数（如3），显示3；如果是小数（如1.5），保留1位小数
-                const waitStr = Number.isInteger(avgWait) ? `${avgWait}` : `${avgWait.toFixed(1)}`;
-                waitTimeHtml = `<span class="route-guide-headway">平均等${waitStr}分</span>`;
+                const ratio = (typeof _routeWaitRatio === 'number') ? _routeWaitRatio : 0.5;
+                const waitTime = headway * ratio;
+                const waitStr = Number.isInteger(waitTime) ? `${waitTime}` : `${waitTime.toFixed(1)}`;
+                let prefix = '平均等';
+                if (ratio >= 0.99) prefix = '最长等';
+                else if (ratio >= 0.74 && ratio <= 0.76) prefix = '预计等';
+                else if (ratio !== 0.5) prefix = '约等';
+                waitTimeHtml = `<span class="route-guide-headway">${prefix}${waitStr}分</span>`;
             }
         }
 
@@ -1082,7 +1126,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 <div class="route-summary">
                     <div class="route-line-path">
                         ${item._mappedStart ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedStart.replace(/[()（）]/g, ''))}</span>` : ''}
-                        ${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames, item.tyxMargin)}
+                        ${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames, item.tyxMargin, item.interchanges)}
                         ${item._mappedEnd ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedEnd.replace(/[()（）]/g, ''))}</span>` : ''}
                     </div>
                     <div class="route-sub">
