@@ -1,13 +1,14 @@
 const fs = require('fs');
 
-// 伪装成浏览器，防止被官方 API 拦截
 const HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Referer': 'https://www.gzmtr.com/',
-    'Origin': 'https://www.gzmtr.com'
+    'Origin': 'https://www.gzmtr.com',
+    'Accept': 'application/json, text/plain, */*'
 };
 
-async function fetchWithRetry(url, options = {}, retries = 3, timeout = 10000) {
+// 升级版 fetch：延长超时、指数退避、容错 JSON 解析
+async function fetchWithRetry(url, options = {}, retries = 5, timeout = 20000) {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
@@ -18,11 +19,21 @@ async function fetchWithRetry(url, options = {}, retries = 3, timeout = 10000) {
                 signal: controller.signal
             });
             clearTimeout(timer);
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            return await resp.json();
+
+            if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+
+            // 使用 text 接收，防止接口返回 HTML 错误页导致 json 解析崩溃
+            const text = await resp.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                throw new Error(`JSON 解析失败，返回内容: ${text.substring(0, 100)}`);
+            }
         } catch (err) {
+            console.warn(`[重试 ${i + 1}/${retries}] 请求失败 (${url}): ${err.message}`);
             if (i === retries - 1) throw err;
-            await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+            // 指数退避等待：2s, 4s, 8s, 16s...
+            await new Promise(r => setTimeout(r, 2000 * Math.pow(2, i)));
         }
     }
 }
@@ -61,9 +72,10 @@ async function main() {
 
     let linesData;
     try {
-        linesData = await fetchWithRetry(lineUrl, { method: 'POST' });
+        // 增加重试次数到 6 次，超时时间延长到 25 秒，防止国内 API 响应慢被掐断
+        linesData = await fetchWithRetry(lineUrl, { method: 'POST' }, 6, 25000);
     } catch (e) {
-        console.error('获取线路站点失败，脚本终止：', e);
+        console.error('获取线路站点彻底失败，脚本终止：', e.message);
         process.exit(1);
     }
 
@@ -95,7 +107,7 @@ async function main() {
         await Promise.all(batch.map(async (st) => {
             try {
                 const timeUrl = `https://apis.gzmtr.com/app-map/serviceTime/list/${encodeURIComponent(st)}`;
-                const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 2);
+                const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 3, 15000);
                 if (data.businessObject) {
                     result[st] = data.businessObject;
                 }
@@ -103,10 +115,10 @@ async function main() {
                 console.error(`站点 ${st} 第一次抓取失败`);
             }
         }));
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 800)); // 稍微拉长一点间隔，降低被风控概率
     }
 
-    // ====== 核心新增：检查遗漏并补抓 ======
+    // ====== 检查遗漏并补抓 ======
     const missingStations = uniqueStations.filter(st => !result[st] || result[st].length === 0);
     if (missingStations.length > 0) {
         console.log(`⚠️ 发现有 ${missingStations.length} 个站点缺失，正在尝试补抓...`);
@@ -114,22 +126,20 @@ async function main() {
             const batch = missingStations.slice(i, i + 2);
             await Promise.all(batch.map(async (st) => {
                 try {
-                    // 针对补抓，增加重试次数，延长超时时间
                     const timeUrl = `https://apis.gzmtr.com/app-map/serviceTime/list/${encodeURIComponent(st)}`;
-                    const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 5, 15000);
+                    const data = await fetchWithRetry(timeUrl, { method: 'POST' }, 6, 25000); // 补抓大幅增加超时和重试
                     if (data.businessObject) {
                         result[st] = data.businessObject;
                         console.log(`✅ 补抓成功: ${st}`);
                     }
                 } catch (e) {
-                    console.error(`❌ 补抓依然失败: ${st}`);
+                    console.error(`❌ 补抓依然失败: ${st} - ${e.message}`);
                 }
             }));
-            await new Promise(r => setTimeout(r, 1000)); // 补抓间隔久一点
+            await new Promise(r => setTimeout(r, 1500)); // 补抓间隔久一点
         }
     }
 
-    // 最终缺失统计
     const finalMissing = uniqueStations.filter(st => !result[st]);
     if (finalMissing.length > 0) {
         console.warn(`🚨 最终仍有 ${finalMissing.length} 个站点缺失数据:`, finalMissing.join(', '));
@@ -137,7 +147,6 @@ async function main() {
         console.log('🎉 完美！所有站点数据均已抓取成功。');
     }
 
-    // 写入数据包（强制北京时间）
     const now = new Date();
     const bjTime = new Date(now.getTime() + 8 * 3600 * 1000);
     let year = bjTime.getUTCFullYear();
