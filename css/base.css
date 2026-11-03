@@ -12,7 +12,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding: 0;
+    padding-top: env(safe-area-inset-top, 0px);
 }
 html, body {
     touch-action: pan-x pan-y;
@@ -532,3 +532,23 @@ html, body {
 .tag-修复{background:#fee2e2;color:#991b1b}
 .tag-优化{background:#e0f2fe;color:#075985}
 .tag-调整{background:#fef3c7;color:#92400e}
+/* 仅在添加到主屏幕的独立 PWA 模式下生效 */
+@media (display-mode: standalone) {
+    .ios-blur-fix {
+        -webkit-background-clip: text;
+        background-clip: text; /* 关键：使元素自身在页面完全不渲染、不显示 */
+        background-color: #ffffff; /* 映射状态栏为纯白，可随主题动态切换 */
+        height: 11px; /* WebKit 判定固定顶栏的条件需要大于 10px */
+        left: 0;
+        pointer-events: none; /* 确保不遮挡后续交互 */
+        position: fixed;
+        right: 0;
+        top: 0;
+        z-index: 2147483647; /* 置于最顶层 */
+    }
+
+    /* 适配夜间模式主题 */
+    [data-theme="dark"] .ios-blur-fix {
+        background-color: #131a26;
+    }
+}

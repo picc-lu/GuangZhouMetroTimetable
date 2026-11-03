@@ -298,9 +298,10 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         }
         // ======================================
 
+        // 找到 results.push 的地方，替换：
         results.push({
             path: p,
-            totalCost: p.totalCost,
+            totalCost: (check.arriveMin - departMin) * 60, // 核心修改：真实耗时 = 到达时间 - 出发时间
             arriveMin: check.arriveMin,
             stationRoute,
             route: parseInterchangeRoute(p, true),
@@ -308,7 +309,9 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             interchanges,
             urgentCount,
             boardingMargins: check.boardingMargins,
-            startMargin,
+            startMargin: check.boardingMargins[0],
+            startWaitMin: check.boardings && check.boardings[0] ? check.boardings[0].waitTime : 0, // 新增
+            actualStartBoardTime: check.boardings && check.boardings[0] ? check.boardings[0].boardTimeMin + check.boardings[0].waitTime : departMin, // 新增
             tyxArriveTime: check.tyxArriveTime,
             tyxMargin: check.tyxMargin,
         });
@@ -550,9 +553,8 @@ function checkReachability(path, departMin) {
         const uParts = u.split('|');
         const vParts = v.split('|');
 
-        // 核心拦截：只要到达体育西路，且后面还有 3号线 行程，无论是去南段还是北段，都必须检查
+        // 3号线体育西路特判逻辑（保留原样）
         if (uParts.length >= 4 && uParts[0].includes('3号线') && uParts[1] === '体育西路' && uParts[3] === '到站') {
-            // 寻找后面是否还有 3 号线的乘车段
             let nextLine3Station = null;
             for (let j = i + 1; j < path.nodes.length; j++) {
                 const nextParts = path.nodes[j].split('|');
@@ -561,34 +563,33 @@ function checkReachability(path, departMin) {
                     break;
                 }
             }
-
             if (nextLine3Station) {
                 const arriveTime = t + (w !== null ? w / 60 : 0);
-
-                // 智能判断要查哪个方向
                 let dirStr = '海傍方向';
-                if (typeof LINE3_SOUTH_ORDER !== 'undefined' && LINE3_SOUTH_ORDER.includes(nextLine3Station)) {
-                    dirStr = '海傍方向';
-                } else if (typeof LINE3_NORTH_ORDER !== 'undefined' && LINE3_NORTH_ORDER.includes(nextLine3Station)) {
-                    dirStr = '机场北方向';
-                } else if (['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(nextLine3Station)) {
-                    dirStr = '天河客运站方向';
+                if (typeof LINE3_SOUTH_ORDER !== 'undefined' && LINE3_SOUTH_ORDER.includes(nextLine3Station)) dirStr = '海傍方向';
+                else if (typeof LINE3_NORTH_ORDER !== 'undefined' && LINE3_NORTH_ORDER.includes(nextLine3Station)) dirStr = '机场北方向';
+                else if (['石牌桥', '岗顶', '华师', '五山', '天河客运站'].includes(nextLine3Station)) dirStr = '天河客运站方向';
+
+                let margin = getBoardingMargin('3号线', '体育西路', dirStr, arriveTime, [nextLine3Station]);
+                let waitTime = 0;
+                if (margin && typeof margin === 'object' && margin.needsWait) {
+                    waitTime = margin.waitMin;
+                    margin = margin.marginMin;
                 }
 
-                const margin = getBoardingMargin('3号线', '体育西路', dirStr, arriveTime, [nextLine3Station]);
-                if (margin === null) {
-                    return { feasible: false, reason: `约 ${fmtHM(arriveTime)} 到达体育西路时，往${dirStr.replace('方向', '')}的末班车已发出` };
-                }
+                if (margin === null) return { feasible: false, reason: `约 ${fmtHM(arriveTime)} 到达体育西路时，往${dirStr.replace('方向', '')}的末班车已发出` };
                 tyxArriveTime = arriveTime;
                 tyxMargin = margin;
+                t += waitTime; // 有等待则累加时间
             }
         }
 
+        // 核心重构：上车判定与时间累加
         if (vParts.length >= 4 && vParts[3] === PLATFORM) {
-            const isBoarding =
-                (uParts[1] === '开始') ||
-                (uParts.length >= 4 && uParts[3] === ARRIVED && uParts[0] !== vParts[0]);
+            const isBoarding = (uParts[1] === '开始') || (uParts.length >= 4 && uParts[3] === ARRIVED && uParts[0] !== vParts[0]);
+
             if (isBoarding) {
+                const boardTimeMin = t + w / 60;
                 const downstream = [];
                 for (let j = i + 1; j < path.nodes.length; j++) {
                     const p = path.nodes[j].split('|');
@@ -598,38 +599,35 @@ function checkReachability(path, departMin) {
                     if (st === '开始' || st === '结束') continue;
                     if (downstream[downstream.length - 1] !== st) downstream.push(st);
                 }
+
+                let margin = getBoardingMargin(vParts[0], vParts[1], vParts[2], boardTimeMin, downstream);
+                let waitTime = 0;
+                let isWaitFirstTrain = false;
+
+                if (margin && typeof margin === 'object' && margin.needsWait) {
+                    waitTime = margin.waitMin;
+                    isWaitFirstTrain = true;
+                    margin = margin.marginMin;
+                } else if (margin === 'unknown') {
+                    console.warn(`[末班车-数据缺失] ${vParts[1]} 站 ${vParts[0]} 往${vParts[2]} 无末班车数据，已放行`);
+                    margin = null;
+                } else if (margin === null) {
+                    return { feasible: false, reason: `${vParts[1]} 站 ${vParts[0]} 往${vParts[2]}，到达站台时 ${fmtHM(boardTimeMin)} 已无运营` };
+                }
+
                 boardings.push({
-                    line: vParts[0],
-                    station: vParts[1],
-                    direction: vParts[2],
-                    boardTimeMin: t + w / 60,
-                    downstreamStations: downstream,
+                    line: vParts[0], station: vParts[1], direction: vParts[2],
+                    boardTimeMin, waitTime, isWaitFirstTrain, marginMin: margin, downstreamStations: downstream,
                 });
+
+                t += waitTime; // 把等待首班车的时间加到全局时间线上
             }
         }
         t += w / 60;
     }
 
-    const boardingMargins = [];
-    for (const b of boardings) {
-        const margin = getBoardingMargin(b.line, b.station, b.direction,
-            b.boardTimeMin, b.downstreamStations);
-        if (margin === 'unknown') {
-            console.warn(`[末班车-数据缺失] ${b.station} 站 ${b.line} 往${b.direction} 无末班车数据，已放行`);
-            boardingMargins.push(null);
-            continue;
-        }
-        if (margin === null) {
-            return {
-                feasible: false,
-                reason: `${b.station} 站 ${b.line} 往${b.direction}，到达站台时 ${fmtHM(b.boardTimeMin)} 已无运营`,
-            };
-        }
-        boardingMargins.push(margin);
-    }
-
-    // 将虚拟换乘的时间与余量返回
-    return {feasible: true, arriveMin: t, boardingMargins, tyxArriveTime, tyxMargin};
+    const boardingMargins = boardings.map(b => b.marginMin);
+    return {feasible: true, arriveMin: t, boardingMargins, tyxArriveTime, tyxMargin, boardings};
 }
 
 /**
@@ -716,7 +714,16 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
 
     if (candidates.length > 0) {
         const matched = candidates.filter(t => timeMin >= t.first && timeMin <= t.last);
-        if (matched.length === 0) return null;
+        if (matched.length === 0) {
+            // 核心修改：判断是否早于首班车
+            const firstTrainMin = Math.min(...candidates.map(t => t.first));
+            if (timeMin < firstTrainMin) {
+                // 未到首班车：返回等待状态
+                return { needsWait: true, waitMin: firstTrainMin - timeMin, marginMin: null };
+            }
+            // 确实是末班车开走了
+            return null;
+        }
         matched.sort((a, b) => b.last - a.last);
         return matched[0].last - timeMin;
     }
@@ -734,7 +741,9 @@ function get3ThroughTrainMargin(station, timeMin, direction = 'southToNorth') {
     const tt = ROUTE_GRAPH.throughTrains?.['3号线']?.[dirKey];
     if (!tt || !tt.stationMap || !tt.stationMap.has(station)) return 'unknown';
     const throughMin = tt.stationMap.get(station);
-    if (timeMin < throughMin) return throughMin - timeMin;
+    if (timeMin < throughMin) {
+        return { needsWait: true, waitMin: throughMin - timeMin, marginMin: null };
+    }
     return null;
 }
 
@@ -757,33 +766,56 @@ function getLine11BoardingMargin(station, dirStr, timeMin, downstreamStations) {
     const terminal = isOuter ? d.upTerminal : d.downTerminal;
     const terminalEnd = isOuter ? '龙潭' : '赤沙';
 
-    // 收集所有可用的候车选项，取 last 最大者
-    const options = [];
+    // 收集当前能上的车（存末班车余量），以及还没首发的车（存首班车等待时间）
+    const normalOptions = [];
+    const waitOptions = [];
 
     // 1. 全程车
-    if (full && timeMin >= full.first && timeMin <= full.last) {
-        options.push(full.last);
+    if (full) {
+        if (timeMin >= full.first && timeMin <= full.last) {
+            normalOptions.push(full.last - timeMin);
+        } else if (timeMin < full.first) {
+            waitOptions.push(full.first - timeMin);
+        }
     }
 
     // 2. 区间车：需覆盖下游路径
-    if (terminal && timeMin >= terminal.first && timeMin <= terminal.last) {
+    if (terminal) {
         let within;
         if (!downstreamStations || downstreamStations.length === 0) {
-            // 无上下文（如单站查询），保守放行
             within = true;
         } else {
             within = isPathWithinTerminalRange(
                 station, dirStr, terminalEnd, downstreamStations
             );
         }
-        if (within) options.push(terminal.last);
+
+        if (within) {
+            if (timeMin >= terminal.first && timeMin <= terminal.last) {
+                normalOptions.push(terminal.last - timeMin);
+            } else if (timeMin < terminal.first) {
+                waitOptions.push(terminal.first - timeMin);
+            }
+        }
     }
 
-    if (options.length === 0) return null;
+    // === 决策逻辑 ===
+    // 1. 如果当前有正在运营的车，优先选择余量最大的（最晚的末班车）
+    if (normalOptions.length > 0) {
+        return Math.max(...normalOptions);
+    }
 
-    // 取余量最大的（最晚的末班车）
-    const latestLast = Math.max(...options);
-    return latestLast - timeMin;
+    // 2. 如果当前没车，但有尚未首发的车，返回等待状态，选择等待时间最短的
+    if (waitOptions.length > 0) {
+        return {
+            needsWait: true,
+            waitMin: Math.min(...waitOptions),
+            marginMin: null
+        };
+    }
+
+    // 3. 所有车都错过了末班车
+    return null;
 }
 
 /**

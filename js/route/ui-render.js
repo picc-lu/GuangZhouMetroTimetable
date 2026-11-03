@@ -885,12 +885,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         ? getSegmentDirection(item.path, startName, firstSeg.fullLine, firstSeg.toStation)
         : null;
 
+    // 找到 renderRouteCard 里的 boardingPoints.push 第一段，替换：
     let firstBoardTime = null;
-    if (_routeArriveMode && item.actualDepartMin != null) {
-        firstBoardTime = item.actualDepartMin;
-    } else if (_routeActiveDepartMin != null) {
-        firstBoardTime = _routeActiveDepartMin;
-    } else {
+    if (_routeArriveMode && item.actualDepartMin != null) firstBoardTime = item.actualDepartMin;
+    else if (_routeActiveDepartMin != null) firstBoardTime = _routeActiveDepartMin;
+    else {
         const d = new Date();
         firstBoardTime = d.getHours() * 60 + d.getMinutes();
         if (firstBoardTime < 120) firstBoardTime += 1440;
@@ -906,7 +905,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         door: null,
         timeMin: null,
         walkMin: null,
-        boardingTime: firstBoardTime,
+        waitMin: item.startWaitMin || 0, // 新增
+        boardingTime: item.actualStartBoardTime || firstBoardTime, // 修改
         marginMin: item.startMargin,
         interchangeIdx: null,
         isVirtual3to3: false,
@@ -997,6 +997,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 door: null,
                 timeMin: o.timeMin,
                 walkMin: o.walkMin,
+                waitMin: o.waitMin || 0, // 新增
                 boardingTime: o.boardingTime,
                 marginMin: o.marginMin,
                 interchangeIdx: interchangeCursor,
@@ -1064,6 +1065,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
 
         const arriveStr = (bp.timeMin != null && !isNaN(bp.timeMin)) ? fmtHM(bp.timeMin) : '';
         const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
+
         let walkStr = '';
         if (bp.walkMin != null && bp.walkMin > 0) {
             if (bp.walkMin < 1) {
@@ -1080,6 +1082,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 const text = m === 0 ? '即将结束运营' : `剩${m}分`;
                 marginStr = `<span class="route-guide-margin urgent">${text}</span>`;
             }
+        }
+
+        let waitHtml = '';
+        if (bp.waitMin > 0.1) {
+            waitHtml = `<span class="route-guide-time-row" style="color: #d97706; font-weight: bold; font-size: 11px; margin-top: 2px;">⏳ 需等待首班车 ${Math.round(bp.waitMin)} 分</span>`;
         }
 
         let timeHtml = '';
@@ -1102,7 +1109,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                     : '';
             }
 
-            timeHtml = `<span class="route-guide-time-wrap">${row1}${row2}</span>`;
+            // 将 waitHtml 插入在 row1 和 row2 之间
+            timeHtml = `<span class="route-guide-time-wrap">${row1}${waitHtml}${row2}</span>`;
         }
 
         return `<div class="route-guide-item">

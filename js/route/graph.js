@@ -79,8 +79,27 @@ function loadRouteGraph() {
 
             const originalEdges = new Map();
             for (const [from, toMap] of edges.entries()) {
-                originalEdges.set(from, new Map(toMap));
+                const fp = from.split('|');
+                const newMap = new Map();
+
+                for (const [to, w] of toMap.entries()) {
+                    const tp = to.split('|');
+
+                    // 如果是从 "站台" 到 "发动" 的边
+                    if (fp.length >= 4 && tp.length >= 4 && fp[3] === '站台' && tp[3] === '发动') {
+                        // 将旧的静态等待时间清零（如果里面含有列车停站物理时间，也可以改为设为一个极小的常数，比如 10 秒）
+                        const cleanWeight = 0;
+
+                        // 更新当前边权重
+                        edges.get(from).set(to, cleanWeight);
+                        newMap.set(to, cleanWeight);
+                    } else {
+                        newMap.set(to, w);
+                    }
+                }
+                originalEdges.set(from, newMap);
             }
+
             ROUTE_GRAPH.originalEdges = originalEdges;
 
             ROUTE_GRAPH.loaded = true;

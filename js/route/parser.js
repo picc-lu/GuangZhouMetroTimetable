@@ -91,29 +91,38 @@ function parseInterchangeKeys(path, departMin) {
         if (uParts.length >= 4 && vParts.length >= 4) {
             if (uParts[0] !== currentLine) {
                 currentLine = uParts[0];
-                firstGetOnStation = (currentLine === '6号线' || currentLine === '广佛线')
-                    ? uParts[1] : STATUS_IRRELEVANT;
+                firstGetOnStation = (currentLine === '6号线' || currentLine === '广佛线') ? uParts[1] : STATUS_IRRELEVANT;
             }
             if (uParts[3] === ARRIVED && vParts[3] === PLATFORM) {
-                const key = [
-                    uParts[1], uParts[0], uParts[2],
-                    vParts[0], vParts[2], firstGetOnStation
-                ].join('|');
-
+                const key = [uParts[1], uParts[0], uParts[2], vParts[0], vParts[2], firstGetOnStation].join('|');
                 const walkMin = (w != null) ? w / 60 : 0;
-                const boardingTime = t + walkMin;
 
-                // 收集 boarding 之后、同一线路上按顺序出现的所有站
-                // 与 checkReachability 保持一致，供多终点覆盖判断使用
+                // 区分两个时间：到站时间 vs 走到新站台的时间
+                const stationArriveTime = t;
+                const platformTime = t + walkMin;
+
                 const downstream = collectDownstreamStations(i + 1, path.nodes);
 
                 let marginMin = null;
+                let waitMin = 0;
                 if (typeof getBoardingMargin === 'function') {
-                    marginMin = getBoardingMargin(vParts[0], uParts[1], vParts[2],
-                        boardingTime, downstream);
+                    // 注意：判断能否赶上末班车，必须用走到站台的时间 platformTime
+                    let res = getBoardingMargin(vParts[0], uParts[1], vParts[2], platformTime, downstream);
+                    if (res && typeof res === 'object' && res.needsWait) {
+                        waitMin = res.waitMin;
+                        marginMin = res.marginMin;
+                    } else {
+                        marginMin = res;
+                    }
                 }
 
-                result.push({ key, timeMin: t, walkMin, boardingTime, marginMin });
+                const boardingTime = platformTime + waitMin;
+
+                // timeMin 传 stationArriveTime，这样 UI 就会显示“到06:05”
+                result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin });
+
+                // 等待时间累加进时间轴
+                t += waitMin;
             }
         }
         if (w !== null) t += w / 60;
