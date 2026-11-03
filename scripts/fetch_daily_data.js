@@ -50,13 +50,22 @@ async function main() {
     console.log('开始获取所有线路和站点...');
     const lineUrl = 'https://apis.gzmtr.com/app-map/metroweb/linestation';
 
-    // 1. 动态获取所有站点
     let linesData;
     try {
         linesData = await fetchWithRetry(lineUrl, { method: 'POST' });
     } catch (e) {
-        console.error('获取线路站点失败，脚本终止：', e);
-        process.exit(1); // 如果线路获取失败，退出脚本，让 GitHub Action 报警
+        console.warn(`获取线路站点失败 (${e.message})，尝试使用本地 data/line-station.json 备份...`);
+        try {
+            if (!fs.existsSync('./data/line-station.json')) {
+                throw new Error('本地备份文件不存在');
+            }
+            const raw = fs.readFileSync('./data/line-station.json', 'utf-8');
+            linesData = JSON.parse(raw);
+            console.log('成功读取本地线路站点数据，继续执行抓取...');
+        } catch (localErr) {
+            console.error('读取本地备份也失败，脚本终止：', localErr.message);
+            process.exit(1);
+        }
     }
 
     const lines = linesData.businessObject;
