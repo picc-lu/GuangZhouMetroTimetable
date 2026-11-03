@@ -905,8 +905,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         door: null,
         timeMin: null,
         walkMin: null,
-        waitMin: item.startWaitMin || 0, // 新增
-        boardingTime: item.actualStartBoardTime || firstBoardTime, // 修改
+        waitMin: item.startWaitMin || 0,
+        boardingTime: item.actualStartBoardTime || firstBoardTime,
         marginMin: item.startMargin,
         interchangeIdx: null,
         isVirtual3to3: false,
@@ -1039,9 +1039,9 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
 
         let waitTimeHtml = '';
-        if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
+        // 核心修改：如果 bp.waitMin 存在且大于0（即需要等待首班车），就不显示平均等车时间
+        if ((!bp.waitMin || bp.waitMin <= 0) && bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
             const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
-            console.log('线路:', bp.fullLine, '时刻:', bp.boardingTime, '发车间隔:', headway);
             if (typeof headway === 'number' && headway > 0) {
                 const ratio = (typeof _routeWaitRatio === 'number') ? _routeWaitRatio : 0.5;
                 const waitTime = headway * ratio;

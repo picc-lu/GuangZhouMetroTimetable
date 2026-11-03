@@ -310,8 +310,8 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             urgentCount,
             boardingMargins: check.boardingMargins,
             startMargin: check.boardingMargins[0],
-            startWaitMin: check.boardings && check.boardings[0] ? check.boardings[0].waitTime : 0, // 新增
-            actualStartBoardTime: check.boardings && check.boardings[0] ? check.boardings[0].boardTimeMin + check.boardings[0].waitTime : departMin, // 新增
+            startWaitMin: check.boardings && check.boardings[0] ? check.boardings[0].waitTime : 0,
+            actualStartBoardTime: check.boardings && check.boardings[0] ? check.boardings[0].boardTimeMin + check.boardings[0].waitTime : departMin,
             tyxArriveTime: check.tyxArriveTime,
             tyxMargin: check.tyxMargin,
         });
@@ -547,13 +547,13 @@ function checkReachability(path, departMin) {
 
     for (let i = 0; i < path.nodes.length - 1; i++) {
         const u = path.nodes[i], v = path.nodes[i + 1];
-        const w = routeGetEdgeWeight(u, v);
+        let w = routeGetEdgeWeight(u, v);
         if (w === null) return {feasible: false, reason: '路径边缺失'};
 
         const uParts = u.split('|');
         const vParts = v.split('|');
 
-        // 3号线体育西路特判逻辑（保留原样）
+        // 3号线体育西路特判逻辑（保持不变）
         if (uParts.length >= 4 && uParts[0].includes('3号线') && uParts[1] === '体育西路' && uParts[3] === '到站') {
             let nextLine3Station = null;
             for (let j = i + 1; j < path.nodes.length; j++) {
@@ -580,11 +580,11 @@ function checkReachability(path, departMin) {
                 if (margin === null) return { feasible: false, reason: `约 ${fmtHM(arriveTime)} 到达体育西路时，往${dirStr.replace('方向', '')}的末班车已发出` };
                 tyxArriveTime = arriveTime;
                 tyxMargin = margin;
-                t += waitTime; // 有等待则累加时间
+                t += waitTime;
             }
         }
 
-        // 核心重构：上车判定与时间累加
+        // 上车判定
         if (vParts.length >= 4 && vParts[3] === PLATFORM) {
             const isBoarding = (uParts[1] === '开始') || (uParts.length >= 4 && uParts[3] === ARRIVED && uParts[0] !== vParts[0]);
 
@@ -606,10 +606,9 @@ function checkReachability(path, departMin) {
 
                 if (margin && typeof margin === 'object' && margin.needsWait) {
                     waitTime = margin.waitMin;
-                    isWaitFirstTrain = true;
                     margin = margin.marginMin;
+                    isWaitFirstTrain = true;
                 } else if (margin === 'unknown') {
-                    console.warn(`[末班车-数据缺失] ${vParts[1]} 站 ${vParts[0]} 往${vParts[2]} 无末班车数据，已放行`);
                     margin = null;
                 } else if (margin === null) {
                     return { feasible: false, reason: `${vParts[1]} 站 ${vParts[0]} 往${vParts[2]}，到达站台时 ${fmtHM(boardTimeMin)} 已无运营` };
@@ -620,9 +619,22 @@ function checkReachability(path, departMin) {
                     boardTimeMin, waitTime, isWaitFirstTrain, marginMin: margin, downstreamStations: downstream,
                 });
 
-                t += waitTime; // 把等待首班车的时间加到全局时间线上
+                t += waitTime;
             }
         }
+
+        // 核心修复：当边是“站台 -> 发动”时，如果是等首班车，剥离动态注入的等待时间
+        if (uParts.length >= 4 && vParts.length >= 4 && uParts[3] === PLATFORM && vParts[3] === LAUNCH) {
+            const lastBoarding = boardings[boardings.length - 1];
+            // 如果刚才就在这个站台等首班车，直接使用最初的原始图边权
+            if (lastBoarding && lastBoarding.isWaitFirstTrain && lastBoarding.station === uParts[1]) {
+                const origMap = ROUTE_GRAPH.originalEdges.get(u);
+                if (origMap && origMap.has(v)) {
+                    w = origMap.get(v);
+                }
+            }
+        }
+
         t += w / 60;
     }
 

@@ -84,7 +84,7 @@ function parseInterchangeKeys(path, departMin) {
 
     for (let i = 0; i < path.nodes.length - 1; i++) {
         const u = path.nodes[i], v = path.nodes[i + 1];
-        const w = routeGetEdgeWeight(u, v);
+        let w = routeGetEdgeWeight(u, v);
         const uParts = u.split('|');
         const vParts = v.split('|');
 
@@ -97,7 +97,6 @@ function parseInterchangeKeys(path, departMin) {
                 const key = [uParts[1], uParts[0], uParts[2], vParts[0], vParts[2], firstGetOnStation].join('|');
                 const walkMin = (w != null) ? w / 60 : 0;
 
-                // 区分两个时间：到站时间 vs 走到新站台的时间
                 const stationArriveTime = t;
                 const platformTime = t + walkMin;
 
@@ -105,12 +104,14 @@ function parseInterchangeKeys(path, departMin) {
 
                 let marginMin = null;
                 let waitMin = 0;
+                let isWaitFirstTrain = false;
+
                 if (typeof getBoardingMargin === 'function') {
-                    // 注意：判断能否赶上末班车，必须用走到站台的时间 platformTime
                     let res = getBoardingMargin(vParts[0], uParts[1], vParts[2], platformTime, downstream);
                     if (res && typeof res === 'object' && res.needsWait) {
                         waitMin = res.waitMin;
                         marginMin = res.marginMin;
+                        isWaitFirstTrain = true;
                     } else {
                         marginMin = res;
                     }
@@ -118,11 +119,20 @@ function parseInterchangeKeys(path, departMin) {
 
                 const boardingTime = platformTime + waitMin;
 
-                // timeMin 传 stationArriveTime，这样 UI 就会显示“到06:05”
-                result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin });
+                result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin, isWaitFirstTrain });
 
-                // 等待时间累加进时间轴
                 t += waitMin;
+            }
+
+            // 核心修复：剥离注入时间
+            if (uParts[3] === PLATFORM && vParts[3] === LAUNCH) {
+                const lastRes = result[result.length - 1];
+                if (lastRes && lastRes.isWaitFirstTrain && lastRes.key.split('|')[0] === uParts[1]) {
+                    const origMap = ROUTE_GRAPH.originalEdges.get(u);
+                    if (origMap && origMap.has(v)) {
+                        w = origMap.get(v);
+                    }
+                }
             }
         }
         if (w !== null) t += w / 60;
