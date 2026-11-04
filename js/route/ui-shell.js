@@ -48,7 +48,7 @@ function ensureRouteOverlay() {
     ov.innerHTML = `
         <div class="route-container">
             <div class="route-header">
-                <h3>🧭 路径规划 <span class="route-header-note">（未包含有轨电车）</span></h3>
+                <h3>🧭 路径规划 <span class="route-header-note">（未包含海珠、黄埔有轨电车）</span></h3>
                 <button class="route-close" type="button" aria-label="关闭">✕</button>
             </div>
             <div class="route-body">
@@ -95,7 +95,7 @@ function ensureRouteOverlay() {
                         <div class="route-time-trigger" id="route-minute-trigger">30</div>
                          <div class="route-time-mode" id="route-time-mode">
                             <button type="button" class="route-time-mode-btn active"
-                                    data-mode="depart">出发</button>
+                                    data-mode="depart">候车</button>
                             <button type="button" class="route-time-mode-btn"
                                     data-mode="arrive">到达</button>
                         </div>
@@ -823,11 +823,11 @@ function routeMetaText(showFewerDetail = false) {
         return `目标到达 ${fmtHM(min)}（${mode}） · 仅显示 3 个结果`;
     }
 
-    const line1 = `出发时刻 ${fmtHM(min)}（${mode}）`;
+    const line1 = `候车时刻 ${fmtHM(min)}（${mode}）`;
     // 仅当传入 showFewerDetail = true 时才显示副标题，并更新文案
     if (sortMode === 'fewer-transfers' && showFewerDetail) {
         return line1
-            + `<br><span class="route-meta-sub">最多显示 5 个比「最快优先」首位慢 30 分钟以内的结果</span>`;
+            + `<br><span class="route-meta-sub">最多显示 5 个比「最快优先」首位<u>慢 30 分钟以内</u>的结果</span>`;
     }
     return line1;
 }

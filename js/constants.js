@@ -34,6 +34,7 @@ const HARDCODED_COLORS = {
     "黄埔有轨1号线": "#ad2c26",
     "黄埔有轨2号线": "#d9017a",
     "南海有轨1号线": "#60b4e3",
+    "TNH1": "#60b4e3",
 };
 
 const RETRY_TIMES = 3;

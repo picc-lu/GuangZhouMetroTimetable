@@ -370,47 +370,59 @@ async function _executePlanningPipeline(start, end, resultsEl) {
         }
         await Promise.all(r.results.map(async item => {
             try {
-                // 核心修改：解析路径分段，处理 APM 独立计费
+                const INDEPENDENT_FARE_LINES = ['APM', 'TNH1', '南海有轨1号线', '海珠有轨1号线', '黄埔有轨1号线', '黄埔有轨2号线'];
+
                 const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(item.path) : [];
+
+                // 判断是否包含 APM
                 const hasAPM = segs.some(s => s.fullLine === 'APM');
 
-                if (!hasAPM) {
-                    // 纯普通地铁路径，直接查
+                // 判断 TNH1 是否与广佛线直接相邻换乘
+                let hasTNH1GuangfoDirect = false;
+                for (let i = 0; i < segs.length - 1; i++) {
+                    const s1 = segs[i], s2 = segs[i+1];
+                    if ((s1.fullLine === 'TNH1' && s2.fullLine === '广佛线') ||
+                        (s1.fullLine === '广佛线' && s2.fullLine === 'TNH1')) {
+                        hasTNH1GuangfoDirect = true;
+                        break;
+                    }
+                }
+
+                // 1. 如果不需要强制拆分（没有 APM，且没有 TNH1 直接换乘广佛），优先尝试整体查表
+                if (!hasAPM && !hasTNH1GuangfoDirect) {
+                    const overallFare = await fetchRouteFare(item._realStart, item._realEnd);
+                    if (overallFare != null) {
+                        item.fare = overallFare;
+                        return; // 查到了就直接用，结束当前 item 的计算
+                    }
+                }
+
+                // 2. 如果包含 APM、包含 TNH1换广佛，或者整体查表失败，则执行分段计价逻辑
+                const hasIndependentLine = segs.some(s => INDEPENDENT_FARE_LINES.includes(s.fullLine));
+
+                if (!hasIndependentLine) {
                     const fare = await fetchRouteFare(item._realStart, item._realEnd);
-                    if (fare != null) item.fare = fare;
+                    item.fare = (fare != null) ? fare : 2;
                 } else {
-                    // 包含 APM，以 APM 为界拆分普通地铁段
                     let totalFare = 0;
                     let segmentStart = item._realStart;
-                    let validFare = true;
 
                     for (const seg of segs) {
-                        if (seg.fullLine === 'APM') {
-                            // 结算 APM 前的地铁段
+                        if (INDEPENDENT_FARE_LINES.includes(seg.fullLine)) {
                             if (segmentStart !== seg.fromStation) {
                                 const f1 = await fetchRouteFare(segmentStart, seg.fromStation);
-                                if (f1 != null) totalFare += f1;
-                                else validFare = false;
+                                totalFare += (f1 != null) ? f1 : 2;
                             }
-                            // 重置后续地铁段的起点为 APM 的下车站
+                            let fSeg = await fetchRouteFare(seg.fromStation, seg.toStation);
+                            totalFare += (fSeg != null) ? fSeg : 2;
                             segmentStart = seg.toStation;
                         }
                     }
-
-                    // 结算 APM 后的地铁段
                     if (segmentStart !== item._realEnd) {
                         const f2 = await fetchRouteFare(segmentStart, item._realEnd);
-                        if (f2 != null) totalFare += f2;
-                        else validFare = false;
+                        totalFare += (f2 != null) ? f2 : 2;
                     }
-
-                    // 加上 APM 的固定费用（2元/次），如果多次跨越 APM 则累加
-                    const apmCount = segs.filter(s => s.fullLine === 'APM').length;
-                    totalFare += apmCount * 2;
-
-                    if (validFare) {
-                        item.fare = totalFare;
-                    }
+                    item.fare = totalFare;
                 }
             } catch (e) {
                 console.warn('票价计算失败', e);

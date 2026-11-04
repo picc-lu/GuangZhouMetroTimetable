@@ -788,7 +788,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
     if (sortMode === 'fewer-transfers'
         && item.deltaFromFastest != null
         && item.deltaFromFastest > 0) {
-        deltaHtml = `<span class="route-delta">比最快优先慢 ${formatDelta(item.deltaFromFastest)}</span>`;
+        deltaHtml = `<span class="route-delta">比最快优先首位慢 ${formatDelta(item.deltaFromFastest)}</span>`;
     }
 
     // 换乘路径：显示换乘站；直达路径：显示乘车方向（如"往龙潭"）
