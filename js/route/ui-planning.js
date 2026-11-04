@@ -370,9 +370,51 @@ async function _executePlanningPipeline(start, end, resultsEl) {
         }
         await Promise.all(r.results.map(async item => {
             try {
-                const fare = await fetchRouteFare(item._realStart, item._realEnd);
-                if (fare != null) item.fare = fare;
-            } catch (_) {}
+                // 核心修改：解析路径分段，处理 APM 独立计费
+                const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(item.path) : [];
+                const hasAPM = segs.some(s => s.fullLine === 'APM');
+
+                if (!hasAPM) {
+                    // 纯普通地铁路径，直接查
+                    const fare = await fetchRouteFare(item._realStart, item._realEnd);
+                    if (fare != null) item.fare = fare;
+                } else {
+                    // 包含 APM，以 APM 为界拆分普通地铁段
+                    let totalFare = 0;
+                    let segmentStart = item._realStart;
+                    let validFare = true;
+
+                    for (const seg of segs) {
+                        if (seg.fullLine === 'APM') {
+                            // 结算 APM 前的地铁段
+                            if (segmentStart !== seg.fromStation) {
+                                const f1 = await fetchRouteFare(segmentStart, seg.fromStation);
+                                if (f1 != null) totalFare += f1;
+                                else validFare = false;
+                            }
+                            // 重置后续地铁段的起点为 APM 的下车站
+                            segmentStart = seg.toStation;
+                        }
+                    }
+
+                    // 结算 APM 后的地铁段
+                    if (segmentStart !== item._realEnd) {
+                        const f2 = await fetchRouteFare(segmentStart, item._realEnd);
+                        if (f2 != null) totalFare += f2;
+                        else validFare = false;
+                    }
+
+                    // 加上 APM 的固定费用（2元/次），如果多次跨越 APM 则累加
+                    const apmCount = segs.filter(s => s.fullLine === 'APM').length;
+                    totalFare += apmCount * 2;
+
+                    if (validFare) {
+                        item.fare = totalFare;
+                    }
+                }
+            } catch (e) {
+                console.warn('票价计算失败', e);
+            }
         }));
     }
 
@@ -518,6 +560,13 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
                 item.interchanges = parseInterchangeKeys(item.path, bestDepart);
                 item.startMargin = (bestCheck.boardingMargins && bestCheck.boardingMargins.length > 0) ? bestCheck.boardingMargins[0] : null;
 
+                if (bestCheck.boardings && bestCheck.boardings.length > 0) {
+                    item.startWaitMin = bestCheck.boardings[0].waitTime;
+                    item.actualStartBoardTime = bestCheck.boardings[0].boardTimeMin + bestCheck.boardings[0].waitTime;
+                } else {
+                    item.startWaitMin = 0;
+                    item.actualStartBoardTime = bestDepart;
+                }
                 const validMargins = item.boardingMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));
                 item.urgentCount = validMargins.filter(m => m < 15).length;
 

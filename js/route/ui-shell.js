@@ -48,7 +48,7 @@ function ensureRouteOverlay() {
     ov.innerHTML = `
         <div class="route-container">
             <div class="route-header">
-                <h3>🧭 路径规划 <span class="route-header-note">（未包含 APM 和有轨电车）</span></h3>
+                <h3>🧭 路径规划 <span class="route-header-note">（未包含有轨电车）</span></h3>
                 <button class="route-close" type="button" aria-label="关闭">✕</button>
             </div>
             <div class="route-body">
