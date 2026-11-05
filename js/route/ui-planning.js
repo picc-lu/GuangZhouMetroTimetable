@@ -28,7 +28,7 @@ function getOutdatedStations() {
 
             // 如果本地图里查不到这个站
             if (!resolveGraphStationNode(st, 'start')) {
-                result.push({ line, station: st });
+                result.push({line, station: st});
             }
         }
     }
@@ -45,6 +45,7 @@ function isStationInOfficialData(stationName) {
     }
     return false;
 }
+
 /* ==========================================
    空结果引导
    ========================================== */
@@ -282,7 +283,6 @@ async function runRoutePlanning() {
 
         // 执行主规划流水线
         await _executePlanningPipeline(start, end, resultsEl);
-
     } catch (e) {
         resultsEl.innerHTML = `<div class="route-error">规划失败：${escapeHtml(e.message || String(e))}</div>`;
     } finally {
@@ -293,6 +293,8 @@ async function runRoutePlanning() {
         goBtn.classList.remove('loading');
         resultsEl.classList.remove('is-loading');
         setRouteMeta(routeMetaText(true));
+
+        saveRouteSession();
     }
 }
 
@@ -337,7 +339,7 @@ async function _executePlanningPipeline(start, end, resultsEl) {
         resultsEl.innerHTML = `<div class="route-error">${comboResult.error}</div>`;
         return;
     }
-    const { startCands, endCands, validCombos } = comboResult;
+    const {startCands, endCands, validCombos} = comboResult;
 
     // 3. 获取客控数据
     let ctrlStationsForPlanner = null;
@@ -350,7 +352,8 @@ async function _executePlanningPipeline(start, end, resultsEl) {
             if (cfg.avoidCtrlTransfer && stationCtrl) {
                 ctrlStationsForPlanner = Object.keys(stationCtrl);
             }
-        } catch (_) {}
+        } catch (_) {
+        }
     }
 
     // 4. 分支执行算路
@@ -385,7 +388,7 @@ async function _executePlanningPipeline(start, end, resultsEl) {
                 const hasAPM = segs.some(s => s.fullLine === 'APM');
                 let hasTNH1GuangfoDirect = false;
                 for (let i = 0; i < segs.length - 1; i++) {
-                    const s1 = segs[i], s2 = segs[i+1];
+                    const s1 = segs[i], s2 = segs[i + 1];
                     // 只有 TNH1 和 广佛线 直接换乘（礌岗）才算出闸
                     if ((s1.fullLine === 'TNH1' && s2.fullLine === '广佛线') ||
                         (s1.fullLine === '广佛线' && s2.fullLine === 'TNH1')) {
@@ -527,7 +530,7 @@ function _getRoutePlanningOptions() {
         arriveMode: _routeArriveMode,
     });
 
-    return { sortMode, maxTransferMin, avoidOutOfStation, avoidCtrlTransfer };
+    return {sortMode, maxTransferMin, avoidOutOfStation, avoidCtrlTransfer};
 }
 
 /**
@@ -538,47 +541,47 @@ function _getValidStationCombos(start, end) {
 
     const startCands = [];
     const startIsValid = !!resolveGraphStationNode(start, 'start');
-    if (startIsValid) startCands.push({ input: start, real: start });
+    if (startIsValid) startCands.push({input: start, real: start});
     if ((!isMutualNearby || !startIsValid) && NEARBY_STATION_MAP[start]) {
         const alias = NEARBY_STATION_MAP[start];
         if (alias !== start && resolveGraphStationNode(alias, 'start')) {
-            startCands.push({ input: start, real: alias });
+            startCands.push({input: start, real: alias});
         }
     }
 
     const endCands = [];
     const endIsValid = !!resolveGraphStationNode(end, 'end');
-    if (endIsValid) endCands.push({ input: end, real: end });
+    if (endIsValid) endCands.push({input: end, real: end});
     if ((!isMutualNearby || !endIsValid) && NEARBY_STATION_MAP[end]) {
         const alias = NEARBY_STATION_MAP[end];
         if (alias !== end && resolveGraphStationNode(alias, 'end')) {
-            endCands.push({ input: end, real: alias });
+            endCands.push({input: end, real: alias});
         }
     }
 
     if (startCands.length === 0) {
         let msg = `起点「${escapeHtml(start)}」不存在，请检查站名后重试`;
         if (isStationInOfficialData(start)) msg = `起点「${escapeHtml(start)}」属于官方已有数据，但本地路网图暂未收录（本地图未更新）。`;
-        return { error: msg };
+        return {error: msg};
     }
     if (endCands.length === 0) {
         let msg = `终点「${escapeHtml(end)}」不存在，请检查站名后重试`;
         if (isStationInOfficialData(end)) msg = `终点「${escapeHtml(end)}」属于官方已有数据，但本地路网图暂未收录（本地图未更新）。`;
-        return { error: msg };
+        return {error: msg};
     }
 
     const validCombos = [];
     for (const s of startCands) {
         for (const e of endCands) {
-            if (s.real !== e.real) validCombos.push({ s, e });
+            if (s.real !== e.real) validCombos.push({s, e});
         }
     }
 
     if (validCombos.length === 0) {
-        return { error: '起点和终点不能相同' };
+        return {error: '起点和终点不能相同'};
     }
 
-    return { startCands, endCands, validCombos };
+    return {startCands, endCands, validCombos};
 }
 
 /**
@@ -598,7 +601,9 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
                 const mid = Math.floor((lo + hi) / 2);
                 const check = checkReachability(item.path, mid);
                 if (check.feasible && Math.floor(check.arriveMin) <= targetArriveMin) {
-                    bestDepart = mid; bestCheck = check; lo = mid + 1;
+                    bestDepart = mid;
+                    bestCheck = check;
+                    lo = mid + 1;
                 } else {
                     hi = mid - 1;
                 }
@@ -647,7 +652,9 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         finalResults.push(item);
         if (finalResults.length >= 3) break;
     }
-    finalResults.forEach((item, idx) => { item.rank = idx + 1; });
+    finalResults.forEach((item, idx) => {
+        item.rank = idx + 1;
+    });
 
     _applyWaitRatioToResults(allValidResults);
     allValidResults.sort((a, b) => {
@@ -655,7 +662,7 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         return a.totalCost - b.totalCost;
     });
 
-    return { results: finalResults, rejected: [], totalPaths: 0, feasibleCount: finalResults.length };
+    return {results: finalResults, rejected: [], totalPaths: 0, feasibleCount: finalResults.length};
 }
 
 /**
@@ -699,7 +706,9 @@ async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlSta
     }
 
     if (globalFastestCost != null) {
-        finalResults.forEach(item => { item.deltaFromFastest = item.totalCost - globalFastestCost; });
+        finalResults.forEach(item => {
+            item.deltaFromFastest = item.totalCost - globalFastestCost;
+        });
     }
 
     let currentRank = 0, lastArrive = null;
@@ -712,7 +721,7 @@ async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlSta
         item.rank = currentRank;
     });
 
-    return { results: finalResults, rejected: allRejected, totalPaths: 0, feasibleCount: finalResults.length };
+    return {results: finalResults, rejected: allRejected, totalPaths: 0, feasibleCount: finalResults.length};
 }
 
 /**
@@ -762,7 +771,10 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const radio = _routeOverlay.querySelector('input[name="route-sort"][value="fastest"]');
-                if (radio) { radio.checked = true; runRoutePlanning(); }
+                if (radio) {
+                    radio.checked = true;
+                    runRoutePlanning();
+                }
             });
         });
         return;
@@ -775,8 +787,16 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
             const targetArriveMin = getRouteDepartMin();
             const LIMIT = 26 * 60;
             const suggestions = [];
-            if (targetArriveMin + 30 <= LIMIT) suggestions.push({ action: 'later-arrive', label: `目标到达延后 30 分钟（${fmtHM(targetArriveMin + 30)}）`, value: 30 });
-            if (targetArriveMin + 60 <= LIMIT) suggestions.push({ action: 'later-arrive', label: `目标到达延后 1 小时（${fmtHM(targetArriveMin + 60)}）`, value: 60 });
+            if (targetArriveMin + 30 <= LIMIT) suggestions.push({
+                action: 'later-arrive',
+                label: `目标到达延后 30 分钟（${fmtHM(targetArriveMin + 30)}）`,
+                value: 30
+            });
+            if (targetArriveMin + 60 <= LIMIT) suggestions.push({
+                action: 'later-arrive',
+                label: `目标到达延后 1 小时（${fmtHM(targetArriveMin + 60)}）`,
+                value: 60
+            });
 
             if (suggestions.length > 0) {
                 html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
@@ -784,7 +804,7 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
                 html += `</div>`;
             }
         } else {
-            const suggestions = buildRouteSuggestions(r, { sortMode });
+            const suggestions = buildRouteSuggestions(r, {sortMode});
             if (suggestions.length > 0) {
                 html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
                 html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
@@ -799,10 +819,16 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
         resultsEl.innerHTML = html;
 
         const extBtn = resultsEl.querySelector('#route-btn-external');
-        if (extBtn) extBtn.addEventListener('click', (e) => { e.stopPropagation(); openExternalMap(start, end); });
+        if (extBtn) extBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openExternalMap(start, end);
+        });
 
         resultsEl.querySelectorAll('.route-suggest-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => { e.stopPropagation(); applyRouteSuggestion(btn.dataset.action, btn.dataset.value); });
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                applyRouteSuggestion(btn.dataset.action, btn.dataset.value);
+            });
         });
         return;
     }
@@ -829,9 +855,14 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
     const outdated = getOutdatedStations();
     if (outdated.length > 0) {
         const grouped = {};
-        outdated.forEach(item => { if (!grouped[item.line]) grouped[item.line] = []; grouped[item.line].push(item.station); });
+        outdated.forEach(item => {
+            if (!grouped[item.line]) grouped[item.line] = [];
+            grouped[item.line].push(item.station);
+        });
         let detailsHtml = '';
-        Object.keys(grouped).slice(0, 3).forEach(line => { detailsHtml += `<div><b>${line}</b>：${grouped[line].join('、')}</div>`; });
+        Object.keys(grouped).slice(0, 3).forEach(line => {
+            detailsHtml += `<div><b>${line}</b>：${grouped[line].join('、')}</div>`;
+        });
         headlineHtml += `<div class="route-outdated-notice">
             <div style="font-size: 14px; margin-bottom: 4px;">检测到官方存在新站点，本地线路图未更新，规划结果可能不是最优：</div>
             <div style="font-weight: 500; font-size: 12px; line-height: 1.6; opacity: 0.9;">${detailsHtml}</div></div>`;
@@ -891,9 +922,11 @@ function _bindRouteCardEvents(resultsEl) {
             if (isExpanding) {
                 const routeBody = card.closest('.route-body');
                 if (!routeBody) return;
-                const preventScroll = (ev) => { ev.preventDefault(); };
-                routeBody.addEventListener('wheel', preventScroll, { passive: false });
-                routeBody.addEventListener('touchmove', preventScroll, { passive: false });
+                const preventScroll = (ev) => {
+                    ev.preventDefault();
+                };
+                routeBody.addEventListener('wheel', preventScroll, {passive: false});
+                routeBody.addEventListener('touchmove', preventScroll, {passive: false});
                 routeBody.style.pointerEvents = 'none';
                 const unlock = () => {
                     routeBody.removeEventListener('wheel', preventScroll);
@@ -909,13 +942,14 @@ function _bindRouteCardEvents(resultsEl) {
                     else if (cardRect.bottom > bodyRect.bottom) scrollDistance = cardRect.bottom - bodyRect.bottom + padding;
 
                     if (scrollDistance > 5) {
-                        routeBody.scrollTo({ top: routeBody.scrollTop + scrollDistance, behavior: 'smooth' });
+                        routeBody.scrollTo({top: routeBody.scrollTop + scrollDistance, behavior: 'smooth'});
                         setTimeout(unlock, 500);
                     } else {
                         unlock();
                     }
                 }, 120);
             }
+            setTimeout(saveRouteSession, 100);
         });
     });
 

@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.10",
+  "current": "1.2.10a",
   "entries": [
+    {
+      "version": "1.2.10a",
+      "date": "2026-11-05",
+      "items": [
+        { "type": "修复", "text": "补全缺失代码" }
+      ]
+    },
     {
       "version": "1.2.10",
       "date": "2026-11-05",
