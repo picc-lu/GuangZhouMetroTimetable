@@ -812,9 +812,13 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
             }
         }
 
-        html += `<div style="margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 4px;">
-                 <button type="button" class="route-suggest-btn" id="route-btn-external">🗺️ 使用外部地图导航</button>
-                 </div></div>`;
+        if (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV) {
+            html += `<div style="margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 4px;">
+                     <button type="button" class="route-suggest-btn" id="route-btn-external">🗺️ 使用外部地图导航</button>
+                     </div>`;
+        }
+
+        html += `</div>`;
         hideAllRouteLegends();
         resultsEl.innerHTML = html;
 
