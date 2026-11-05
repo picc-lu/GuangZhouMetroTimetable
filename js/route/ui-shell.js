@@ -1001,7 +1001,7 @@ function showRestorePrompt() {
         border-radius: 12px;
         margin: 12px auto;
         max-width: 800px;
-        padding: 12px 20px;
+        padding: 10px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1010,16 +1010,18 @@ function showRestorePrompt() {
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(43, 125, 233, 0.1);
         width: calc(100% - 32px);
+        gap: 12px;
+        box-sizing: border-box;
     `;
 
     prompt.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px;">🕒</span>
-            <span>检测到上次未完成的路径规划</span>
+        <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0; line-height:1.4;">
+            <span style="font-size:18px; flex-shrink:0;">🕒</span>
+            <span style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">存在意外关闭的路径规划</span>
         </div>
-        <div style="display:flex; gap:12px;">
-            <button id="btn-cancel-restore" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:13px;">忽略</button>
-            <button id="btn-do-restore" style="background:#2b7de9; color:#fff; border:none; padding:6px 16px; border-radius:6px; cursor:pointer; font-weight:bold;">一键恢复</button>
+        <div style="display:flex; gap:8px; flex-shrink:0;">
+            <button id="btn-cancel-restore" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:13px; padding:4px 8px; white-space:nowrap;">忽略</button>
+            <button id="btn-do-restore" style="background:#2b7de9; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; white-space:nowrap;">一键恢复</button>
         </div>
     `;
 
@@ -1095,9 +1097,23 @@ async function restoreRouteSession() {
             const card = _routeOverlay.querySelector(`.route-card[data-path-key="${window._pendingExpandKey}"]`);
             if (card) {
                 card.classList.add('expanded');
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                setTimeout(() => {
+                    const routeBody = card.closest('.route-body');
+                    if (routeBody) {
+                        const bodyRect = routeBody.getBoundingClientRect();
+                        const cardRect = card.getBoundingClientRect();
+                        // 目标位置：卡片顶部减去一定的留白（比如 20px）
+                        const scrollDistance = cardRect.top - bodyRect.top - 20;
+
+                        routeBody.scrollTo({
+                            top: routeBody.scrollTop + scrollDistance,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 350); // 等待卡片展开动画
             }
             window._pendingExpandKey = null;
-        }, 500); // 给 DOM 渲染留一点时间
+        }, 800); // 外层延迟加大，确保网络请求和 DOM 完全渲染
     }
 }

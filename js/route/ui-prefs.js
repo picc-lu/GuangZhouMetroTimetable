@@ -126,30 +126,29 @@ function applyRoutePrefs(ov) {
 // ========== 会话恢复机制 ==========
 const ROUTE_SESSION_KEY = 'gz_route_session_state';
 
-// 保存当前查询状态
 function saveRouteSession() {
     if (!_routeOverlay) return;
 
-    // 判断弹窗是否打开且有起终点
     const startInput = _routeOverlay.querySelector('#route-start');
     const endInput = _routeOverlay.querySelector('#route-end');
     if (!startInput || !endInput || !startInput.value.trim() || !endInput.value.trim()) return;
 
+    const isSystemTime = (_routeDepartMin === null);
+    // 借用 API 里的 getRouteDepartMin 获取当前的真实分钟数
+    const actualDepartMin = isSystemTime ? getRouteDepartMin() : _routeDepartMin;
+
     const state = {
         start: startInput.value.trim(),
         end: endInput.value.trim(),
-        // 时间设置
-        departMin: _routeDepartMin,
+        departMin: actualDepartMin, // 存具体时间
+        isSystemTime: isSystemTime, // 标记当时是不是“现在”模式
         arriveMode: _routeArriveMode,
-        // 排序
         sortMode: _routeOverlay.querySelector('input[name="route-sort"]:checked')?.value || 'fastest',
-        // 高级设置
         maxTransferChecked: _routeOverlay.querySelector('#route-max-transfer-check')?.checked,
         maxTransferMin: _routeOverlay.querySelector('#route-max-transfer-min')?.value,
         avoidOutdoor: _routeOverlay.querySelector('#route-avoid-outdoor-check')?.checked,
         avoidCtrl: _routeOverlay.querySelector('#route-avoid-ctrl-check')?.checked,
         walkSpeed: _routeOverlay.querySelector('input[name="route-walk-speed"]:checked')?.value,
-        // 展开的卡片（用路径节点拼接作为唯一ID）
         expandedCard: _routeOverlay.querySelector('.route-card.expanded')?.dataset.pathKey || null
     };
 
