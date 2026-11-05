@@ -19,6 +19,7 @@ let STATION_COORDS = null;   // 由 coords.js 赋值
 // ---- 主界面状态 ----
 let currentCustomTime = null;
 let systemTimeoutId = null;
+let refresh5AMTimeoutId = null;
 let scrollPositions = {};
 let selectedLines = new Set();
 let rowHeight = 45;

@@ -144,22 +144,25 @@ function showYesterdayDataNotice() {
     }
 }
 
+async function refreshAllData() {
+    _gzCompletedStations = new Set();
+    await fetchLineStations();
+    await fetchServiceTimes();
+    if (currentCustomTime === null) {
+        scheduleNextMinuteTick();
+    }
+}
+
 // ========== 新增：强制获取最新数据 ==========
 function forceFetchLatestData() {
     (async () => {
         try {
             isFetchingData = true;
-            _gzCompletedStations = new Set();
-            await fetchLineStations();
-            await fetchServiceTimes();
+            await refreshAllData();
 
             // 移除凌晨时段的昨日数据提示
             const notice = document.querySelector('.yesterday-data-notice');
             if (notice) notice.remove();
-
-            if (currentCustomTime === null) {
-                scheduleNextMinuteTick();
-            }
         } catch (err) {
             console.error('[5:00定时] 获取数据失败', err);
         } finally {
@@ -179,9 +182,10 @@ function scheduleForceRefreshAt5AM() {
     }
     const delay = next5 - now;
 
-    systemTimeoutId = setTimeout(() => {
+    if (refresh5AMTimeoutId) clearTimeout(refresh5AMTimeoutId);
+    refresh5AMTimeoutId = setTimeout(() => {
+        refresh5AMTimeoutId = null;
         forceFetchLatestData();
-        // 递归设置下一天的 5:00 定时
         scheduleForceRefreshAt5AM();
     }, delay);
 }
@@ -264,6 +268,7 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
 
         const cached = await loadDataFromCache();
         if (cached) {
+            // 复用缓存渲染
             LINE_STATIONS = cached.lineStations;
             rawServiceRecords = cached.serviceRecords;
             populateLineFilter();
@@ -271,24 +276,16 @@ document.getElementById('fetch-data-btn').addEventListener('click', async () => 
             parseTimeRecords(rawServiceRecords);
             versionEl.textContent = `线路版本: 缓存数据 (${cached.serviceDate})`;
             versionEl.classList.add('version-highlight');
-            setTimeout(() => {
-                versionEl.classList.remove('version-highlight');
-            }, 3000);
+            setTimeout(() => versionEl.classList.remove('version-highlight'), 3000);
+            if (currentCustomTime === null) scheduleNextMinuteTick();
         } else {
-            _gzCompletedStations = new Set();
-            await fetchLineStations();
-            await fetchServiceTimes();
-        }
-
-        if (currentCustomTime === null) {
-            scheduleNextMinuteTick();
+            // 强制拉取新数据
+            await refreshAllData();
         }
     } catch (err) {
         console.error(err);
         document.getElementById('map-wrapper').innerHTML = `<div class="loading-message" style="color:red;">获取数据失败：${err.message}</div>`;
-        if (currentCustomTime === null) {
-            scheduleNextMinuteTick();
-        }
+        if (currentCustomTime === null) scheduleNextMinuteTick();
     } finally {
         const btn = document.getElementById('fetch-data-btn');
         btn.disabled = false;

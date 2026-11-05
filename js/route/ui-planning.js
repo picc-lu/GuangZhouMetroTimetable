@@ -13,6 +13,10 @@ const NEARBY_STATION_MAP = {
 // ========== 检测未收录站点 ==========
 let _outdatedStationsCache = null; // 缓存结果
 
+function invalidateOutdatedStationsCache() {
+    _outdatedStationsCache = null;
+}
+
 function getOutdatedStations() {
     if (_outdatedStationsCache !== null) return _outdatedStationsCache;
     if (typeof ROUTE_GRAPH === 'undefined' || !ROUTE_GRAPH.loaded) return [];
@@ -40,6 +44,13 @@ function getOutdatedStations() {
 /** 检查该站是否存在于官方实时数据中 */
 function isStationInOfficialData(stationName) {
     if (!stationName) return false;
+
+    // 如果有 STATION_INDEX，直接 O(1) 判断
+    if (typeof STATION_INDEX !== 'undefined' && STATION_INDEX[stationName]) {
+        return true;
+    }
+
+    // 兜底（防止索引未构建时漏判）
     for (const arr of Object.values(LINE_STATIONS)) {
         if (arr.includes(stationName)) return true;
     }
@@ -595,22 +606,24 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         if (subR.error || !subR.results || subR.results.length === 0) continue;
 
         for (const item of subR.results) {
-            let lo = 5 * 60, hi = targetArriveMin, bestCheck = null, bestDepart = null;
+            // 【第4点修改】：从目标时刻往早按 5 分钟步长线性扫描，彻底避免首班车等待导致的不单调问题
+            const STEP = 5;
+            const EARLIEST = Math.max(5 * 60, targetArriveMin - 4 * 60);
+            let bestDepart = null;
+            let bestCheck = null;
 
-            while (lo <= hi) {
-                const mid = Math.floor((lo + hi) / 2);
-                const check = checkReachability(item.path, mid);
+            for (let t = targetArriveMin; t >= EARLIEST; t -= STEP) {
+                const check = checkReachability(item.path, t);
                 if (check.feasible && Math.floor(check.arriveMin) <= targetArriveMin) {
-                    bestDepart = mid;
+                    bestDepart = t;
                     bestCheck = check;
-                    lo = mid + 1;
-                } else {
-                    hi = mid - 1;
+                    break; // 从晚到早，第一个满足条件的即为最晚出发
                 }
             }
 
             if (bestDepart !== null && bestCheck) {
-                if (targetArriveMin - bestCheck.arriveMin > 20) continue;
+                // 【第23点修改】：记录提前时间，留给后面统一过滤
+                item._earlyMin = targetArriveMin - bestCheck.arriveMin;
 
                 item.actualDepartMin = bestDepart;
                 item.arriveMin = bestCheck.arriveMin;
@@ -638,28 +651,30 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         }
     }
 
-    allValidResults.sort((a, b) => {
+    let pool = allValidResults.filter(item => item._earlyMin <= 20);
+    if (pool.length === 0) {
+        pool = allValidResults;
+    }
+
+    _applyWaitRatioToResults(pool);
+
+    pool.sort((a, b) => {
         if (Math.abs(b.actualDepartMin - a.actualDepartMin) > 0.01) return b.actualDepartMin - a.actualDepartMin;
         return a.totalCost - b.totalCost;
     });
 
     const seenPaths = new Set();
     const finalResults = [];
-    for (const item of allValidResults) {
+    for (const item of pool) {
         const pathKey = item.path.nodes.join('|');
         if (seenPaths.has(pathKey)) continue;
         seenPaths.add(pathKey);
         finalResults.push(item);
         if (finalResults.length >= 3) break;
     }
+
     finalResults.forEach((item, idx) => {
         item.rank = idx + 1;
-    });
-
-    _applyWaitRatioToResults(allValidResults);
-    allValidResults.sort((a, b) => {
-        if (Math.abs(b.actualDepartMin - a.actualDepartMin) > 0.01) return b.actualDepartMin - a.actualDepartMin;
-        return a.totalCost - b.totalCost;
     });
 
     return {results: finalResults, rejected: [], totalPaths: 0, feasibleCount: finalResults.length};
@@ -733,13 +748,23 @@ function _sortCombinedRoutes(allResults, sortMode, globalFastestCost) {
         allResults.sort((a, b) => a.interchanges.length - b.interchanges.length || a.totalCost - b.totalCost);
     } else if (sortMode === 'conservative') {
         const getMinMargin = (item) => {
-            const valid = (item.boardingMargins || []).filter(m => m != null && m !== 'unknown' && !isNaN(m));
+            const allMargins = [...(item.boardingMargins || [])];
+            if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
+                allMargins.push(item.tyxMargin);
+            }
+            const valid = allMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));
             return valid.length > 0 ? Math.min(...valid) : 9999;
         };
+
         allResults.sort((a, b) => {
             const aMin = getMinMargin(a), bMin = getMinMargin(b);
             const getLevel = (m) => m <= 10 ? 1 : (m <= 20 ? 2 : 3); // 1危险，2警戒，3安全
             const aLv = getLevel(aMin), bLv = getLevel(bMin);
+
+            // >>> 新增：如果双方都是完全安全（没有图标），直接按耗时排
+            if (aLv === 3 && bLv === 3) {
+                return a.totalCost - b.totalCost;
+            }
 
             if (aLv !== bLv) return bLv - aLv;
             if (Math.abs(aMin - bMin) > 0.1) return bMin - aMin;
@@ -840,7 +865,11 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
     // ---- 正常渲染有结果的情况 ----
     let hasUrgent10 = false, hasUrgent20 = false;
     r.results.forEach(item => {
-        (item.boardingMargins || []).forEach(m => {
+        const allMargins = [...(item.boardingMargins || [])];
+        if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
+            allMargins.push(item.tyxMargin);
+        }
+        allMargins.forEach(m => {
             if (m != null && m !== 'unknown') {
                 if (m >= 0 && m <= 10) hasUrgent10 = true;
                 else if (m > 10 && m <= 20) hasUrgent20 = true;

@@ -29,9 +29,10 @@ function openDB() {
 function getServiceDate(date = new Date()) {
     const d = new Date(date);
     if (d.getHours() < 5) d.setDate(d.getDate() - 1);
-    return d.toLocaleDateString('zh-CN', {
-        year: 'numeric', month: '2-digit', day: '2-digit'
-    }).replace(/\//g, '-');
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
 
 async function saveDataToCache(lineStations, serviceRecords, failedStations = []) {

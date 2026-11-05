@@ -1,7 +1,3 @@
-let topoAutoRefreshTimer = null;
-let hideTopoText = false;
-let hideTopoNode = false;
-
 const TOPO_FILES = [
     '1号线', '2号线', '3号线', '3号线北', '4号线', '5号线', '6号线', '7号线', '8号线', '9号线', '10号线', '11号线', '12号线东', '12号线西', '13号线', '14号线(知识城)', '14号线', '18号线', '21号线', '22号线', '佛山2号线', '佛山3号线', '南海有轨1号线', '广佛线', '海珠有轨1号线', '黄埔有轨1号线', '黄埔有轨2号线', 'APM'
 ];
@@ -703,7 +699,7 @@ function applyTopoTransform() {
                 const isSpecial = text.dataset.special === 'true';
 
                 // 如果开启了隐藏文本，直接 display: none
-                if (hideTopoText) {
+                if (isTextHidden) {
                     text.style.display = 'none';
                     return;
                 }

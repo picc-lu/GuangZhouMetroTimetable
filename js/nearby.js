@@ -64,6 +64,14 @@ function calculateNearby(lat, lng, limit) {
     }
     const results = [];
     for (const [name, coord] of Object.entries(STATION_COORDS)) {
+        // 过滤掉不支持路径规划的站（如有轨电车）
+        if (typeof isRouteEligibleStation === 'function') {
+            const lines = (typeof STATION_INDEX !== 'undefined' && STATION_INDEX[name]) || [];
+            if (!isRouteEligibleStation(name, lines)) {
+                continue;
+            }
+        }
+
         const [sLng, sLat] = coord;
         const dist = haversineDistance(lat, lng, sLat, sLng);
         results.push({ name, dist });

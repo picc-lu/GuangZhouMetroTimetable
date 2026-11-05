@@ -712,14 +712,6 @@ function initRouteTimePickers(ov) {
         this.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
 
-    ov.querySelector('#route-now').addEventListener('click', () => {
-        _routeDepartMin = null;
-        refreshRouteTimeTriggers();
-        setRouteMeta(routeMetaText());
-        hourPanel.style.display = 'none';
-        minutePanel.style.display = 'none';
-    });
-
     refreshRouteTimeTriggers();
 }
 

@@ -205,9 +205,12 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
         }
     });
 
-    document.addEventListener('click', (e) => {
-        if (!inputEl.parentElement.contains(e.target)) hide();
-    });
+    const overlayEl = inputEl.closest('.route-overlay');
+    if (overlayEl) {
+        overlayEl.addEventListener('click', (e) => {
+            if (!inputEl.parentElement.contains(e.target)) hide();
+        });
+    }
 
     // ---- 滚动 / 视口变化处理 ----
     // 弹窗内部滚动 → 列表跟着输入框一起移出可见区，直接隐藏最干净

@@ -1,4 +1,4 @@
-const CACHE_NAME = `gz-metro-v1.2.10b`;
+const CACHE_NAME = `gz-metro-v1.2.11`;
 const ASSETS = [
     './',
     './index.html',
@@ -23,8 +23,10 @@ const ASSETS = [
     './js/ui.js',
     './js/render.js',
     './js/time.js',
+    './js/topo.js',
     './js/theme.js',
     './js/main.js',
+
     './icons/icon.svg',
     './icons/icon-384.png',
 
@@ -32,6 +34,9 @@ const ASSETS = [
     './data/line3-through-train.json',
     './data/short-services.json',
     './data/transfers.json',
+    './data/headways.json',
+    './data/fares.json',
+    './data/daily-times.json',
     './css/route-shell.css',
     './css/route-options.css',
     './css/route-result.css',
@@ -43,6 +48,7 @@ const ASSETS = [
     './js/route/yen.js',
     './js/route/parser.js',
     './js/route/planner.js',
+    './js/route/headway.js',
     './js/route/ui-state.js',
     './js/route/ui-prefs.js',
     './js/route/ui-autocomplete.js',
@@ -78,24 +84,52 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // API 请求交给浏览器处理
+    // 1. 忽略官方 API 和不支持的请求
     if (url.hostname === 'apis.gzmtr.com') return;
-    if (url.hostname === 'ydyc.gzmtr.cn') return;   // 车站管制 API
-
-    // changelog 每次实时拉取，不走缓存
-    if (url.pathname.endsWith('/data/changelog.json')) return;   // 新增
-
+    if (url.hostname === 'ydyc.gzmtr.cn') return;
     if (event.request.method !== 'GET') return;
 
-    event.respondWith(
-        caches.match(event.request).then(cached => {
-            if (cached) return cached;
-            return fetch(event.request).then(resp => {
-                if (!resp || resp.status !== 200 || resp.type !== 'basic') return resp;
+    // 2. changelog.json：网络优先，保证用户能看到最新的更新提示
+    if (url.pathname.endsWith('/data/changelog.json')) {
+        event.respondWith(
+            fetch(event.request).then(resp => {
                 const clone = resp.clone();
                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                 return resp;
-            }).catch(() => caches.match('./index.html'));
-        })
-    );
+            }).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // 3. 页面、JS、CSS、静态 JSON：Stale-While-Revalidate
+    const isCoreAsset = /\.(html|js|css|json)$/.test(url.pathname) || url.pathname === './';
+
+    if (isCoreAsset) {
+        event.respondWith(
+            caches.match(event.request).then(cached => {
+                const fetchPromise = fetch(event.request).then(resp => {
+                    if (resp && resp.status === 200 && resp.type === 'basic') {
+                        const clone = resp.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    }
+                    return resp;
+                }).catch(() => cached);
+
+                return cached || fetchPromise;
+            })
+        );
+    } else {
+        // 4. 图片、字体等（兜底）：缓存优先
+        event.respondWith(
+            caches.match(event.request).then(cached => {
+                if (cached) return cached;
+                return fetch(event.request).then(resp => {
+                    if (!resp || resp.status !== 200 || resp.type !== 'basic') return resp;
+                    const clone = resp.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    return resp;
+                }).catch(() => caches.match('./index.html'));
+            })
+        );
+    }
 });

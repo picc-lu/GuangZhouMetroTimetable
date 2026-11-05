@@ -139,6 +139,9 @@ async function fetchLineStations() {
     versionEl.textContent = `线路版本: 实时获取 (${new Date().toLocaleDateString()})`;
     // 立即渲染线路骨架（时间占位 --:--），让用户先看到线路
     renderAllLines();
+    if (typeof invalidateOutdatedStationsCache === 'function') {
+        invalidateOutdatedStationsCache();
+    }
 }
 
 /** 第二步：获取各站运营时间 */
@@ -151,6 +154,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
         _autoRetryCount++;
     } else {
         _autoRetryCount = 0;
+        failedStations = [];   // 新一轮全量抓取，清空上次的失败记录
     }
     const uniqueStations = isRetry
         ? stationsToFetch.filter(s => allStationsSet.has(s))
@@ -198,17 +202,37 @@ async function fetchServiceTimes(stationsToFetch = null) {
                     rawServiceRecords = allRecords;
                     parseTimeRecords(rawServiceRecords, { skipRender: true });
                     await saveDataToCache(LINE_STATIONS, rawServiceRecords, []);
-                    renderAllLines();
+                    scheduleRender();          // <-- 智能增量：有 DOM 就 patch，没 DOM 才重建
                     finishLoadingMessage();
 
                     // 找出没有数据的站点，静默向官方补发请求
                     const missing = uniqueStations.filter(st => {
-                        const d = lineDirectionTime[st] || (Object.values(lineDirectionTime).find(l => l[st]));
-                        return !d || (d.up && d.up.length === 0 && d.down && d.down.length === 0) || (!d.up && !d.down);
+                        let hasAnyData = false;
+                        for (const [line, stations] of Object.entries(LINE_STATIONS)) {
+                            if (!stations.includes(st)) continue;
+                            const d = lineDirectionTime[line]?.[st];
+                            if (!d) continue;
+
+                            if (line === '11号线') {
+                                if (d.upFull || d.upTerminal || d.downFull || d.downTerminal) {
+                                    hasAnyData = true;
+                                    break;
+                                }
+                            } else {
+                                if ((d.up && d.up.length > 0) || (d.down && d.down.length > 0)) {
+                                    hasAnyData = true;
+                                    break;
+                                }
+                            }
+                        }
+                        return !hasAnyData;
                     });
-                    if (missing.length > 0 && missing.length < 30) { // 如果缺失太多可能说明接口挂了，就不补了
+                    if (missing.length > 0 && missing.length < 30) {
                         console.log('[补抓] 发现少量缺失站点，尝试向官方请求补充...', missing);
-                        fetchServiceTimes(missing); // 降级调用原本的单站抓取逻辑
+                        await fetchServiceTimes(missing);
+                        // fetchServiceTimes 内部（重试模式）最后会调用 finishLoadingMessage()
+                    } else {
+                        finishLoadingMessage();
                     }
                     return;
                 }
@@ -322,9 +346,11 @@ async function fetchServiceTimes(stationsToFetch = null) {
 
     // 自动重试失败站点
     if (failedStations.length > 0 && _autoRetryCount < AUTO_RETRY_MAX) {
-        console.log(`[自动重试] 第 ${_autoRetryCount + 1} 次自动重试，失败站点：${failedStations.length} 个`);
+        const toRetry = failedStations.slice();
+        failedStations = [];   // 清空，递归里只有真正失败的才会重新 push
+        console.log(`[自动重试] 第 ${_autoRetryCount + 1} 次自动重试，失败站点：${toRetry.length} 个`);
         await new Promise(r => setTimeout(r, 1000));
-        await fetchServiceTimes(failedStations);
+        await fetchServiceTimes(toRetry);
         return;
     }
 
@@ -513,7 +539,7 @@ async function fetchStationControllers() {
         for (const item of list) {
             const stationNo = item.StationNo;
             const type = item.type;
-            const rawName = MAPDATA?.stationName?.ch?.[stationNo]?.name || '';
+            const rawName = (typeof MAPDATA !== 'undefined' && MAPDATA?.stationName?.ch?.[stationNo]?.name) || '';
             const name = cleanMapDataStationName(rawName);
             if (!name) {
                 console.warn(`[车站管制] 无法解析 StationNo=${stationNo} 的站名`);

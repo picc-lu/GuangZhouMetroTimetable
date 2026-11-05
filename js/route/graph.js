@@ -75,7 +75,6 @@ function loadRouteGraph() {
             ROUTE_GRAPH.userWalkSpeed = 1.5;                 // 默认"正常"
             ROUTE_GRAPH.version = data.version || '';
             ROUTE_GRAPH.throughTrains = buildThroughTrains(throughData);  // 新增
-            ROUTE_GRAPH.loaded = true;
 
             const originalEdges = new Map();
             for (const [from, toMap] of edges.entries()) {
@@ -103,6 +102,7 @@ function loadRouteGraph() {
             ROUTE_GRAPH.originalEdges = originalEdges;
 
             ROUTE_GRAPH.loaded = true;
+            ROUTE_GRAPH.loading = null;
 
         })
         .catch(err => {

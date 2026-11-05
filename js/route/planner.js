@@ -279,7 +279,11 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         }
         if (isCrossSegInfeasible) continue;
 
-        const urgentCount = (check.boardingMargins || [])
+        const allMarginsForUrgent = [...(check.boardingMargins || [])];
+        if (check.tyxMargin != null && check.tyxMargin !== 'unknown' && !isNaN(check.tyxMargin)) {
+            allMarginsForUrgent.push(check.tyxMargin);
+        }
+        const urgentCount = allMarginsForUrgent
             .filter(m => m != null && m !== 'unknown' && m < 15)
             .length;
 
@@ -340,24 +344,27 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         });
     };
 
-    // 提取计算安全分的函数（连乘积，体现“每个危险环节都会累计风险”）
+    // 修改 planner.js 中的 getSafetyScore
     const getSafetyScore = (item) => {
         let score = 1;
         let hasMargin = false;
+        let hasDanger = false;
 
-        // 遍历所有上车点（包含起点和所有换乘站）
-        (item.boardingMargins || []).forEach(m => {
+        const allMargins = [...(item.boardingMargins || [])];
+        if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
+            allMargins.push(item.tyxMargin);
+        }
+
+        allMargins.forEach(m => {
             if (m != null && m !== 'unknown' && !isNaN(m)) {
                 hasMargin = true;
-                // 将余量限制在 [0, 20] 之间并归一化，余量 >= 20 按 1 计算，不产生额外加成
                 const val = Math.max(0, Math.min(m, 20)) / 20;
-                // 连乘：任何一个环节极度危险，都会大幅拉低总分
                 score *= val;
             }
         });
 
-        // 如果没有有效数据，给 1 分（最高）
         if (!hasMargin) return 1;
+        if (!hasDanger) return 1;
         return score;
     };
 
@@ -725,7 +732,6 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
                 || targetName.includes(toName);
         });
     }
-
     if (candidates.length > 0) {
         const matched = candidates.filter(t => timeMin >= t.first && timeMin <= t.last);
         if (matched.length === 0) {
