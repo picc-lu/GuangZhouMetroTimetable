@@ -49,7 +49,7 @@
 .route-arrive-time { color: #1e293b; font-size: 17px; font-variant-numeric: tabular-nums; font-weight: 800; }
 .route-arrive-label { color: #94a3b8; font-size: 11px; letter-spacing: 0.5px; }
 /* 线路角标 */
-.route-segments { align-items: center; display: inline-flex; flex-wrap: wrap; gap: 5px; }
+.route-segments { align-items: center; display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .route-segment-badge { align-items: center; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); display: inline-flex; font-size: 14px; font-weight: 800; justify-content: center; letter-spacing: 0.3px; line-height: 1.3; padding: 4px 12px; position: relative; white-space: nowrap; }
 .route-segment-warn {
     bottom: -7px;
@@ -256,4 +256,4 @@
 }
 .route-station-ctrl-item.is-future{background:#f8fafc;border-left:3px dashed #cbd5e1;color:#64748b}
 .route-station-ctrl-item.is-future .route-station-ctrl-count{background:#94a3b8;color:#f8fafc}
-.route-station-ctrl-note{color:#94a3b8;display:inline-block;font-size:11px;font-weight:500margin-left:4px;}
+.route-station-ctrl-note{color:#94a3b8;display:inline-block;font-size:11px;font-weight:500;margin-left:4px;}

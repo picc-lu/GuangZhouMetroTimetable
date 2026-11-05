@@ -512,22 +512,131 @@ html, body {
 ::view-transition-new(root) {
     z-index: 2;
 }
-.author-footer{align-items:center;display:flex;flex-wrap:wrapgap:16px;justify-content:center;margin-top:12px;}
-.changelog-btn{background:transparent;border:1px solid #cbd5e1;border-radius:6px;color:#64748b;cursor:pointer;font-family:inherit;font-size:13px;padding:6px 12px;transition:all 0.15s}
-.changelog-btn:hover{background:#f1f5f9;border-color:#94a3b8color:#1f2b3c;}
-.changelog-overlay{align-items:center;backdrop-filter:blur(2px)background:rgba(0,0,0,0.5);display:flex;inset:0;justify-content:center;position:fixed;z-index:10000;}
-.changelog-container{animation:routeFadeIn 0.2s ease-outbackground:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.2);display:flex;flex-direction:column;max-height:80vh;max-width:500px;width:90%;}
-.changelog-header{align-items:center;border-bottom:1px solid #e2e8f0display:flex;justify-content:space-between;padding:16px 20px;}
-.changelog-header h3{color:#1e293bfont-size:18px;margin:0;}
-.changelog-close{background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;transition:color 0.15s}
-.changelog-close:hover{color:#1e293b}
-.changelog-body{color:#475569;font-size:14px;line-height:1.6;overflow-y:auto;overscroll-behavior:containpadding:20px;}
-.log-entry{margin-bottom:24px}
-.log-entry:last-child{margin-bottom:0}
-.log-version{align-items:center;color:#1e293b;display:flex;font-size:16px;font-weight:bold;gap:8pxmargin-bottom:10px;}
-.log-version span{color:#94a3b8;font-size:12px;font-weight:normal}
-.log-item{align-items:flex-startdisplay:flex;gap:8px;margin-bottom:8px;}
-.log-tag{border-radius:4px;font-size:11px;font-weight:boldmargin-top:2px;padding:2px 6px;white-space:nowrap;}
+.author-footer {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.changelog-btn {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #64748b;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    transition: all 0.15s;
+}
+
+.changelog-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1f2b3c;
+}
+
+.changelog-overlay {
+    align-items: center;
+    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    position: fixed;
+    z-index: 10000;
+}
+
+.changelog-container {
+    animation: routeFadeIn 0.2s ease-out;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    max-width: 500px;
+    width: 90%;
+}
+
+.changelog-header {
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 20px;
+}
+
+.changelog-header h3 {
+    color: #1e293b;
+    font-size: 18px;
+    margin: 0;
+}
+
+.changelog-close {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 18px;
+    transition: color 0.15s;
+}
+
+.changelog-close:hover {
+    color: #1e293b;
+}
+
+.changelog-body {
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px;
+}
+
+.log-entry {
+    margin-bottom: 24px;
+}
+
+.log-entry:last-child {
+    margin-bottom: 0;
+}
+
+.log-version {
+    align-items: center;
+    color: #1e293b;
+    display: flex;
+    font-size: 16px;
+    font-weight: bold;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.log-version span {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.log-item {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.log-tag {
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 2px;
+    padding: 2px 6px;
+    white-space: nowrap;
+}
 .tag-新增{background:#dcfce7;color:#166534}
 .tag-修复{background:#fee2e2;color:#991b1b}
 .tag-优化{background:#e0f2fe;color:#075985}

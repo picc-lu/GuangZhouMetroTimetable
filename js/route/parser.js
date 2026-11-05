@@ -82,22 +82,34 @@ function parseInterchangeKeys(path, departMin) {
     let firstGetOnStation = STATUS_IRRELEVANT;
     let t = (departMin != null && !isNaN(departMin)) ? departMin : 0;
 
+    let lastIsWaitFirstTrain = false;
+    let lastStationName = '';
+
     for (let i = 0; i < path.nodes.length - 1; i++) {
         const u = path.nodes[i], v = path.nodes[i + 1];
         let w = routeGetEdgeWeight(u, v);
         const uParts = u.split('|');
         const vParts = v.split('|');
 
-        if (uParts.length >= 4 && vParts.length >= 4) {
+        // 1. 记录当前线路
+        if (uParts.length >= 4) {
             if (uParts[0] !== currentLine) {
                 currentLine = uParts[0];
                 firstGetOnStation = (currentLine === '6号线' || currentLine === '广佛线') ? uParts[1] : STATUS_IRRELEVANT;
             }
-            if (uParts[3] === ARRIVED && vParts[3] === PLATFORM) {
-                const key = [uParts[1], uParts[0], uParts[2], vParts[0], vParts[2], firstGetOnStation].join('|');
+        }
+
+        // 2. 判断上车动作（包含起点上车 和 换乘上车）
+        // 这里的判断不要受限于 uParts.length >= 4，因为起点只有2位
+        if (vParts.length >= 4 && vParts[3] === PLATFORM) {
+            const isBoarding = (uParts[1] === '开始') || (uParts.length >= 4 && uParts[3] === ARRIVED && uParts[0] !== vParts[0]);
+
+            if (isBoarding) {
                 const walkMin = (w != null) ? w / 60 : 0;
 
+                // 到达该站的时间（如果是起点，就是出发时间）
                 const stationArriveTime = t;
+                // 走到新站台的时间
                 const platformTime = t + walkMin;
 
                 const downstream = collectDownstreamStations(i + 1, path.nodes);
@@ -107,7 +119,8 @@ function parseInterchangeKeys(path, departMin) {
                 let isWaitFirstTrain = false;
 
                 if (typeof getBoardingMargin === 'function') {
-                    let res = getBoardingMargin(vParts[0], uParts[1], vParts[2], platformTime, downstream);
+                    // 判断首末班车用走到站台的时间
+                    let res = getBoardingMargin(vParts[0], vParts[1], vParts[2], platformTime, downstream);
                     if (res && typeof res === 'object' && res.needsWait) {
                         waitMin = res.waitMin;
                         marginMin = res.marginMin;
@@ -119,22 +132,32 @@ function parseInterchangeKeys(path, departMin) {
 
                 const boardingTime = platformTime + waitMin;
 
-                result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin, isWaitFirstTrain });
+                // 只有真正的换乘（不是起点）才推入 result，供 UI 渲染换乘指引
+                if (uParts[3] === ARRIVED) {
+                    const key = [uParts[1], uParts[0], uParts[2], vParts[0], vParts[2], firstGetOnStation].join('|');
+                    result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin, isWaitFirstTrain });
+                }
 
+                // 记录状态，供剥离时间使用
+                lastIsWaitFirstTrain = isWaitFirstTrain;
+                lastStationName = vParts[1];
+
+                // 核心：等待首班车的时间必须加进全局时间轴
                 t += waitMin;
             }
+        }
 
-            // 核心修复：剥离注入时间
-            if (uParts[3] === PLATFORM && vParts[3] === LAUNCH) {
-                const lastRes = result[result.length - 1];
-                if (lastRes && lastRes.isWaitFirstTrain && lastRes.key.split('|')[0] === uParts[1]) {
-                    const origMap = ROUTE_GRAPH.originalEdges.get(u);
-                    if (origMap && origMap.has(v)) {
-                        w = origMap.get(v);
-                    }
+        // 3. 剥离注入时间
+        if (uParts.length >= 4 && vParts.length >= 4 && uParts[3] === PLATFORM && vParts[3] === LAUNCH) {
+            if (lastIsWaitFirstTrain && lastStationName === uParts[1]) {
+                const origMap = ROUTE_GRAPH.originalEdges.get(u);
+                if (origMap && origMap.has(v)) {
+                    w = origMap.get(v);
                 }
+                lastIsWaitFirstTrain = false; // 剥离后重置状态
             }
         }
+
         if (w !== null) t += w / 60;
     }
     return result;
@@ -218,7 +241,6 @@ function parseRouteSegments(path, departMin) {
         }
     }
 
-    // 👇 新增 2.5：检测 3 号线跨南北段且无直达车的情况，强制拆分为两段 👇
     const splitMerged = [];
     for (let i = 0; i < merged.length; i++) {
         const seg = merged[i];

@@ -1,5 +1,10 @@
 // ========== 路径规划 UI · 结果卡片渲染 ==========
 
+function formatDisplayStation(name) {
+    if (!name) return '';
+    return name.replace(/礌岗/g, '虫雷 岗').replace(/虫雷岗/g, '虫雷 岗');
+}
+
 function formatDuration(seconds) {
     const s = Math.round(seconds);
     const m = Math.floor(s / 60);
@@ -130,11 +135,11 @@ function buildStationListHtml(startName, endName, stationRoute) {
     const totalStations = stationRoute.length + 2;
 
     const fullHtml = `
-        <span class="route-station">${escapeHtml(startName)}</span>
+        <span class="route-station">${escapeHtml(formatDisplayStation(startName))}</span>
         ${stationRoute.map(s =>
-        `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(s)}</span>`
+        `<span class="route-arrow">→</span><span class="route-station">${escapeHtml(formatDisplayStation(s))}</span>`
     ).join('')}
-        <span class="route-arrow">→</span><span class="route-station">${escapeHtml(endName)}</span>
+        <span class="route-arrow">→</span><span class="route-station">${escapeHtml(formatDisplayStation(endName))}</span>
     `;
 
     if (totalStations <= STATION_LIST_COLLAPSE_THRESHOLD) {
@@ -378,7 +383,6 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         const idxTyxl = findStationIndex(arr3, '体育西路');
         const notCrossTyx = idxSegEnd >= 0 && idxTyxl >= 0 && idxSegEnd <= idxTyxl;
 
-        // 👇 新增：判断当前时刻是否还有开往机场北方向的贯通车 👇
         const hasThrough = typeof isThroughTrainAvailable === 'function'
             && isThroughTrainAvailable(station, currentMin);
 
@@ -782,7 +786,7 @@ function buildArriveBlockHtml(item) {
 
 function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', displayStart = startName, displayEnd = endName) {
     const rank = item.rank || (idx + 1);
-    const transferStations = item.interchanges.map(o => o.key.split('|')[0]).filter(Boolean);
+    const transferStations = item.interchanges.map(o => formatDisplayStation(o.key.split('|')[0])).filter(Boolean);
 
     let deltaHtml = '';
     if (sortMode === 'fewer-transfers'
@@ -1028,7 +1032,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
     }
 
     guideHtml = `<div class="route-guide">` + boardingPoints.map((bp, bpIdx) => {
-        const stationHtml = `<span class="route-guide-station">${escapeHtml(bp.station)}</span>`;
+        const stationHtml = `<span class="route-guide-station">${escapeHtml(formatDisplayStation(bp.station))}</span>`;
 
         const baseLineText = bp.fromShort ? `${bp.fromShort}→${bp.toShort}` : bp.toShort;
         const dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
@@ -1086,7 +1090,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
 
         let waitHtml = '';
         if (bp.waitMin > 0.1) {
-            waitHtml = `<span class="route-guide-time-row" style="color: #d97706; font-weight: bold; font-size: 11px; margin-top: 2px;">⏳ 需等待首班车 ${Math.round(bp.waitMin)} 分</span>`;
+            waitHtml = `<span class="route-guide-time-row" style="color: #d97706; font-weight: bold; font-size: 11px; margin-top: 2px;">需等待首班车 ${Math.round(bp.waitMin)} 分</span>`;
         }
 
         let timeHtml = '';
@@ -1126,9 +1130,10 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         </div>`;
     }).join('') + `</div>`;
 
+    const pathKey = item.path.nodes.join('|');
 
     return `
-        <div class="route-card" data-rank="${rank}">
+        <div class="route-card" data-rank="${rank}" data-path-key="${escapeHtml(pathKey)}">
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">

@@ -220,6 +220,8 @@ async function runRoutePlanning() {
     if (_routeDepartMin === null) {
         refreshRouteTimeTriggers();
         setRouteMeta(routeMetaText());
+        updateSortOptionStatus();
+        updateCtrlOptionStatus();
     }
 
     // 2. 自动收起高级设置面板
@@ -370,59 +372,98 @@ async function _executePlanningPipeline(start, end, resultsEl) {
         }
         await Promise.all(r.results.map(async item => {
             try {
-                const INDEPENDENT_FARE_LINES = ['APM', 'TNH1', '南海有轨1号线', '海珠有轨1号线', '黄埔有轨1号线', '黄埔有轨2号线'];
+                const getMappedStationName = (station, lineName) => {
+                    if (lineName === 'TNH1' || lineName === '南海有轨1号线') {
+                        if (station === '虫雷 岗' || station === '礌岗') return '虫雷 岗（有轨）';
+                    }
+                    return station;
+                };
 
                 const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(item.path) : [];
 
-                // 判断是否包含 APM
+                // 👇 1. 判断是否属于“必须出闸的换乘”
                 const hasAPM = segs.some(s => s.fullLine === 'APM');
-
-                // 判断 TNH1 是否与广佛线直接相邻换乘
                 let hasTNH1GuangfoDirect = false;
                 for (let i = 0; i < segs.length - 1; i++) {
                     const s1 = segs[i], s2 = segs[i+1];
+                    // 只有 TNH1 和 广佛线 直接换乘（礌岗）才算出闸
                     if ((s1.fullLine === 'TNH1' && s2.fullLine === '广佛线') ||
                         (s1.fullLine === '广佛线' && s2.fullLine === 'TNH1')) {
                         hasTNH1GuangfoDirect = true;
                         break;
                     }
                 }
+                const needSplit = hasAPM || hasTNH1GuangfoDirect;
 
-                // 1. 如果不需要强制拆分（没有 APM，且没有 TNH1 直接换乘广佛），优先尝试整体查表
-                if (!hasAPM && !hasTNH1GuangfoDirect) {
-                    const overallFare = await fetchRouteFare(item._realStart, item._realEnd);
+                if (!needSplit) {
+                    let queryStart = item._realStart;
+                    let queryEnd = item._realEnd;
+
+                    // 核心修复：如果路径的第一段是 TNH1，把起点站名替换为“虫雷 岗（有轨）”
+                    const firstSeg = segs[0];
+                    if (firstSeg && (firstSeg.fullLine === 'TNH1' || firstSeg.fullLine === '南海有轨1号线')) {
+                        if (queryStart === '虫雷 岗' || queryStart === '礌岗') {
+                            queryStart = '虫雷 岗（有轨）';
+                        }
+                    }
+                    // 如果最后一段是 TNH1，同理替换终点
+                    const lastSeg = segs[segs.length - 1];
+                    if (lastSeg && (lastSeg.fullLine === 'TNH1' || lastSeg.fullLine === '南海有轨1号线')) {
+                        if (queryEnd === '虫雷 岗' || queryEnd === '礌岗') {
+                            queryEnd = '虫雷 岗（有轨）';
+                        }
+                    }
+
+                    let overallFare = await fetchRouteFare(queryStart, queryEnd);
+
                     if (overallFare != null) {
                         item.fare = overallFare;
-                        return; // 查到了就直接用，结束当前 item 的计算
+                        return; // 查到总价直接返回
                     }
                 }
 
-                // 2. 如果包含 APM、包含 TNH1换广佛，或者整体查表失败，则执行分段计价逻辑
+                // 👇 3. 需要强制拆分，或者查不到总价时的兜底分段计算
+                const INDEPENDENT_FARE_LINES = ['APM', 'TNH1', '南海有轨1号线', '海珠有轨1号线', '黄埔有轨1号线', '黄埔有轨2号线'];
                 const hasIndependentLine = segs.some(s => INDEPENDENT_FARE_LINES.includes(s.fullLine));
 
                 if (!hasIndependentLine) {
                     const fare = await fetchRouteFare(item._realStart, item._realEnd);
-                    item.fare = (fare != null) ? fare : 2;
+                    if (fare != null) item.fare = fare;
                 } else {
                     let totalFare = 0;
                     let segmentStart = item._realStart;
+                    let validFare = false; // 标记是否至少查到了一段票价
 
                     for (const seg of segs) {
                         if (INDEPENDENT_FARE_LINES.includes(seg.fullLine)) {
                             if (segmentStart !== seg.fromStation) {
                                 const f1 = await fetchRouteFare(segmentStart, seg.fromStation);
-                                totalFare += (f1 != null) ? f1 : 2;
+                                if (f1 != null) {
+                                    totalFare += f1;
+                                    validFare = true;
+                                }
                             }
-                            let fSeg = await fetchRouteFare(seg.fromStation, seg.toStation);
-                            totalFare += (fSeg != null) ? fSeg : 2;
+
+                            const actualFrom = getMappedStationName(seg.fromStation, seg.fullLine);
+                            const actualTo = getMappedStationName(seg.toStation, seg.fullLine);
+                            let fSeg = await fetchRouteFare(actualFrom, actualTo);
+                            if (fSeg != null) {
+                                totalFare += fSeg;
+                                validFare = true;
+                            }
+
                             segmentStart = seg.toStation;
                         }
                     }
                     if (segmentStart !== item._realEnd) {
                         const f2 = await fetchRouteFare(segmentStart, item._realEnd);
-                        totalFare += (f2 != null) ? f2 : 2;
+                        if (f2 != null) {
+                            totalFare += f2;
+                            validFare = true;
+                        }
                     }
-                    item.fare = totalFare;
+
+                    if (validFare) item.fare = totalFare;
                 }
             } catch (e) {
                 console.warn('票价计算失败', e);

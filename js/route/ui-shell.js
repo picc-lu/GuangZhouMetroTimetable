@@ -807,6 +807,7 @@ function closeRoutePlanner() {
     if (hPanel) hPanel.style.display = 'none';
     if (mPanel) mPanel.style.display = 'none';
 
+    clearRouteSession();
     unlockBodyScroll();
 }
 
@@ -979,4 +980,124 @@ function getNearestStationForRoute() {
             {enableHighAccuracy: true, timeout: 10000, maximumAge: 0}
         );
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const pendingSession = localStorage.getItem('gz_route_session_state');
+    if (pendingSession) {
+        showRestorePrompt();
+    }
+});
+
+function showRestorePrompt() {
+    const banner = document.querySelector('.banner');
+    if (!banner) return;
+
+    const prompt = document.createElement('div');
+    prompt.id = 'restore-prompt';
+    prompt.style.cssText = `
+        background: #eef6ff;
+        border: 1px solid #b8d4f0;
+        border-radius: 12px;
+        margin: 12px auto;
+        max-width: 800px;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        color: #1a6bd5;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(43, 125, 233, 0.1);
+        width: calc(100% - 32px);
+    `;
+
+    prompt.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px;">🕒</span>
+            <span>检测到上次未完成的路径规划</span>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button id="btn-cancel-restore" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:13px;">忽略</button>
+            <button id="btn-do-restore" style="background:#2b7de9; color:#fff; border:none; padding:6px 16px; border-radius:6px; cursor:pointer; font-weight:bold;">一键恢复</button>
+        </div>
+    `;
+
+    banner.parentNode.insertBefore(prompt, banner.nextSibling);
+
+    document.getElementById('btn-cancel-restore').addEventListener('click', () => {
+        localStorage.removeItem('gz_route_session_state');
+        prompt.remove();
+    });
+
+    document.getElementById('btn-do-restore').addEventListener('click', () => {
+        restoreRouteSession();
+        prompt.remove();
+    });
+}
+
+// 恢复逻辑
+async function restoreRouteSession() {
+    const state = popRouteSession();
+    if (!state) return;
+
+    ensureRouteOverlay();
+    _routeOverlay.style.display = 'flex';
+    lockBodyScroll();
+
+    // 1. 填入起终点
+    _routeOverlay.querySelector('#route-start').value = state.start;
+    _routeOverlay.querySelector('#route-end').value = state.end;
+
+    // 2. 恢复时间模式与时间
+    _routeArriveMode = state.arriveMode;
+    if (_routeArriveMode) {
+        const arriveBtn = _routeOverlay.querySelector('.route-time-mode-btn[data-mode="arrive"]');
+        if (arriveBtn) arriveBtn.click();
+    }
+    _routeDepartMin = state.departMin;
+    refreshRouteTimeTriggers();
+
+    // 3. 恢复排序
+    const sortRadio = _routeOverlay.querySelector(`input[name="route-sort"][value="${state.sortMode}"]`);
+    if (sortRadio) sortRadio.checked = true;
+
+    // 4. 恢复高级设置
+    if (state.maxTransferChecked !== undefined) {
+        const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
+        const mti = _routeOverlay.querySelector('#route-max-transfer-min');
+        mtc.checked = state.maxTransferChecked;
+        mti.disabled = !mtc.checked;
+        if (state.maxTransferMin) mti.value = state.maxTransferMin;
+    }
+    const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
+    if (aoc) aoc.checked = !!state.avoidOutdoor;
+    const acc = _routeOverlay.querySelector('#route-avoid-ctrl-check');
+    if (acc) acc.checked = !!state.avoidCtrl;
+    if (state.walkSpeed) {
+        const ws = _routeOverlay.querySelector(`input[name="route-walk-speed"][value="${state.walkSpeed}"]`);
+        if (ws) ws.checked = true;
+    }
+
+    // 5. 等待图加载并自动规划
+    await loadRouteGraph();
+    setRouteMeta(routeMetaText());
+
+    // 临时保存展开标识，等渲染完后处理
+    window._pendingExpandKey = state.expandedCard;
+
+    // 自动点击规划
+    await runRoutePlanning();
+
+    // 6. 展开对应的卡片
+    if (window._pendingExpandKey) {
+        setTimeout(() => {
+            const card = _routeOverlay.querySelector(`.route-card[data-path-key="${window._pendingExpandKey}"]`);
+            if (card) {
+                card.classList.add('expanded');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            window._pendingExpandKey = null;
+        }, 500); // 给 DOM 渲染留一点时间
+    }
 }

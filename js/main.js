@@ -429,3 +429,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === overlay) closeModal();
     });
 });
+
+setTimeout(() => {
+    if (typeof loadRouteGraph === 'function') {
+        loadRouteGraph().then(() => console.log('[预加载] 路网图已就绪')).catch(() => {});
+    }
+    if (typeof loadHeadwayData === 'function') {
+        loadHeadwayData().then(() => console.log('[预加载] 发车间隔已就绪')).catch(() => {});
+    }
+    if (typeof preloadFares === 'function') {
+        preloadFares().then(() => console.log('[预加载] 票价表已就绪')).catch(() => {});
+    }
+    if (typeof loadShortServices === 'function') {
+        loadShortServices().then(() => console.log('[预加载] 短线车数据已就绪')).catch(() => {});
+    }
+}, 500);

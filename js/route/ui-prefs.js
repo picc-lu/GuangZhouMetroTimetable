@@ -122,3 +122,55 @@ function applyRoutePrefs(ov) {
 
     // 不再恢复 advancedOpen：每次打开弹窗都默认收起
 }
+
+// ========== 会话恢复机制 ==========
+const ROUTE_SESSION_KEY = 'gz_route_session_state';
+
+// 保存当前查询状态
+function saveRouteSession() {
+    if (!_routeOverlay) return;
+
+    // 判断弹窗是否打开且有起终点
+    const startInput = _routeOverlay.querySelector('#route-start');
+    const endInput = _routeOverlay.querySelector('#route-end');
+    if (!startInput || !endInput || !startInput.value.trim() || !endInput.value.trim()) return;
+
+    const state = {
+        start: startInput.value.trim(),
+        end: endInput.value.trim(),
+        // 时间设置
+        departMin: _routeDepartMin,
+        arriveMode: _routeArriveMode,
+        // 排序
+        sortMode: _routeOverlay.querySelector('input[name="route-sort"]:checked')?.value || 'fastest',
+        // 高级设置
+        maxTransferChecked: _routeOverlay.querySelector('#route-max-transfer-check')?.checked,
+        maxTransferMin: _routeOverlay.querySelector('#route-max-transfer-min')?.value,
+        avoidOutdoor: _routeOverlay.querySelector('#route-avoid-outdoor-check')?.checked,
+        avoidCtrl: _routeOverlay.querySelector('#route-avoid-ctrl-check')?.checked,
+        walkSpeed: _routeOverlay.querySelector('input[name="route-walk-speed"]:checked')?.value,
+        // 展开的卡片（用路径节点拼接作为唯一ID）
+        expandedCard: _routeOverlay.querySelector('.route-card.expanded')?.dataset.pathKey || null
+    };
+
+    try {
+        localStorage.setItem(ROUTE_SESSION_KEY, JSON.stringify(state));
+    } catch (_) {}
+}
+
+// 读取并清空状态
+function popRouteSession() {
+    try {
+        const raw = localStorage.getItem(ROUTE_SESSION_KEY);
+        if (!raw) return null;
+        localStorage.removeItem(ROUTE_SESSION_KEY); // 读取后即焚，防止反复提示
+        return JSON.parse(raw);
+    } catch (_) {
+        return null;
+    }
+}
+
+// 清除状态（用户主动关闭弹窗时调用）
+function clearRouteSession() {
+    localStorage.removeItem(ROUTE_SESSION_KEY);
+}

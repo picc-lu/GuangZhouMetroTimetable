@@ -367,6 +367,27 @@ function updateFetchErrorBadge() {
 let _localFaresData = null;
 let _localFaresPromise = null;
 
+function preloadFares() {
+    if (!_localFaresPromise) {
+        _localFaresPromise = fetch('./data/fares.json')
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                _localFaresData = data;
+                console.log('[票价] 预加载成功');
+                return data;
+            })
+            .catch(err => {
+                console.warn('[票价] 预加载本地 fares.json 失败', err);
+                _localFaresData = {};
+                return _localFaresData;
+            });
+    }
+    return _localFaresPromise;
+}
+
 async function fetchRouteFare(startStation, endStation) {
     if (!_localFaresData) {
         if (!_localFaresPromise) {
@@ -390,31 +411,58 @@ async function fetchRouteFare(startStation, endStation) {
 
     if (!_localFaresData) return null;
 
-    // 1. 直接查询
-    if (_localFaresData[startStation] && _localFaresData[startStation][endStation] != null) {
-        return _localFaresData[startStation][endStation];
-    }
+    const tryGet = (s, e) => {
+        if (_localFaresData[s] && _localFaresData[s][e] != null) return _localFaresData[s][e];
+        return null;
+    };
 
-    // 2. 兼容特殊站名后缀（如“机场北”与“机场北（T2）”、“嘉禾望岗”等）
-    const cleanName = (name) => name.replace(/[（(].*[）)]/g, '').trim();
+    // 1. 直接查询
+    let fare = tryGet(startStation, endStation);
+    if (fare != null) return fare;
+
+    // 2. 去空格、去括号清洗后查询
+    const cleanName = (name) => name.replace(/[（(].*[）)]/g, '').replace(/\s+/g, '').trim();
     const sClean = cleanName(startStation);
     const eClean = cleanName(endStation);
 
-    if (sClean !== startStation || eClean !== endStation) {
-        if (_localFaresData[sClean] && _localFaresData[sClean][eClean] != null) {
-            return _localFaresData[sClean][eClean];
-        }
-    }
+    fare = tryGet(sClean, eClean);
+    if (fare != null) return fare;
 
-    // 3. 尝试查询临近站（比如 A -> 流花，如果没有，则查 A -> 越秀公园）
+    // 3. 强制别名映射 (兼容路网图与票价表的不一致)
+    const aliasMap = {
+        '虫雷岗': '礌岗',
+        '礌岗': '虫雷 岗',
+        '虫雷 岗': '虫雷 岗',
+        '庆盛': '庆盛（南沙北站）',
+        '庆盛（南沙北站）': '庆盛',
+        '机场北': '机场北（T2）',
+        '机场北（T2）': '机场北',
+        '清㘵': '清布',
+        '清布': '清㘵'
+    };
+    const sAlias = aliasMap[sClean] || sClean;
+    const eAlias = aliasMap[eClean] || eClean;
+
+    fare = tryGet(sAlias, eAlias);
+    if (fare != null) return fare;
+
+    // 4. 跨界尝试组合
+    fare = tryGet(sClean, eAlias);
+    if (fare != null) return fare;
+    fare = tryGet(sAlias, eClean);
+    if (fare != null) return fare;
+
+    // 5. 尝试查询临近站（原有逻辑保留）
     if (typeof NEARBY_STATION_MAP !== 'undefined') {
         const mappedEnd = NEARBY_STATION_MAP[endStation];
-        if (mappedEnd && _localFaresData[startStation] && _localFaresData[startStation][mappedEnd] != null) {
-            return _localFaresData[startStation][mappedEnd];
+        if (mappedEnd) {
+            fare = tryGet(startStation, mappedEnd) || tryGet(sClean, mappedEnd) || tryGet(sAlias, mappedEnd);
+            if (fare != null) return fare;
         }
         const mappedStart = NEARBY_STATION_MAP[startStation];
-        if (mappedStart && _localFaresData[mappedStart] && _localFaresData[mappedStart][endStation] != null) {
-            return _localFaresData[mappedStart][endStation];
+        if (mappedStart) {
+            fare = tryGet(mappedStart, endStation) || tryGet(mappedStart, eClean) || tryGet(mappedStart, eAlias);
+            if (fare != null) return fare;
         }
     }
 
