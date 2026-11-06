@@ -190,8 +190,6 @@ function scheduleForceRefreshAt5AM() {
     }, delay);
 }
 
-const now = new Date();
-
 (async () => {
     const cached = await loadDataFromCache();
 
@@ -212,6 +210,7 @@ const now = new Date();
         versionEl.textContent = `线路版本: 缓存数据 (${cached.serviceDate})`;
         currentCustomTime = null;
 
+        const now = new Date();
         const hour = now.getHours();
         if (hour >= 2 && hour < 4) showYesterdayDataNotice();   // 注释修正为 2:00~3:59
 
@@ -232,6 +231,7 @@ const now = new Date();
             await fetchLineStations();
             await fetchServiceTimes();
 
+            const now = new Date();
             const hour = now.getHours();
             if (hour >= 2 && hour < 4) showYesterdayDataNotice();
         } catch (err) {
@@ -337,7 +337,7 @@ if (backToTopBtn) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+onDomReady(() => {
     const btn = document.getElementById('controls-toggle-btn');
     const wrapper = document.getElementById('controls-wrapper');
     const toggleText = document.getElementById('toggle-text');
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 if (typeof initTopoUI === 'function') initTopoUI();
 
-document.addEventListener('DOMContentLoaded', () => {
+onDomReady(() => {
     const btn = document.getElementById('changelog-btn');
     const overlay = document.getElementById('changelog-overlay');
     if (!btn || !overlay) return;

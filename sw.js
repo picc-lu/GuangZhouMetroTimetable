@@ -1,8 +1,9 @@
-const CACHE_NAME = `gz-metro-v1.2.11`;
+const CACHE_NAME = `gz-metro-v1.2.11a`;
 const ASSETS = [
     './',
     './index.html',
     './manifest.json',
+    './js/bootstrap.js',
     './css/base.css',
     './css/controls.css',
     './css/map.css',
@@ -10,6 +11,7 @@ const ASSETS = [
     './css/responsive.css',
     './css/dark.css',
     './js/constants.js',
+    './js/station-name.js',
     './js/store.js',
     './js/pinyin.js',
     './data/GZCoords.js',

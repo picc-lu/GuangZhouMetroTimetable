@@ -17,6 +17,8 @@
         const btn = document.getElementById('theme-toggle');
         if (btn) btn.title = theme === 'dark' ? '切换到日间模式' : '切换到夜间模式';
         if (typeof scheduleRender === 'function') scheduleRender();
+        // 线网图若正在显示，按新主题重绘（含内联样式与 SVG 颜色）
+        if (typeof refreshTopoIfVisible === 'function') refreshTopoIfVisible();
     }
 
     // 核心切换逻辑

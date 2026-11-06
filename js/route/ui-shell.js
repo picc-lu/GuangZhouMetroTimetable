@@ -974,7 +974,7 @@ function getNearestStationForRoute() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+onDomReady(() => {
     const pendingSession = localStorage.getItem('gz_route_session_state');
     if (pendingSession) {
         showRestorePrompt();

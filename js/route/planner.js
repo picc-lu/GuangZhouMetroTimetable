@@ -1,5 +1,10 @@
 // ========== 路径规划主逻辑（含末班车可达性检查 + 排序模式） ==========
 
+// planner.js 顶部断言（正确写法）
+if (typeof ROUTE_GRAPH === 'undefined') throw new Error('[planner.js] 缺少 ROUTE_GRAPH');
+if (typeof MinHeap === 'undefined') throw new Error('[planner.js] 缺少 MinHeap');
+if (typeof dijkstraPath === 'undefined') throw new Error('[planner.js] 缺少 dijkstraPath');
+// ...
 // 出发模式：5 条
 const PLAN_TARGET       = 5;
 const PLAN_MAX_K        = PLAN_TARGET * 18;
@@ -122,9 +127,13 @@ function resolveGraphStationNode(rawName, kind) {
     // 1. 精确匹配
     if (ROUTE_GRAPH.nodes.has(name + suffix)) return name + suffix;
 
-    // 2. 硬别名表
+    // 2. 硬别名表（图节点名之间的双向兼容）
     const aliased = STATION_NAME_ALIASES[name];
     if (aliased && ROUTE_GRAPH.nodes.has(aliased + suffix)) return aliased + suffix;
+
+    // 2b. canonical 站名（显示名 / API 名 → 图节点名）
+    const canon = canonicalStation(name);
+    if (canon !== name && ROUTE_GRAPH.nodes.has(canon + suffix)) return canon + suffix;
 
     // 3. 剥离括号尾缀后再试（全角/半角括号）
     const stripped = name.replace(/[（(][^）)]*[）)]/g, '').trim();
@@ -348,7 +357,6 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     const getSafetyScore = (item) => {
         let score = 1;
         let hasMargin = false;
-        let hasDanger = false;
 
         const allMargins = [...(item.boardingMargins || [])];
         if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
@@ -364,7 +372,6 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         });
 
         if (!hasMargin) return 1;
-        if (!hasDanger) return 1;
         return score;
     };
 

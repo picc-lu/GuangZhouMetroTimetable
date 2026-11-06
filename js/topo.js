@@ -2,6 +2,106 @@ const TOPO_FILES = [
     '1号线', '2号线', '3号线', '3号线北', '4号线', '5号线', '6号线', '7号线', '8号线', '9号线', '10号线', '11号线', '12号线东', '12号线西', '13号线', '14号线(知识城)', '14号线', '18号线', '21号线', '22号线', '佛山2号线', '佛山3号线', '南海有轨1号线', '广佛线', '海珠有轨1号线', '黄埔有轨1号线', '黄埔有轨2号线', 'APM'
 ];
 
+// ============================================================
+// 主题配色（线网图专用）
+// ============================================================
+function getTopoColors() {
+    const dark = typeof isDarkMode === 'function' && isDarkMode();
+    return {
+        mapBg:               dark ? '#0f172a' : '#f8fafc',
+        bannerBg:            dark ? 'rgba(15,23,42,0.75)' : 'rgba(255,255,255,0.5)',
+        bannerShadow:        dark ? '0 1px 10px rgba(0,0,0,0.5)' : '0 1px 10px rgba(0,0,0,0.08)',
+        panelBg:             dark ? 'rgba(30,41,59,0.9)' : 'rgba(255,255,255,0.9)',
+        panelShadow:         dark ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 6px rgba(0,0,0,0.1)',
+        panelText:           dark ? '#cbd5e1' : '#475569',
+        titleText:           dark ? '#e2e8f0' : '#1e293b',
+        btnBg:               dark ? '#1e293b' : '#ffffff',
+        btnText:             dark ? '#e2e8f0' : '#1e293b',
+        btnShadow:           dark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)',
+        btnPrimaryBg:        '#3b82f6',
+        btnPrimaryText:      '#ffffff',
+        btnPrimaryShadow:    dark ? '0 4px 12px rgba(59,130,246,0.5)' : '0 4px 12px rgba(59,130,246,0.4)',
+        stationTextActive:   dark ? '#e2e8f0' : '#1e293b',
+        stationTextInactive: dark ? '#94a3b8' : '#64748b',
+        textStroke:          dark ? '#0f172a' : '#ffffff',
+        circleStroke:        dark ? '#0f172a' : '#ffffff',
+        lineInactive:        dark ? '#334155' : '#e2e8f0',
+        stationInactive:     dark ? '#475569' : '#cbd5e1',
+        mixGray:             dark ? [71, 85, 105] : [203, 213, 225],
+    };
+}
+
+// ============================================================
+// 把主题应用到 topo-overlay 的内联样式元素
+// ============================================================
+function applyTopoTheme() {
+    const ov = document.getElementById('topo-overlay');
+    if (!ov) return;
+    const C = getTopoColors();
+
+    ov.style.background = C.mapBg;
+
+    // 直接子元素：canvas-wrap / 顶部横幅 / 右下角面板
+    const canvasWrap = document.getElementById('topo-canvas-wrap');
+    const extraChildren = Array.from(ov.children).filter(el => el !== canvasWrap);
+    const banner = extraChildren[0];
+    const corner = extraChildren[1];
+
+    if (banner) {
+        banner.style.background = C.bannerBg;
+        banner.style.boxShadow = C.bannerShadow;
+        const h3 = banner.querySelector('h3');
+        if (h3) h3.style.color = C.titleText;
+    }
+
+    // 左下角：时间 / 缩放
+    ['#topo-time-display', '#topo-zoom-indicator'].forEach(sel => {
+        const el = ov.querySelector(sel);
+        if (el) {
+            el.style.background = C.panelBg;
+            el.style.color = C.panelText;
+            el.style.boxShadow = C.panelShadow;
+        }
+    });
+
+    if (corner) {
+        // 第一个子 div = 开关组
+        const switchPanel = corner.firstElementChild;
+        if (switchPanel) {
+            switchPanel.style.background = C.panelBg;
+            switchPanel.style.boxShadow = C.panelShadow;
+            switchPanel.querySelectorAll('label').forEach(l => {
+                l.style.color = C.panelText;
+            });
+        }
+
+        const refreshBtn = document.getElementById('topo-refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.style.background = C.btnBg;
+            refreshBtn.style.color = C.btnText;
+            refreshBtn.style.boxShadow = `0 4px 12px ${C.btnShadow}`;
+        }
+        const closeBtn = document.getElementById('topo-close-btn');
+        if (closeBtn) {
+            closeBtn.style.background = C.btnPrimaryBg;
+            closeBtn.style.color = C.btnPrimaryText;
+            closeBtn.style.boxShadow = C.btnPrimaryShadow;
+        }
+    }
+}
+
+// ============================================================
+// 主题切换时，如果线网图正在显示则重绘
+// ============================================================
+function refreshTopoIfVisible() {
+    const ov = document.getElementById('topo-overlay');
+    if (!ov || ov.style.display === 'none') return;
+    if (!topoData || topoData.length === 0) return;
+    applyTopoTheme();
+    const svg = document.getElementById('topo-svg');
+    if (svg) renderTopo(svg);
+}
+
 function cleanGeoName(name, isTram = false) {
     if (!name) return '';
     let n = name.trim();
@@ -13,33 +113,14 @@ function cleanGeoName(name, isTram = false) {
     n = n.replace(/（\d号线）/g, '');
     n = n.replace(/（有轨）/g, '');
 
-    // 机场特殊处理
-    if (n === '机场北（2号航站楼）') return '机场北（T2）';
-    if (n === '机场南（1号航站楼）') return '机场南';
-
-    // 3. 特殊名称映射
+    // 3. 站名规范化（由 station-name.js 提供）
     if (isTram) {
-        // 有轨电车侧别名
-        const TRAM_ALIAS = {
-            '广州塔站': '广州塔（有轨）',
-            '万胜围': '万胜围（有轨）',
-            '地铁长平站': '地铁长平',
-            '水西': '水西（有轨）',
-            '礌岗': '虫雷 岗（有轨）',
-            '林岳东': '林岳东（有轨）'
-        };
-        if (TRAM_ALIAS[n]) n = TRAM_ALIAS[n];
-    } else {
-        // 地铁侧别名
-        const METRO_ALIAS = {
-            '庆盛': '庆盛（南沙北站）',
-            '清布': '清㘵',
-            '礌岗': '虫雷 岗'
-        };
-        if (METRO_ALIAS[n]) n = METRO_ALIAS[n];
+        return normalizeTramStation(n);
     }
-
-    return n;
+    // 地铁侧：canonical 会把 机场北（2号航站楼）→ 机场北（T2）、
+    // 庆盛→庆盛（南沙北站）、清布→清㘵、虫雷岗/虫雷 岗→礌岗，
+    // formatStationForDisplay 再把 礌岗→虫雷 岗
+    return toDisplayName(n);
 }
 
 let topoData = [];
@@ -70,6 +151,9 @@ function initTopoUI() {
             overlay.style.opacity = '1';
             overlay.style.transform = 'scale(1)';
         });
+
+        // 主题色先应用，避免打开瞬间闪白
+        applyTopoTheme();
 
         if (topoData.length === 0) {
             const h3 = overlay.querySelector('h3');
@@ -162,7 +246,6 @@ function calculateBounds() {
                 if (lat > topoBounds.maxLat) topoBounds.maxLat = lat;
 
                 let name = f.properties.name || '';
-                // 使用清洗函数
                 name = cleanGeoName(name, isTram);
 
                 if (name) {
@@ -184,24 +267,28 @@ function project(lng, lat) {
     return [x, y];
 }
 
-function getCircleHtml(colors, isTransfer) {
+/**
+ * 站点圆点。strokeColor 同时用于外圈描边和多色扇形的分隔底色，
+ * 亮色传白、暗色传深背景色。
+ */
+function getCircleHtml(colors, isTransfer, strokeColor = '#ffffff') {
     const uniqueColors = [...new Set(colors)];
     if (!isTransfer) {
-        return `<circle cx="0" cy="0" r="4.5" fill="${uniqueColors[0]}" stroke="#ffffff" stroke-width="1.5"/>`;
+        return `<circle cx="0" cy="0" r="4.5" fill="${uniqueColors[0]}" stroke="${strokeColor}" stroke-width="1.5"/>`;
     }
     if (uniqueColors.length === 1) {
-        return `<circle cx="0" cy="0" r="7" fill="#ffffff" stroke="${uniqueColors[0]}" stroke-width="3.5"/>`;
+        return `<circle cx="0" cy="0" r="7" fill="${strokeColor}" stroke="${uniqueColors[0]}" stroke-width="3.5"/>`;
     }
     const n = uniqueColors.length;
     if (n === 2) {
         return `
-            <circle cx="0" cy="0" r="8" fill="#ffffff" />
+            <circle cx="0" cy="0" r="8" fill="${strokeColor}" />
             <path d="M -8 0 A 8 8 0 0 1 8 0 Z" fill="${uniqueColors[0]}" />
             <path d="M 8 0 A 8 8 0 0 1 -8 0 Z" fill="${uniqueColors[1]}" />
-            <circle cx="0" cy="0" r="8" fill="none" stroke="#ffffff" stroke-width="2.5" />
+            <circle cx="0" cy="0" r="8" fill="none" stroke="${strokeColor}" stroke-width="2.5" />
         `;
     }
-    let html = `<circle cx="0" cy="0" r="8" fill="#ffffff" />`;
+    let html = `<circle cx="0" cy="0" r="8" fill="${strokeColor}" />`;
     const angleStep = (Math.PI * 2) / n;
     for (let i = 0; i < n; i++) {
         const startAngle = i * angleStep - Math.PI / 2;
@@ -212,7 +299,7 @@ function getCircleHtml(colors, isTransfer) {
         const y2 = 8 * Math.sin(endAngle);
         html += `<path d="M 0 0 L ${x1.toFixed(2)} ${y1.toFixed(2)} A 8 8 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z" fill="${uniqueColors[i]}" />`;
     }
-    html += `<circle cx="0" cy="0" r="8" fill="none" stroke="#ffffff" stroke-width="2.5" />`;
+    html += `<circle cx="0" cy="0" r="8" fill="none" stroke="${strokeColor}" stroke-width="2.5" />`;
     return html;
 }
 
@@ -225,6 +312,7 @@ function isOverlap(rect1, rect2, padding = 2) {
 
 function renderTopo(svg) {
     svg.innerHTML = '';
+    const C = getTopoColors();
     const gMap = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     gMap.setAttribute('id', 'topo-map-layer');
 
@@ -291,7 +379,6 @@ function renderTopo(svg) {
                     stationDict[stdName].lines.push(lineName);
                 }
 
-                // 记录每条线路对应的颜色
                 stationDict[stdName].lineColors[lineName] = color;
 
                 if (isSpecial) {
@@ -347,7 +434,6 @@ function renderTopo(svg) {
             let cB = stationCoordsMap[stB];
             if (!cA || !cB) continue;
 
-            // 找出所有距离最小的候选点（环线首尾坐标相同，如11号线赤沙会出现两次）
             let minDistA = Infinity, minDistB = Infinity;
             const distsA = new Array(lineCoords.length);
             const distsB = new Array(lineCoords.length);
@@ -362,7 +448,6 @@ function renderTopo(svg) {
                 if (distsA[j] <= minDistA + 1e-12) candA.push(j);
                 if (distsB[j] <= minDistB + 1e-12) candB.push(j);
             }
-            // 邻站应取线路上相距最近的一对下标，保证环线收尾站（琶洲->赤沙）取到直接相连的那段
             let idxA = candA[0], idxB = candB[0], bestGap = Infinity;
             for (const ia of candA) {
                 for (const ib of candB) {
@@ -387,7 +472,6 @@ function renderTopo(svg) {
                 return `${x.toFixed(1)},${y.toFixed(1)}`;
             });
 
-            // 判断 stA -> stB 方向与 stB -> stA 方向是否还在运营
             const isUpActive = isDirActive(lineName, stA, 'up', currentMin);
             const isDownActive = isDirActive(lineName, stB, 'down', currentMin);
 
@@ -395,15 +479,13 @@ function renderTopo(svg) {
             let arrowHtml = '';
 
             if (!isUpActive && !isDownActive) {
-                strokeColor = '#e2e8f0';
+                strokeColor = C.lineInactive;
             } else if (isUpActive !== isDownActive) {
-                strokeColor = mixColor(color, 60);
+                strokeColor = mixColor(color, 60, C.mixGray);
                 if (!isUpActive && isDownActive) {
                     pathParts.reverse();
-                    // 如果是反向运营 (B->A)，记录 stA 为需要强制显示的终点站
                     mustShowStations.add(stA);
                 } else if (isUpActive && !isDownActive) {
-                    // 如果是正向运营 (A->B)，记录 stB 为需要强制显示的终点站
                     mustShowStations.add(stB);
                 }
             }
@@ -412,7 +494,6 @@ function renderTopo(svg) {
 
             if (isUpActive !== isDownActive) {
                 if (pathParts.length >= 2) {
-                    // 箭头放在邻站间线路长度的 1/2 处（按弧长而非折点序号取中点）
                     const pts = pathParts.map(p => p.split(',').map(Number));
                     const cum = [0];
                     for (let k = 1; k < pts.length; k++) {
@@ -436,7 +517,6 @@ function renderTopo(svg) {
                     const arrowFill = getContrastColor(strokeColor);
                     const arrowStroke = arrowFill === '#000000' ? '#ffffff' : '#000000';
 
-                    // 加上 paint-order="stroke fill"，保证填充不被描边挤压
                     arrowHtml += `<g class="topo-arrow" data-x="${midP[0]}" data-y="${midP[1]}" data-angle="${angle}">
                         <g transform="scale(0.015625) translate(-512, -512)">
                             <path d="M941.34 466.656a63.508 63.508 0 0 0-2.914-2.719L685.134 210.656c-24.882-24.881-65.599-24.881-90.482 0-24.885 24.883-24.885 65.602 0 90.485l146.861 146.855H127.996c-35.2 0-64 28.8-64 64s28.8 64 64 64h613.517l-146.86 146.855c-24.885 24.883-24.885 65.602 0 90.485 24.882 24.881 65.599 24.881 90.482 0l253.292-253.281a64.641 64.641 0 0 0 2.914-2.719c12.467-12.466 18.686-28.907 18.661-45.34 0.024-16.433-6.195-32.873-18.662-45.34z" 
@@ -467,21 +547,17 @@ function renderTopo(svg) {
         for (const line of info.lines) {
             const isAct = isStationActive(line, info.displayName, currentMin);
             if (isAct) hasActive = true;
-            // 如果某个方向有车，这个站点对应线路的扇形颜色就保留；如果彻底没了就是灰色
-            renderColors.push(isAct ? info.lineColors[line] : '#cbd5e1');
+            renderColors.push(isAct ? info.lineColors[line] : C.stationInactive);
         }
 
-        // 检查是否是被单向车指向的终点站
         const isMustShow = mustShowStations.has(info.displayName);
 
-        // 双向均停运且不是终点指向站：隐藏
         if (!hasActive && !isMustShow) return;
 
-        // 如果只是被指向（自身没车了），圆点和文字全部变为纯灰色
         const finalActive = hasActive || isMustShow;
-        const finalRenderColors = hasActive ? renderColors : renderColors.map(() => '#cbd5e1');
+        const finalRenderColors = hasActive ? renderColors : renderColors.map(() => C.stationInactive);
 
-        const circleHtml = getCircleHtml(finalRenderColors, isTransfer);
+        const circleHtml = getCircleHtml(finalRenderColors, isTransfer, C.circleStroke);
         const finalIsSpecial = info.hasSpecialLine && !info.hasNormalLine;
 
         pointHtml += `
@@ -500,12 +576,11 @@ function renderTopo(svg) {
         }
         const strokeWidth = isTransfer ? '4px' : '2px';
 
-        // 如果被单向箭头指着，文字颜色用深灰，保证看得清
-        const textColor = hasActive ? '#1e293b' : '#64748b';
+        const textColor = hasActive ? C.stationTextActive : C.stationTextInactive;
 
         labelHtml += `
             <g class="label-group" data-x="${info.x.toFixed(1)}" data-y="${info.y.toFixed(1)}">
-                <text class="${textClass}" data-transfer="${isTransfer}" data-special="${finalIsSpecial}" x="${dx}" y="${dy}" text-anchor="${anchor}" font-size="12" font-weight="${fontWeight}" fill="${textColor}" style="pointer-events:none; paint-order: stroke; stroke: #ffffff; stroke-width: ${strokeWidth}; stroke-linejoin: round;">${info.displayName}</text>
+                <text class="${textClass}" data-transfer="${isTransfer}" data-special="${finalIsSpecial}" x="${dx}" y="${dy}" text-anchor="${anchor}" font-size="12" font-weight="${fontWeight}" fill="${textColor}" style="pointer-events:none; paint-order: stroke; stroke: ${C.textStroke}; stroke-width: ${strokeWidth}; stroke-linejoin: round;">${info.displayName}</text>
             </g>
         `;
     });
@@ -516,7 +591,6 @@ function renderTopo(svg) {
     svg.appendChild(gMap);
     svg.appendChild(gLabel);
 
-    // 仅在首次渲染时居中并适配缩放，后续（含30秒自动刷新）保持用户当前视图
     if (!topoViewInitialized) {
         const [cx, cy] = project((topoBounds.minLng + topoBounds.maxLng) / 2, (topoBounds.minLat + topoBounds.maxLat) / 2);
         const wrap = document.getElementById('topo-canvas-wrap');
@@ -554,8 +628,12 @@ function isStationActive(line, station, currentMin) {
     return isDirActive(line, station, 'up', currentMin) || isDirActive(line, station, 'down', currentMin);
 }
 
-function mixColor(hex, percent) {
-    const gray = [203, 213, 225];
+/**
+ * 把颜色向灰色混合。grayBase 可选，默认亮色灰底 [203,213,225]；
+ * 暗色主题传 getTopoColors().mixGray（[71,85,105]）。
+ */
+function mixColor(hex, percent, grayBase) {
+    const gray = grayBase || [203, 213, 225];
     let r = parseInt(hex.slice(1, 3), 16);
     let g = parseInt(hex.slice(3, 5), 16);
     let b = parseInt(hex.slice(5, 7), 16);
@@ -620,7 +698,6 @@ function applyTopoTransform() {
         gMap.setAttribute('transform', `translate(${topoTransform.x}, ${topoTransform.y}) scale(${scale})`);
 
         const realLineWidth = Math.max(2, Math.min(6, 3 * scale));
-        // 有轨电车 / APM 线使用更细的线宽
         const realSpecialLineWidth = Math.max(1, realLineWidth * 0.5);
 
         gMap.querySelectorAll('.topo-line').forEach(el => {
@@ -631,7 +708,6 @@ function applyTopoTransform() {
             }
         });
 
-        // 箭头的动态大小和颜色控制
         const realArrowScale = Math.max(0.5, Math.min(1.3, 0.65 * scale));
 
         gMap.querySelectorAll('.topo-arrow').forEach(el => {
@@ -645,12 +721,9 @@ function applyTopoTransform() {
             }
         });
 
-        // ... 前面的代码不变 ...
-
         const showNodes = scale >= 0.5;
 
         gMap.querySelectorAll('.topo-station-node').forEach(el => {
-            // 如果用户勾选了隐藏节点
             if (isNodeHidden) {
                 el.style.display = 'none';
                 return;
@@ -675,7 +748,6 @@ function applyTopoTransform() {
     }
 
     if (gLabel) {
-
         if (isTextHidden) {
             gLabel.style.display = 'none';
             return;
@@ -698,7 +770,6 @@ function applyTopoTransform() {
                 const isTransfer = text.dataset.transfer === 'true';
                 const isSpecial = text.dataset.special === 'true';
 
-                // 如果开启了隐藏文本，直接 display: none
                 if (isTextHidden) {
                     text.style.display = 'none';
                     return;
@@ -710,8 +781,6 @@ function applyTopoTransform() {
                 } else {
                     showText = scale >= 2.3;
                 }
-
-                // ... 下面保留原样
 
                 if (showText) {
                     text.style.display = '';

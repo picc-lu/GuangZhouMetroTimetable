@@ -1,9 +1,6 @@
 // ========== 路径规划 UI · 结果卡片渲染 ==========
 
-function formatDisplayStation(name) {
-    if (!name) return '';
-    return name.replace(/礌岗/g, '虫雷 岗').replace(/虫雷岗/g, '虫雷 岗');
-}
+const formatDisplayStation = formatStationForDisplay;
 
 function formatDuration(seconds) {
     const s = Math.round(seconds);

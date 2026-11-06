@@ -1,53 +1,12 @@
 // ========== API 请求函数 ==========
+
+// @requires constants.js, store.js, utils.js, cache.js
+if (typeof RETRY_TIMES === 'undefined') throw new Error('[api.js] 需要 constants.js 先加载');
+if (typeof LINE_STATIONS === 'undefined') throw new Error('[api.js] 需要 store.js 先加载');
+if (typeof requestWithRetry === 'function') {} // 自引用，忽略
+
 const AUTO_RETRY_MAX = 10;   // 自动重试最大次数
 let _autoRetryCount = 0;
-// 票价缓存键名
-const FARE_CACHE_KEY = 'gz_metro_fare_cache';
-
-/** 获取当前运营日（凌晨 5:00 为分界点） */
-function getFareServiceDate() {
-    const d = new Date();
-    if (d.getHours() < 5) d.setDate(d.getDate() - 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-}
-
-/** 读取本地持久化缓存 */
-function loadFareCache() {
-    try {
-        const raw = localStorage.getItem(FARE_CACHE_KEY);
-        if (!raw) return {};
-        const obj = JSON.parse(raw);
-        if (obj.serviceDate !== getFareServiceDate()) {
-            localStorage.removeItem(FARE_CACHE_KEY);
-            return {};
-        }
-        return obj.data || {};
-    } catch (_) {
-        return {};
-    }
-}
-
-/** 写入本地持久化缓存 */
-function saveFareCache(data) {
-    try {
-        localStorage.setItem(FARE_CACHE_KEY, JSON.stringify({
-            serviceDate: getFareServiceDate(),
-            data: data
-        }));
-    } catch (_) {}
-}
-
-// 内存中的镜像，避免频繁解析 localStorage
-let _fareCacheMemory = null;
-function getFareCache() {
-    if (!_fareCacheMemory) {
-        _fareCacheMemory = loadFareCache();
-    }
-    return _fareCacheMemory;
-}
 /** 带重试的fetch */
 async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeoutMs = 8000) {
     for (let i = 0; i < retries; i++) {
@@ -72,37 +31,37 @@ async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeou
 }
 
 /** 地铁名称规范化：线路名与站点名通用 */
-function normalizeMetroText(str) {
-    if (!str) return str;
-    return str
-        .replace(/^一号线/g, '1号线')
-        .replace(/^二号线/g, '2号线')
-        .replace(/^三北线/g, '3号线北')
-        .replace(/^三号线/g, '3号线')
-        .replace(/^四号线/g, '4号线')
-        .replace(/^五号线/g, '5号线')
-        .replace(/^六号线/g, '6号线')
-        .replace(/^七号线/g, '7号线')
-        .replace(/^八号线/g, '8号线')
-        .replace(/^九号线/g, '9号线')
-        .replace(/^十号线/g, '10号线')
-        .replace(/^十一号线/g, '11号线')
-        .replace(/^十二号线（二沙岛-大学城南）/g, '12号线东')
-        .replace(/^十二号线$/g, '12号线西')
-        .replace(/^十三号线/g, '13号线')
-        .replace(/^十四号线/g, '14号线')
-        .replace(/^十八号线/g, '18号线')
-        .replace(/二十一号线/g, '21号线')
-        .replace(/二十二号线/g, '22号线')
-        .replace(/佛山地铁二号线|佛山地铁2号线/g, '佛山2号线')
-        .replace(/佛山地铁三号线|佛山地铁3号线/g, '佛山3号线')
-        .replace(/\(联和-佛山大学\)/g, '北')
-        .replace(/^海珠有轨$/g, '海珠有轨1号线');
-}
-
-// 兼容旧调用点：直接别名，不再保留两份实现
-const normalizeLineName = normalizeMetroText;
-const normalizeString = normalizeMetroText;
+// function normalizeMetroText(str) {
+//     if (!str) return str;
+//     return str
+//         .replace(/^一号线/g, '1号线')
+//         .replace(/^二号线/g, '2号线')
+//         .replace(/^三北线/g, '3号线北')
+//         .replace(/^三号线/g, '3号线')
+//         .replace(/^四号线/g, '4号线')
+//         .replace(/^五号线/g, '5号线')
+//         .replace(/^六号线/g, '6号线')
+//         .replace(/^七号线/g, '7号线')
+//         .replace(/^八号线/g, '8号线')
+//         .replace(/^九号线/g, '9号线')
+//         .replace(/^十号线/g, '10号线')
+//         .replace(/^十一号线/g, '11号线')
+//         .replace(/^十二号线（二沙岛-大学城南）/g, '12号线东')
+//         .replace(/^十二号线$/g, '12号线西')
+//         .replace(/^十三号线/g, '13号线')
+//         .replace(/^十四号线/g, '14号线')
+//         .replace(/^十八号线/g, '18号线')
+//         .replace(/二十一号线/g, '21号线')
+//         .replace(/二十二号线/g, '22号线')
+//         .replace(/佛山地铁二号线|佛山地铁2号线/g, '佛山2号线')
+//         .replace(/佛山地铁三号线|佛山地铁3号线/g, '佛山3号线')
+//         .replace(/\(联和-佛山大学\)/g, '北')
+//         .replace(/^海珠有轨$/g, '海珠有轨1号线');
+// }
+//
+// // 兼容旧调用点：直接别名，不再保留两份实现
+// const normalizeLineName = normalizeMetroText;
+const normalizeString = normalizeLineName;
 
 /** 第一步：获取线路及站点 */
 async function fetchLineStations() {
@@ -455,19 +414,21 @@ async function fetchRouteFare(startStation, endStation) {
     if (fare != null) return fare;
 
     // 3. 强制别名映射 (兼容路网图与票价表的不一致)
-    const aliasMap = {
-        '虫雷岗': '礌岗',
-        '礌岗': '虫雷 岗',
-        '虫雷 岗': '虫雷 岗',
-        '庆盛': '庆盛（南沙北站）',
-        '庆盛（南沙北站）': '庆盛',
-        '机场北': '机场北（T2）',
-        '机场北（T2）': '机场北',
-        '清㘵': '清布',
-        '清布': '清㘵'
-    };
-    const sAlias = aliasMap[sClean] || sClean;
-    const eAlias = aliasMap[eClean] || eClean;
+    // const aliasMap = {
+    //     '虫雷岗': '礌岗',
+    //     '礌岗': '虫雷 岗',
+    //     '虫雷 岗': '虫雷 岗',
+    //     '庆盛': '庆盛（南沙北站）',
+    //     '庆盛（南沙北站）': '庆盛',
+    //     '机场北': '机场北（T2）',
+    //     '机场北（T2）': '机场北',
+    //     '清㘵': '清布',
+    //     '清布': '清㘵'
+    // };
+    // const sAlias = aliasMap[sClean] || sClean;
+    // const eAlias = aliasMap[eClean] || eClean;
+    const sAlias = fareAlias(sClean);
+    const eAlias = fareAlias(eClean);
 
     fare = tryGet(sAlias, eAlias);
     if (fare != null) return fare;

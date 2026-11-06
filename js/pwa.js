@@ -112,7 +112,7 @@ async function showSwUpdateToast(reg) {
 
 // 注册 SW
 if ('serviceWorker' in navigator && !IS_TOY_ENV) {
-    window.addEventListener('load', () => {
+    onWindowLoad(() => {
         navigator.serviceWorker.register('./sw.js').then((reg) => {
             if (navigator.serviceWorker.controller) {
                 reg.addEventListener('updatefound', () => {

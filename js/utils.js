@@ -182,3 +182,25 @@ function hexToHslObj(hex) {
 function isDarkMode() {
     return document.documentElement.getAttribute('data-theme') === 'dark';
 }
+
+/**
+ * DOM 就绪后执行。若已就绪则立即执行。
+ * 用于替代裸 document.addEventListener('DOMContentLoaded', fn)，
+ * 兼容 bootstrap.js 异步注入脚本时 DOMContentLoaded 已触发的情况。
+ */
+function onDomReady(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+    } else {
+        fn();
+    }
+}
+
+/** window.load 就绪后执行。若已就绪则立即执行。 */
+function onWindowLoad(fn) {
+    if (document.readyState === 'complete') {
+        fn();
+    } else {
+        window.addEventListener('load', fn, { once: true });
+    }
+}

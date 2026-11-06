@@ -182,9 +182,11 @@ function finishLoadingMessage() {
     }
 }
 
+let _scrollLockCount = 0;
 /** 打开弹窗前锁定 body 滚动，并记录当前位置 */
 function lockBodyScroll() {
-    if (document.body.style.position === 'fixed') return;
+    _scrollLockCount++;
+    if (_scrollLockCount > 1) return;   // 已锁，只加计数
     bodyScrollY = window.scrollY;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
@@ -194,7 +196,9 @@ function lockBodyScroll() {
 
 /** 关闭弹窗后恢复 body 滚动（仅在锁定过时才恢复） */
 function unlockBodyScroll() {
-    if (document.body.style.position !== 'fixed') return;
+    if (_scrollLockCount <= 0) return;
+    _scrollLockCount--;
+    if (_scrollLockCount > 0) return;   // 还有别的弹窗开着
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
