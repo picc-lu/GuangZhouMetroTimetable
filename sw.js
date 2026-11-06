@@ -1,4 +1,4 @@
-const CACHE_NAME = `gz-metro-v1.2.11a`;
+const CACHE_NAME = `gz-metro-v1.2.11-clean`;
 const ASSETS = [
     './',
     './index.html',
@@ -79,7 +79,7 @@ self.addEventListener('activate', (event) => {
 // 接收页面发来的"跳过等待"指令
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
+        void self.skipWaiting();
     }
 });
 

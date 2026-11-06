@@ -182,8 +182,7 @@
     line-height: 1.5;
     margin: 12px 16px 12px;
     min-height: 40px;
-    padding: 10px 16px;
-    padding-right: 100px;
+    padding: 10px 100px 10px 16px;
 }
 .v-custom-icon {
     color: #d97706;

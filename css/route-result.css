@@ -144,7 +144,7 @@
 .route-fare { align-items: center; background: #fef3c7; border-radius: 6px; color: #b45309; display: inline-flex; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; padding: 1px 7px; }
 /* 空结果操作引导 */
 .route-empty-suggest { color: #475569; font-size: 13px; font-weight: 600; margin-top: 16px; padding-left: 4px; text-align: left; }
-.route-suggest-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; margin-top: 10px; text-align: left; }
+.route-suggest-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .route-suggest-btn { align-items: center; background: #f0f6ff; border: 1.5px solid #b8d4f0; border-radius: 20px; color: #1a6bd5; cursor: pointer; display: inline-flex; font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1.2; padding: 8px 14px; transition: background 0.15s, border-color 0.15s, transform 0.1s; }
 .route-suggest-btn:hover { background: #dbeafe; border-color: #7ab0e6; }
 .route-suggest-btn:active { background: #c0daf8; transform: scale(0.98); }

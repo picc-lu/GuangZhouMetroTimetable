@@ -564,7 +564,7 @@ function ensureRouteOverlay() {
                 const startVal = ov.querySelector('#route-start').value.trim();
                 const endVal = ov.querySelector('#route-end').value.trim();
                 if (startVal && endVal && typeof runRoutePlanning === 'function') {
-                    runRoutePlanning();
+                    void runRoutePlanning();
                 }
             }
         });
@@ -1025,7 +1025,7 @@ function showRestorePrompt() {
     });
 
     document.getElementById('btn-do-restore').addEventListener('click', () => {
-        restoreRouteSession();
+        void restoreRouteSession();
         prompt.remove();
     });
 }

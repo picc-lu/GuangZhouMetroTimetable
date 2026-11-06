@@ -77,7 +77,7 @@
     position: absolute;
     top: 0;
     transition: width 0.2s ease-out;
-    width: 0%;
+    width: 0;
     z-index: 0;
 }
 .toggle-progress-text {

@@ -176,7 +176,7 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
         if (!listVisible) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                runRoutePlanning();
+                void runRoutePlanning();
             }
             return;
         }
@@ -200,7 +200,7 @@ function setupRouteAutocomplete(inputEl, suggestionsEl) {
 
                 hide();
             } else {
-                runRoutePlanning();
+                void runRoutePlanning();
             }
         }
     });

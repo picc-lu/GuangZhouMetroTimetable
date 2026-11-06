@@ -298,7 +298,7 @@
 }
 .route-extra-wait-group{box-sizing:border-box;display:flex;flex:1 1 100%;flex-direction:column;gap:4px;margin-top:4px;padding:4px 0;width:100%}
 .route-wait-header{align-items:center;display:flex;padding:0 8px}
-.route-wait-slider-wrap{box-sizing:border-box;height:64px;margin-top:4pxpadding:0 24px;position:relative;width:100%;}
+.route-wait-slider-wrap{box-sizing:border-box;height:64px;margin-top:4px;padding:0 24px;position:relative;width:100%;}
 
 /* 轨道 */
 .route-wait-slider-wrap input[type="range"] {

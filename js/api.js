@@ -30,37 +30,6 @@ async function requestWithRetry(url, options = {}, retries = RETRY_TIMES, timeou
     }
 }
 
-/** 地铁名称规范化：线路名与站点名通用 */
-// function normalizeMetroText(str) {
-//     if (!str) return str;
-//     return str
-//         .replace(/^一号线/g, '1号线')
-//         .replace(/^二号线/g, '2号线')
-//         .replace(/^三北线/g, '3号线北')
-//         .replace(/^三号线/g, '3号线')
-//         .replace(/^四号线/g, '4号线')
-//         .replace(/^五号线/g, '5号线')
-//         .replace(/^六号线/g, '6号线')
-//         .replace(/^七号线/g, '7号线')
-//         .replace(/^八号线/g, '8号线')
-//         .replace(/^九号线/g, '9号线')
-//         .replace(/^十号线/g, '10号线')
-//         .replace(/^十一号线/g, '11号线')
-//         .replace(/^十二号线（二沙岛-大学城南）/g, '12号线东')
-//         .replace(/^十二号线$/g, '12号线西')
-//         .replace(/^十三号线/g, '13号线')
-//         .replace(/^十四号线/g, '14号线')
-//         .replace(/^十八号线/g, '18号线')
-//         .replace(/二十一号线/g, '21号线')
-//         .replace(/二十二号线/g, '22号线')
-//         .replace(/佛山地铁二号线|佛山地铁2号线/g, '佛山2号线')
-//         .replace(/佛山地铁三号线|佛山地铁3号线/g, '佛山3号线')
-//         .replace(/\(联和-佛山大学\)/g, '北')
-//         .replace(/^海珠有轨$/g, '海珠有轨1号线');
-// }
-//
-// // 兼容旧调用点：直接别名，不再保留两份实现
-// const normalizeLineName = normalizeMetroText;
 const normalizeString = normalizeLineName;
 
 /** 第一步：获取线路及站点 */
@@ -148,7 +117,7 @@ async function fetchServiceTimes(stationsToFetch = null) {
                                 const normalized = {};
                                 for (let [key, value] of Object.entries(rec)) {
                                     if (typeof value === 'string') {
-                                        normalized[key] = normalizeMetroText(value);
+                                        normalized[key] = normalizeLineName(value);
                                     } else {
                                         normalized[key] = value;
                                     }
@@ -337,7 +306,7 @@ function updateFetchErrorBadge() {
             if (failedStations.length === 0) return;
             const toRetry = failedStations.slice();
             toast.style.display = 'none';
-            fetchServiceTimes(toRetry);
+            void fetchServiceTimes(toRetry);
         });
         document.body.appendChild(toast);
     }

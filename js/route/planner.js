@@ -164,10 +164,16 @@ function resolveGraphStationNode(rawName, kind) {
    主流程：支持排序模式
    ========================================== */
 /**
- * @param {string} startStation
- * @param {string} endStation
- * @param {number} departMin
- * @param {'fastest'|'conservative'|'fewer-transfers'} sortMode
+ * 规划两个站点之间的路径。
+ * @param {string} startStation 起点站名
+ * @param {string} endStation 终点站名
+ * @param {number} departMin 出发时刻（距 0 点的分钟数）
+ * @param {'fastest'|'conservative'|'fewer-transfers'} [sortMode='fastest'] 排序模式
+ * @param {number|null} [maxTransferMin=null] 单次换乘最大步行时间（分钟），null 为不限制
+ * @param {boolean} [avoidOutOfStation=false] 是否不走站外换乘
+ * @param {boolean} [arriveMode=false] 是否为到达模式（反向规划）
+ * @param {string[]|null} [avoidCtrlStations=null] 尽量避开的客控换乘站列表
+ * @returns {Promise<Object>} 包含 results、rejected、totalPaths、feasibleCount 的对象
  */
 async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false, avoidCtrlStations = null) {
     await loadRouteGraph();
@@ -295,9 +301,6 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         const urgentCount = allMarginsForUrgent
             .filter(m => m != null && m !== 'unknown' && m < 15)
             .length;
-
-        const startMargin = (check.boardingMargins && check.boardingMargins.length > 0)
-            ? check.boardingMargins[0] : null;
 
         // ====== 单次换乘步行时长过滤 ======
         const interchanges = parseInterchangeKeys(p, departMin);
@@ -580,7 +583,7 @@ function checkReachability(path, departMin) {
                 }
             }
             if (nextLine3Station) {
-                const arriveTime = t + (w !== null ? w / 60 : 0);
+                const arriveTime = t + w / 60;
                 let dirStr = '海傍方向';
                 if (typeof LINE3_SOUTH_ORDER !== 'undefined' && LINE3_SOUTH_ORDER.includes(nextLine3Station)) dirStr = '海傍方向';
                 else if (typeof LINE3_NORTH_ORDER !== 'undefined' && LINE3_NORTH_ORDER.includes(nextLine3Station)) dirStr = '机场北方向';
@@ -660,10 +663,16 @@ function checkReachability(path, departMin) {
 
 /**
  * 返回 boarding 时刻距离对应方向末班车的余量（分钟）。
+ * @param {string} line 线路名
+ * @param {string} station 上车站名
+ * @param {string} dirStr 运行方向（如 '机场北方向'）
+ * @param {number} timeMin 到达站台的时刻（分钟）
+ * @param {string[]} [downstreamStations] 该 boarding 之后、同一线路上按顺序出现的站名（可选）
+ * @returns {number|string|Object|null}
  *  - null      → 明确停运
  *  - 'unknown' → 数据缺失，无法判定（应放行）
  *  - number    → 剩余分钟
- * @param {string[]} [downstreamStations] 该 boarding 之后、同一线路上按顺序出现的站名（可选）
+ *  - { needsWait: true, waitMin: number, marginMin: null } → 早于首班车，需等待
  */
 function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
     if (!dirStr) return 'unknown';

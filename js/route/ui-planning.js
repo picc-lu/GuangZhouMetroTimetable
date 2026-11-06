@@ -62,47 +62,51 @@ function isStationInOfficialData(stationName) {
    ========================================== */
 function buildRouteSuggestions(r, currentCfg) {
     const suggestions = [];
-    const reasons = r.rejected.map(x => x.reason).join(' ');
-    const uniqueReasons = [...new Set(r.rejected.map(x => x.reason))];
+    const reasons = r.rejected ? r.rejected.map(x => x.reason).join(' ') : '';
+    const uniqueReasons = r.rejected ? [...new Set(r.rejected.map(x => x.reason))] : [];
 
-    // 1. 单次换乘上限被卡住 → 建议关闭或提高
-    if (currentCfg.maxTransferMin != null &&
-        reasons.includes('超过设定上限')) {
-        suggestions.push({
-            action: 'disable-max-transfer',
-            label: '关闭"单次换乘时间不超过"',
-            value: '',
-        });
-        // 动态计算：当前设置 + 1 分钟，最大不超过 60 分钟
+    // 1. 单次换乘上限被卡住 → 建议放宽或关闭
+    if (currentCfg.maxTransferMin != null && reasons.includes('超过设定上限')) {
         if (currentCfg.maxTransferMin < 60) {
             const nextLimit = currentCfg.maxTransferMin + 1;
             suggestions.push({
                 action: 'set-max-transfer',
-                label: `放宽到 ${nextLimit} 分钟`,
+                label: `单次换乘放宽至 ${nextLimit} 分钟`,
                 value: nextLimit,
             });
         }
-    }
-
-    // 2. 不走站外换乘被卡住 → 建议关闭
-    if (currentCfg.avoidOutOfStation &&
-        reasons.includes('站外换乘')) {
         suggestions.push({
-            action: 'allow-outdoor',
-            label: '允许站外换乘（琶洲、五羊邨）',
+            action: 'disable-max-transfer',
+            label: '关闭单次换乘限制',
             value: '',
         });
     }
 
-    // 3. 首末班车问题 → 建议调整时间
+    // 2. 不走站外换乘被卡住 → 建议关闭
+    if (currentCfg.avoidOutOfStation && reasons.includes('站外换乘')) {
+        suggestions.push({
+            action: 'allow-outdoor',
+            label: '允许站外换乘',
+            value: '',
+        });
+    }
+
+    // 3. 尽量不走客控中换乘站 → 建议关闭
+    if (currentCfg.avoidCtrlTransfer) {
+        suggestions.push({
+            action: 'allow-ctrl',
+            label: '允许经过客控换乘站',
+            value: '',
+        });
+    }
+
+    // 4. 首末班车问题 → 建议调整时间
     const lastTrainReason = uniqueReasons.find(x =>
         x.includes('已无运营') || x.includes('已停运') || x.includes('末班车')
     );
     if (lastTrainReason) {
         const targetMin = getRouteDepartMin();
-
         if (_routeArriveMode) {
-            // 到达模式：目标到达太晚，建议延后
             const later = targetMin + 30;
             if (later <= 26 * 60) {
                 suggestions.push({
@@ -112,8 +116,6 @@ function buildRouteSuggestions(r, currentCfg) {
                 });
             }
         } else {
-            // 出发模式：区分是"太早"还是"太晚"
-            // 以 6:00 作为分界线，早于 6:00 认为是太早
             if (targetMin < 6 * 60) {
                 const later = targetMin + 30;
                 if (later <= 26 * 60) {
@@ -159,6 +161,9 @@ function applyRouteSuggestion(action, value) {
     } else if (action === 'allow-outdoor') {
         const aoc = _routeOverlay.querySelector('#route-avoid-outdoor-check');
         if (aoc) aoc.checked = false;
+    } else if (action === 'allow-ctrl') {
+        const acc = _routeOverlay.querySelector('#route-avoid-ctrl-check');
+        if (acc) acc.checked = false;
     } else if (action === 'earlier-depart') {
         const delta = parseInt(value, 10) || 30;
         _routeDepartMin = getRouteDepartMin() - delta;
@@ -172,41 +177,6 @@ function applyRouteSuggestion(action, value) {
     }
 
     setTimeout(() => runRoutePlanning(), 80);
-}
-
-/* ==========================================
-   反向规划：给定目标到达时刻，二分查找最晚出发时刻
-   ========================================== */
-async function findLatestDepartureForArrival(start, end, targetArriveMin,
-                                             sortMode, maxTransferMin, avoidOutOfStation, avoidCtrlStations) {
-    const STEP = 5;   // 5 分钟粒度
-    const EARLIEST = Math.max(5 * 60, targetArriveMin - 4 * 60);
-
-    const loIdx = Math.floor(EARLIEST / STEP);
-    const hiIdx = Math.floor(targetArriveMin / STEP);
-
-    let bestIdx = -1;
-    let L = loIdx, R = hiIdx;
-
-    while (L <= R) {
-        const midIdx = Math.floor((L + R) / 2);
-        const t = midIdx * STEP;
-
-        // 传入新增的 avoidCtrlStations 参数
-        const r = await planRoutes(start, end, t, sortMode,
-            maxTransferMin, avoidOutOfStation, true, avoidCtrlStations);
-        const ok = r.results && r.results.length > 0
-            && r.results.every(item => Math.floor(item.arriveMin) <= targetArriveMin);
-
-        if (ok) {
-            bestIdx = midIdx;
-            L = midIdx + 1;
-        } else {
-            R = midIdx - 1;
-        }
-    }
-
-    return bestIdx >= 0 ? bestIdx * STEP : null;
 }
 
 /* ==========================================
@@ -368,7 +338,7 @@ async function _executePlanningPipeline(start, end, resultsEl) {
     }
 
     // 4. 分支执行算路
-    let r = null;
+    let r;
     if (_routeArriveMode) {
         r = await _performArrivePlanning(validCombos, departMin, cfg, ctrlStationsForPlanner);
         _routeActiveDepartMin = null;
@@ -395,7 +365,6 @@ async function _executePlanningPipeline(start, end, resultsEl) {
 
                 const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(item.path) : [];
 
-                // 👇 1. 判断是否属于“必须出闸的换乘”
                 const hasAPM = segs.some(s => s.fullLine === 'APM');
                 let hasTNH1GuangfoDirect = false;
                 for (let i = 0; i < segs.length - 1; i++) {
@@ -494,7 +463,7 @@ async function _executePlanningPipeline(start, end, resultsEl) {
     }
 
     // 6. 渲染结果
-    _renderRouteResults(r, start, end, cfg.sortMode, resultsEl);
+    _renderRouteResults(r, start, end, cfg, resultsEl);
 }
 
 /**
@@ -606,8 +575,8 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         if (subR.error || !subR.results || subR.results.length === 0) continue;
 
         for (const item of subR.results) {
-            // 【第4点修改】：从目标时刻往早按 5 分钟步长线性扫描，彻底避免首班车等待导致的不单调问题
-            const STEP = 5;
+            // 【修改点】：将步长改为 1 分钟，确保能精确逼近目标到达时间
+            const STEP = 1;
             const EARLIEST = Math.max(5 * 60, targetArriveMin - 4 * 60);
             let bestDepart = null;
             let bestCheck = null;
@@ -622,7 +591,6 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
             }
 
             if (bestDepart !== null && bestCheck) {
-                // 【第23点修改】：记录提前时间，留给后面统一过滤
                 item._earlyMin = targetArriveMin - bestCheck.arriveMin;
 
                 item.actualDepartMin = bestDepart;
@@ -779,7 +747,8 @@ function _sortCombinedRoutes(allResults, sortMode, globalFastestCost) {
 /**
  * 渲染结果（包含空态处理、图例、HTML生成、事件绑定）
  */
-function _renderRouteResults(r, start, end, sortMode, resultsEl) {
+function _renderRouteResults(r, start, end, cfg, resultsEl) {
+    const sortMode = cfg.sortMode;
     // 处理“换乘少”无结果的特例
     if (r.results.length === 0 && sortMode === 'fewer-transfers' && r.feasibleCount > 0) {
         hideAllRouteLegends();
@@ -798,7 +767,7 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
                 const radio = _routeOverlay.querySelector('input[name="route-sort"][value="fastest"]');
                 if (radio) {
                     radio.checked = true;
-                    runRoutePlanning();
+                    void runRoutePlanning();
                 }
             });
         });
@@ -808,10 +777,11 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
     // 处理通用空结果
     if (r.results.length === 0) {
         let html = `<div class="route-empty"><div class="route-empty-title">当前时刻没有可用的路径</div>`;
+
+        let suggestions = [];
         if (_routeArriveMode) {
             const targetArriveMin = getRouteDepartMin();
             const LIMIT = 26 * 60;
-            const suggestions = [];
             if (targetArriveMin + 30 <= LIMIT) suggestions.push({
                 action: 'later-arrive',
                 label: `目标到达延后 30 分钟（${fmtHM(targetArriveMin + 30)}）`,
@@ -822,25 +792,21 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
                 label: `目标到达延后 1 小时（${fmtHM(targetArriveMin + 60)}）`,
                 value: 60
             });
-
-            if (suggestions.length > 0) {
-                html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
-                html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
-                html += `</div>`;
-            }
         } else {
-            const suggestions = buildRouteSuggestions(r, {sortMode});
-            if (suggestions.length > 0) {
-                html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
-                html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
-                html += `</div>`;
-            }
+            // 传入完整的 cfg
+            suggestions = buildRouteSuggestions(r, cfg);
         }
 
-        if (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV) {
-            html += `<div style="margin-top: 12px; display: flex; justify-content: flex-start; padding-left: 4px;">
-                     <button type="button" class="route-suggest-btn" id="route-btn-external">🗺️ 使用外部地图导航</button>
-                     </div>`;
+        // 将按钮和外部导航统一包裹在 route-suggest-actions 中
+        if (suggestions.length > 0 || (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV)) {
+            html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
+            html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
+
+            // 合并外部导航按钮
+            if (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV) {
+                html += `<button type="button" class="route-suggest-btn" id="route-btn-external">🗺️ 使用外部地图导航</button>`;
+            }
+            html += `</div>`;
         }
 
         html += `</div>`;
@@ -853,7 +819,7 @@ function _renderRouteResults(r, start, end, sortMode, resultsEl) {
             openExternalMap(start, end);
         });
 
-        resultsEl.querySelectorAll('.route-suggest-btn').forEach(btn => {
+        resultsEl.querySelectorAll('.route-suggest-btn:not(#route-btn-external)').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 applyRouteSuggestion(btn.dataset.action, btn.dataset.value);

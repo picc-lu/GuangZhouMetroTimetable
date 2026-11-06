@@ -302,14 +302,6 @@ function getCircleHtml(colors, isTransfer, strokeColor = '#ffffff') {
     html += `<circle cx="0" cy="0" r="8" fill="none" stroke="${strokeColor}" stroke-width="2.5" />`;
     return html;
 }
-
-function isOverlap(rect1, rect2, padding = 2) {
-    return !(rect1.x + rect1.w + padding < rect2.x ||
-        rect1.x > rect2.x + rect2.w + padding ||
-        rect1.y + rect1.h + padding < rect2.y ||
-        rect1.y > rect2.y + rect2.h + padding);
-}
-
 function renderTopo(svg) {
     svg.innerHTML = '';
     const C = getTopoColors();
@@ -643,14 +635,6 @@ function mixColor(hex, percent, grayBase) {
     b = Math.round(b * (1 - p) + gray[2] * p);
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
-
-function getBrightness(hex) {
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000;
-}
-
 function applyTopoTransform() {
     const wrap = document.getElementById('topo-canvas-wrap');
 
@@ -775,7 +759,7 @@ function applyTopoTransform() {
                     return;
                 }
 
-                let showText = false;
+                let showText;
                 if (isTransfer) {
                     showText = scale >= 1.0;
                 } else {
@@ -785,7 +769,7 @@ function applyTopoTransform() {
                 if (showText) {
                     text.style.display = '';
 
-                    let currentFontSize = 12;
+                    let currentFontSize;
                     if (isSpecial) {
                         currentFontSize = Math.max(6, Math.min(10, 6 * Math.sqrt(scale)));
                     } else {

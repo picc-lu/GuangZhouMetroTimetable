@@ -1,7 +1,15 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.11a",
+  "current": "1.2.11-clean",
   "entries": [
+    {
+      "version": "1.2.11-clean",
+      "date": "2026-11-06",
+      "items": [
+        { "type": "调整", "text": "推荐按钮排布" },
+        { "type": "修复", "text": "到达模式时间没对齐的问题" }
+      ]
+    },
     {
       "version": "1.2.11a",
       "date": "2026-11-06",

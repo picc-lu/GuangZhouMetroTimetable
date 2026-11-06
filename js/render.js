@@ -268,7 +268,6 @@ function updateLinesTime() {
         if (!stations) return;
 
         const originalColor = LINE_COLORS[line] || '#888';
-        const n = stations.length;
 
         // 一次性算出该线路的所有活动状态（复用共享函数）
         const {upActiveCache, downActiveCache, hasActiveStation} =

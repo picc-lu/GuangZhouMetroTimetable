@@ -276,87 +276,11 @@ function getShortServicesOfLine(line) {
     if (!line || !SHORT_SERVICES.data) return [];
     return SHORT_SERVICES.data[line] || [];
 }
-
-/**
- * 该站是否是某条短线车的"折返终点站"。
- * 只有 end 端算折返站；start 端是正常发车站，不算。
- */
-function isShortServiceEndpoint(line, station) {
-    if (!line || !station) return false;
-    return getShortServicesOfLine(line).some(svc => isSameStation(svc.end, station));
-}
-
-/**
- * 判断"从 fromStation 到 toStation 的这段线路"是否涉及短线车。
- * 只有折返站（end）才是需要提醒的；start 端是正常发车站，不算短线车。
- * @returns {Object|null}
- */
-function getShortServiceWarning(line, fromStation, toStation) {
-    const services = getShortServicesOfLine(line);
-    if (services.length === 0) return null;
-    for (const svc of services) {
-        if (isSameStation(svc.end, fromStation) || isSameStation(svc.end, toStation)) {
-            return svc;
-        }
-    }
-    return null;
-}
-
-/**
- * 若某条短线车的 end 站落在"boarding 沿运行方向、不超过 segmentEnd"的区间内，
- * 返回该 end 站名，否则返回 null。
- *
- * 关键：短线车有方向（start → end），只有用户运行方向与短线车方向一致、
- * 且 svc.end 落在用户路径区间内时才命中。
- *
- * @param {string} line          线路名
- * @param {string} boardStation  上车站名
- * @param {string} segmentEnd    本段最远下游站名
- * @returns {string|null}
- */
-function getShortServiceCoveringEnd(line, boardStation, segmentEnd) {
-    const services = getShortServicesOfLine(line);
-    if (services.length === 0) return null;
-
-    const aliases = (typeof getLineAliases === 'function') ? getLineAliases(line) : [line];
-
-    let lineStations = null;
-    let idxStation = -1;
-    let idxSegEnd = -1;
-    for (const ln of aliases) {
-        const arr = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS[ln]) || [];
-        if (arr.length === 0) continue;
-        const i1 = findStationIndex(arr, boardStation);
-        const i2 = findStationIndex(arr, segmentEnd);
-        if (i1 >= 0 && i2 >= 0) {
-            lineStations = arr;
-            idxStation = i1;
-            idxSegEnd = i2;
-            break;
-        }
-    }
-    if (!lineStations) return null;
-
-    const isUserForward = idxSegEnd > idxStation;
-
-    for (const svc of services) {
-        const idxEnd = findStationIndex(lineStations, svc.end);
-        if (idxEnd < 0) continue;
-
-        if (isUserForward) {
-            if (idxEnd > idxStation && idxEnd <= idxSegEnd) return svc.end;
-        } else {
-            if (idxEnd < idxStation && idxEnd >= idxSegEnd) return svc.end;
-        }
-    }
-    return null;
-}
-
 /**
  * 收集 node 之后的、与 node 同线路、按顺序出现的站名（相邻去重）。
- * @param {string} node     起点的完整节点名
- * @param {string[]} allNodes 整条 path.nodes
- * @returns {string[]}
+ * @param {number} startIdx 起点在 allNodes 中的索引
+ * @param {string[]} allNodes 整条 path.nodes 节点数组
+ * @returns {string[]} 下游站名数组
  */
 function collectDownstreamStations(startIdx, allNodes) {
     const startParts = allNodes[startIdx].split('|');

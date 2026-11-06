@@ -566,7 +566,7 @@
     color: #5da0ff; /* 夜间模式用亮蓝色 */
 }
 [data-theme="dark"] .changelog-btn{background:transparent;border-color:#3a4559;color:#94a3b8}
-[data-theme="dark"] .changelog-btn:hover{background:#232b3d;border-color:#4a5568color:#e2e8f0;}
+[data-theme="dark"] .changelog-btn:hover{background:#232b3d;border-color:#4a5568;color:#e2e8f0;}
 [data-theme="dark"] .changelog-container{background:#1a2030;border:1px solid #2d3748}
 [data-theme="dark"] .changelog-header{border-bottom-color:#2d3748}
 [data-theme="dark"] .changelog-header h3{color:#e2e8f0}

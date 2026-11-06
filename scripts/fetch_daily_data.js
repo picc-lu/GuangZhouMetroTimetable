@@ -148,4 +148,4 @@ async function main() {
     console.log(`抓取完成！已成功保存 ${Object.keys(result).length} 个站点的数据到 data/daily-times.json`);
 }
 
-main();
+void main();

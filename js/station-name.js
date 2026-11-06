@@ -72,12 +72,6 @@ function canonicalStation(name) {
     if (!name) return name;
     return _ALIAS_TO_CANON.get(String(name).trim()) || String(name).trim();
 }
-
-/** 去括号：'机场北（T2）' → '机场北' */
-function stripStationBrackets(name) {
-    return String(name).replace(/[（(][^）)]*[）)]/g, '').trim();
-}
-
 // ---------- 3. 有轨电车 ↔ 地铁 ----------
 const TRAM_STATION_ALIAS = {
     '广州塔站': '广州塔（有轨）',

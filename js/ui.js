@@ -415,9 +415,6 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
     const upColorDark = `hsl(${baseHsl.h}, ${colorS}%, 70%)`;
     const downColorLight = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 32%)`;
     const downColorDark = `hsl(${(baseHsl.h + 150) % 360}, ${colorS}%, 70%)`;
-    // 兼容旧代码：upColor / downColor 仍指向浅色版本
-    const upColor = upColorLight;
-    const downColor = downColorLight;
 
     // 预计算每一站的运营状态
     const stationStatus = stations.map(station => {
@@ -480,7 +477,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
     const h3El = modalHeader.querySelector('h3');
     if (h3El) h3El.style.color = headerTextColor;
 
-    function makeBlock(dirLabel, first, last, isUp) {
+    function makeBlock(dirLabel, first, last) {
         const active = currentMin >= first && currentMin <= last;
         const remaining = last - currentMin;
         const showRemaining = active && remaining >= 0 && remaining <= 60;
@@ -677,27 +674,27 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
 
         if (line === '11号线') {
             // up 视觉向下 → 用 ↓；down 视觉向上 → 用 ↑
-            if (times.upFull) upCards += makeBlock('↓ 外环 全程', times.upFull.first, times.upFull.last, true);
-            if (times.upTerminal) upCards += makeBlock('↓ 外环 往龙潭', times.upTerminal.first, times.upTerminal.last, true);
-            if (times.downFull) downCards += makeBlock('↑ 内环 全程', times.downFull.first, times.downFull.last, false);
-            if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last, false);
+            if (times.upFull) upCards += makeBlock('↓ 外环 全程', times.upFull.first, times.upFull.last);
+            if (times.upTerminal) upCards += makeBlock('↓ 外环 往龙潭', times.upTerminal.first, times.upTerminal.last);
+            if (times.downFull) downCards += makeBlock('↑ 内环 全程', times.downFull.first, times.downFull.last);
+            if (times.downTerminal) downCards += makeBlock('↑ 内环 往赤沙', times.downTerminal.first, times.downTerminal.last);
         } else {
             // 非11号线：方向已提取至顶部，卡片内不再显示具体方向
             // 修改：判断是否有多个终点，如果有，则用容器包裹并左右分布
             if (times.up && times.up.length > 1) {
                 upCards = `<div class="v-multi-terminals">` +
-                    times.up.map(t => makeBlock('', t.first, t.last, true)).join('') +
+                    times.up.map(t => makeBlock('', t.first, t.last)).join('') +
                     `</div>`;
             } else {
-                upCards = (times.up || []).map(t => makeBlock('', t.first, t.last, true)).join('');
+                upCards = (times.up || []).map(t => makeBlock('', t.first, t.last)).join('');
             }
 
             if (times.down && times.down.length > 1) {
                 downCards = `<div class="v-multi-terminals">` +
-                    times.down.map(t => makeBlock('', t.first, t.last, false)).join('') +
+                    times.down.map(t => makeBlock('', t.first, t.last)).join('') +
                     `</div>`;
             } else {
-                downCards = (times.down || []).map(t => makeBlock('', t.first, t.last, false)).join('');
+                downCards = (times.down || []).map(t => makeBlock('', t.first, t.last)).join('');
             }
         }
 
@@ -800,8 +797,7 @@ function showLineDetails(line, keepScroll = false, pushHistory = false, scrollTo
 
     // 恢复该线路上次的滚动位置（默认 0）
     if (!keepScroll) {
-        const savedPos = modalScrollPositions[line] || 0;
-        contentDiv.scrollTop = savedPos;
+        contentDiv.scrollTop = modalScrollPositions[line] || 0;
     }
 
     // 如果指定了 scrollToStation，滚动到对应站点并高亮

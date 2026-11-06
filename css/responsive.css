@@ -101,7 +101,7 @@
     }
     .system-time-area {
         box-sizing: border-box !important;
-        flex: 1 1 0% !important;
+        flex: 1 1 0 !important;
         justify-content: center !important;
         min-width: 0 !important;
         padding: 4px 6px !important;

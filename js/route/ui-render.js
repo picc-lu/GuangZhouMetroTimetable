@@ -682,26 +682,6 @@ function get11LineDirectionFromPath(path, startStation) {
 
     return outerInnerStr;
 }
-
-/**
- * 直达路径的乘车方向文案，如"往龙潭"、"往外环"、"往机场北"。
- * 取路径第一段的线路 + 起点站，交给 getSegmentDirection 处理。
- * 若无法判定，返回空串（上层会回退为"直达"）。
- */
-function getDirectDirectionText(path, startName) {
-    if (!path || !path.nodes) return '';
-    const segs = (typeof parseRouteSegments === 'function')
-        ? parseRouteSegments(path) : [];
-    if (segs.length === 0) return '';
-
-    const firstSeg = segs[0];
-    const dir = getSegmentDirection(path, startName, firstSeg.fullLine);
-    if (!dir) return '';
-
-    const name = dir.replace(/方向$/, '');
-    return name ? `往${name}` : '';
-}
-
 function formatScreenDoorsRange(doors) {
     const arr = [...doors].filter(x => typeof x === 'number').sort((a, b) => a - b);
     if (arr.length === 0) return '';
@@ -781,7 +761,7 @@ function buildArriveBlockHtml(item) {
     `;
 }
 
-function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', displayStart = startName, displayEnd = endName) {
+function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', displayStart = startName) {
     const rank = item.rank || (idx + 1);
     const transferStations = item.interchanges.map(o => formatDisplayStation(o.key.split('|')[0])).filter(Boolean);
 
@@ -887,7 +867,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         : null;
 
     // 找到 renderRouteCard 里的 boardingPoints.push 第一段，替换：
-    let firstBoardTime = null;
+    let firstBoardTime;
     if (_routeArriveMode && item.actualDepartMin != null) firstBoardTime = item.actualDepartMin;
     else if (_routeActiveDepartMin != null) firstBoardTime = _routeActiveDepartMin;
     else {
@@ -1017,7 +997,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             continue;
         }
 
-        if (typeof nextBp.interchangeIdx === 'number' && nextBp.interchangeIdx !== null) {
+        if (typeof nextBp.interchangeIdx === 'number') {
             const o = item.interchanges[nextBp.interchangeIdx];
             if (o) {
                 const g = ROUTE_GRAPH.guides.get(o.key);
@@ -1028,13 +1008,13 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         }
     }
 
-    guideHtml = `<div class="route-guide">` + boardingPoints.map((bp, bpIdx) => {
+    guideHtml = `<div class="route-guide">` + boardingPoints.map((bp) => {
         const stationHtml = `<span class="route-guide-station">${escapeHtml(formatDisplayStation(bp.station))}</span>`;
 
         const baseLineText = bp.fromShort ? `${bp.fromShort}→${bp.toShort}` : bp.toShort;
         const dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
 
-        let changeHtml = '';
+        let changeHtml;
         let dirHtml = '';
         const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
         const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';

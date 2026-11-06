@@ -120,7 +120,7 @@ if ('serviceWorker' in navigator && !IS_TOY_ENV) {
                     if (!newWorker) return;
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed') {
-                            showSwUpdateToast(reg);
+                            void showSwUpdateToast(reg);
                         }
                     });
                 });
