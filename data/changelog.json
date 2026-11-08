@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.12",
+  "current": "1.2.12a",
   "entries": [
+    {
+      "version": "1.2.12a",
+      "date": "2026-11-08",
+      "items": [
+        { "type": "优化", "text": "校准发车间隔" }
+      ]
+    },
     {
       "version": "1.2.12",
       "date": "2026-11-08",
