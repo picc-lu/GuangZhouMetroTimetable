@@ -127,9 +127,9 @@
 .axis-line {
     border-radius: 4px;
     flex: 1;
-    margin: 4px 0;
+    margin: -4px 0 -15px 0;
     min-height: 20px;
-    width: 4px;
+    width: 5px;
 }
 .guide-content {
     flex: 1;
@@ -177,15 +177,6 @@
     flex-wrap: wrap;
     gap: 10px;
 }
-.route-tag {
-    align-items: center;
-    border-radius: 6px;
-    display: inline-flex;
-    font-size: 12px;
-    gap: 3px;
-    line-height: 1.2;
-    padding: 3px 8px;
-}
 .tag-door {
     align-items: center;
     background: #f0fdf4;
@@ -203,20 +194,33 @@
     color: #34d399;
 }
 .tag-icon-val {
-    align-items: flex-end; /* 底部对齐 */
+    align-items: flex-end;
     background: transparent !important;
     border: none !important;
     color: #1e293b;
     display: inline-flex;
-    gap: 1px;
-    margin: 0 4px;
+    gap: 0 !important;
     padding: 0 !important;
 }
 [data-theme="dark"] .tag-icon-val {
     color: #e2e8f0;
 }
 .tag-icon-val svg {
-    margin-bottom: 0;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+/* 1. 火柴人：身体右侧本身自带留白，往前挪一点 */
+.icon-walk {
+    margin-right: -3px !important;
+}
+/* 2. 沙漏：本身线条较宽，往左退一点，留出呼吸空间 */
+.icon-hourglass {
+    margin-right: -2px !important;
+}
+/* 3. 时钟：圆圈边缘距离数字留一点点即可 */
+.icon-clock {
+    margin-right: 1px !important;
 }
 /* 删除之前旧的 .tag-time-wait 胶囊背景样式，防止冲突 */
 .tag-time-wait {
@@ -273,7 +277,7 @@
     display: inline-flex;
     font-size: 12px;
     line-height: 1.4;
-    padding: 2px 8px;
+    padding: 3px 8px;
     word-break: break-all;
 }
 [data-theme="dark"] .tag-note {
@@ -305,7 +309,7 @@
     background: #334155;
     color: #f1f5f9;
 }
-.route-guide-item:last-child { border-bottom: none; }
+.route-guide-item:last-child { border-bottom: none; margin-bottom: 0; min-height: 0; }
 .route-guide-head { align-items: center; display: flex; flex-wrap: wrap; font-size: 13px; gap: 4px; min-height: 22px; padding-right: 118px; row-gap: 4px; }
 .route-guide-station { color: #1e293b; flex-shrink: 0; font-size: 14px; font-weight: 800; }
 .route-guide-change { background: #eceff3; border-radius: 6px; color: #475569; flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 2px 8px; }
@@ -488,7 +492,30 @@
     justify-content: center;
     margin-left: 2px;
 }
-
 [data-theme="dark"] .guide-exit-badge {
     color: #94a3b8;
+}
+/* ===== 底部弹出的 Tooltip ===== */
+.tag-tooltip {
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+    font-size: 12px;
+    opacity: 0;
+    padding: 5px 10px;
+    pointer-events: none;
+    position: fixed;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+    z-index: 9999;
+}
+.tag-tooltip.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+[data-theme="dark"] .tag-tooltip {
+    background: rgba(241, 245, 249, 0.95);
+    color: #0f172a;
 }

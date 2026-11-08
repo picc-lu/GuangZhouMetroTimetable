@@ -1071,7 +1071,12 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         if (!bp.isEnd) {
             if (bp.note) {
                 noteHtml = `<div class="guide-note-row">
-                <span class="route-tag tag-note">💡 ${escapeHtml(bp.note)}</span>
+                <span class="route-tag tag-note">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="margin-right: 4px; opacity: 0.85;">
+                        <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/>
+                    </svg>
+                    ${escapeHtml(bp.note)}
+                </span>
             </div>`;
             }
 
@@ -1084,8 +1089,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                     walkNum = Math.round(bp.walkMin);
                     walkUnit = '';
                 }
-                tagsHtml += `<span class="tag-icon-val" title="步行 ${walkNum}${walkUnit || '分'}">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                tagsHtml += `<span class="tag-icon-val" data-tooltip="换乘时间" style="cursor:pointer;" title="步行 ${walkNum}${walkUnit || '分'}">
+                <svg viewBox="0 0 24 24" class="icon-walk" width="18" height="18" fill="currentColor">
                     <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>
                 </svg>
                 <span class="val-num">${walkNum}${walkUnit ? `<span class="val-unit">${walkUnit}</span>` : ''}</span>
@@ -1094,22 +1099,22 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
 
             if (bp.door) {
                 const doorText = bp.door.replace(/^门\s*/, '');
-                tagsHtml += `<span class="tag-door">
+                tagsHtml += `<span class="tag-door" data-tooltip="最优车门" style="cursor:pointer;">
                 <span class="door-label">门</span>${escapeHtml(doorText)}
             </span>`;
             }
 
             // 候（改成 SVG 时钟/沙漏图标 + 时间）
             if (boardingStr) {
-                tagsHtml += `<span class="tag-icon-val tag-wait-time" title="候车时间">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                tagsHtml += `<span class="tag-icon-val tag-wait-time" data-tooltip="候车时刻" style="cursor:pointer;" title="候车时刻">
+                <svg viewBox="0 0 24 24" class="icon-hourglass" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
                 </svg>
                 <span class="val-num">${boardingStr}</span>
             </span>`;
             }
 
-            // 等（等待）：不显示“分”字
+            // 等（时钟）
             if (bp.waitMin > 0.1) {
                 tagsHtml += `<span class="tag-wait-warning">⏳ 等待首班 ${Math.round(bp.waitMin)}</span>`;
             } else if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
@@ -1124,8 +1129,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                     else if (ratio >= 0.74 && ratio <= 0.76) prefix = '预计';
                     else if (ratio !== 0.5) prefix = '约';
 
-                    tagsHtml += `<span class="tag-icon-val" title="${prefix}${waitStr}分">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    tagsHtml += `<span class="tag-icon-val" data-tooltip="平均等车时间" style="cursor:pointer;" title="${prefix}${waitStr}分">
+                    <svg viewBox="0 0 24 24" class="icon-clock" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
                     <span class="val-num">${waitStr}</span>
@@ -1157,7 +1162,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         // 点：使用高光叠加底色实现上下渐变
         const dotStyle = `background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%), ${lineColor};`;
         // 线：从当前线路色渐变到下一线路色
-        const lineStyle = `background: linear-gradient(to bottom, ${lineColor}, ${nextColor});`;
+        const lineStyle = `background: linear-gradient(to bottom, ${lineColor} 0%, ${lineColor} 75%, ${nextColor} 100%);`;
 
         return `<div class="route-guide-item">
             <div class="guide-axis">
@@ -1204,7 +1209,6 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             </div>
             <div class="route-detail">
                 ${warningHtml}
-                ${stationCtrlHtml}
                 ${guideHtml}
                 ${buildStationListHtml(startName, endName, item.stationRoute)} 
             </div>

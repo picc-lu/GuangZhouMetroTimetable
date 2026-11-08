@@ -172,12 +172,14 @@
     padding: 4px 4px 4px 10px;
 }
 .route-stops .route-input {
+    font-weight: bold;
     min-width: 0;
     padding: 0 16px;
     text-align: center;
     width: 100%;
 }
 .route-stops .route-input::placeholder {
+    font-weight: normal;
     text-align: center;
 }
 .route-stops .route-autocomplete {

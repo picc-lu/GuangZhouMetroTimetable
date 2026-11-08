@@ -123,12 +123,15 @@
 [data-theme="dark"] .route-sew-sep { color: #ef4444; }
 [data-theme="dark"] .route-fare { background: #3a2a10; color: #fbbf24; }
 [data-theme="dark"] .route-outdated-notice {background: #422c00;border-color: #78350f;color: #fcd34d;}
-[data-theme="dark"] .route-seg-ctrl-icon path {stroke: #ffffff;}
+[data-theme="dark"] .ctrl-lightning-icon path,
+[data-theme="dark"] .route-seg-ctrl-icon path {
+    stroke: rgb(255, 196, 11);
+}
+[data-theme="dark"] .route-seg-ctrl-icon.is-future path {
+    stroke: #94a3b8 !important;
+}
 [data-theme="dark"] .route-ctrl-lightning-hint {
     color: #94a3b8;
-}
-[data-theme="dark"] .ctrl-lightning-icon path {
-    stroke: #ffffff;
 }
 /* 线网图按钮夜间样式 */
 [data-theme="dark"] #topo-btn {

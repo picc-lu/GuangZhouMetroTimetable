@@ -913,6 +913,17 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
  * 抽离结果卡片上的展开/收起等 UI 交互事件
  */
 function _bindRouteCardEvents(resultsEl) {
+    if (!resultsEl.dataset.tooltipBound) {
+        resultsEl.dataset.tooltipBound = '1';
+        resultsEl.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target) {
+                e.stopPropagation(); // 阻止冒泡触发卡片展开
+                showTagTooltip(target, target.dataset.tooltip);
+            }
+        });
+    }
+
     resultsEl.querySelectorAll('.route-card').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.route-guide') || e.target.closest('.route-stations-toggle') || e.target.closest('.route-station-more-btn')) return;
@@ -1096,4 +1107,55 @@ function openExternalMap(start, end) {
         const url = `https://uri.amap.com/navigation?from=${startStr}&to=${endStr}&mode=bus&policy=1&src=mypage&coordinate=gaode&callnative=1`;
         window.open(url, '_blank');
     }
+}
+
+let _tagTooltipTimer = null;
+let _tagTooltipTarget = null;
+
+function showTagTooltip(el, text) {
+    let tip = document.getElementById('tag-tooltip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'tag-tooltip';
+        tip.className = 'tag-tooltip';
+        document.body.appendChild(tip);
+
+        // 全局监听滚动，实时更新位置（解决跟着滑的问题）
+        // 使用 capture: true 能够监听到 .route-body 内部的滚动
+        const updatePos = () => updateTagTooltipPos();
+        window.addEventListener('scroll', updatePos, { passive: true, capture: true });
+    }
+
+    tip.textContent = text;
+    _tagTooltipTarget = el; // 记录当前触发 Tooltip 的元素
+
+    // 强制重绘以触发过渡动画
+    tip.classList.remove('show');
+    void tip.offsetWidth;
+    tip.classList.add('show');
+
+    updateTagTooltipPos(); // 初始化位置
+
+    if (_tagTooltipTimer) clearTimeout(_tagTooltipTimer);
+    _tagTooltipTimer = setTimeout(() => {
+        tip.classList.remove('show');
+        _tagTooltipTarget = null;
+    }, 1500);
+}
+
+// 独立的位置更新函数
+function updateTagTooltipPos() {
+    const tip = document.getElementById('tag-tooltip');
+    if (!tip || !_tagTooltipTarget || !tip.classList.contains('show')) return;
+
+    // 如果目标元素已经不可见（比如被折叠了），直接隐藏
+    const rect = _tagTooltipTarget.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+        tip.classList.remove('show');
+        return;
+    }
+
+    // 根据目标元素的最新位置更新 Tooltip（fixed 定位）
+    tip.style.left = (rect.left + rect.width / 2) + 'px';
+    tip.style.top = (rect.bottom + 8) + 'px';
 }
