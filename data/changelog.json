@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.12b",
+  "current": "1.2.12c",
   "entries": [
+    {
+      "version": "1.2.12c",
+      "date": "2026-11-08",
+      "items": [
+        { "type": "优化", "text": "banner ui微调" }
+      ]
+    },
     {
       "version": "1.2.12b",
       "date": "2026-11-08",

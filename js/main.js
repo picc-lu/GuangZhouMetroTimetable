@@ -1,6 +1,76 @@
 const versionEl = document.getElementById('version-display');
 versionEl.textContent = '线路版本: 2026-10-24 (内置)';
 
+// ========== Banner 打字机特效 ==========
+function initBannerTypewriter() {
+    const el = document.getElementById('banner-typewriter');
+    const cursor = document.querySelector('.banner-cursor');
+    const wrap = document.querySelector('.banner-text-wrap');
+
+    if (!el || !cursor || !wrap) return;
+
+    const texts = [
+        "羊角时刻",
+        "运营时间展示",
+        "末班车·线路规划",
+        ""
+    ];
+
+    let textIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+
+    function tick() {
+        const currentText = texts[textIdx];
+
+        // 👇 空白状态：把整个容器隐藏，让 SVG 完美居中
+        if (currentText === "") {
+            el.textContent = "";
+            wrap.classList.add('hidden'); // 隐藏容器
+            cursor.classList.add('hidden');
+
+            setTimeout(() => {
+                textIdx = (textIdx + 1) % texts.length;
+                isDeleting = false;
+                charIdx = 0;
+                tick();
+            }, 30000);
+            return;
+        }
+
+        // 非空白状态，显示容器和光标
+        wrap.classList.remove('hidden'); // 恢复容器显示
+        cursor.classList.remove('hidden');
+
+        if (isDeleting) {
+            charIdx--;
+        } else {
+            charIdx++;
+        }
+
+        el.textContent = currentText.substring(0, charIdx);
+
+        let typeSpeed = isDeleting ? 100 : 200;
+
+        if (!isDeleting && charIdx === currentText.length) {
+            cursor.classList.add('hidden');
+            typeSpeed = 10000;
+            isDeleting = true;
+        } else if (isDeleting && charIdx === 0) {
+            cursor.classList.remove('hidden');
+            isDeleting = false;
+            textIdx = (textIdx + 1) % texts.length;
+            typeSpeed = 500;
+        }
+
+        setTimeout(tick, typeSpeed);
+    }
+
+    setTimeout(tick, 500);
+}
+
+initBannerTypewriter();
+
 function applyBannerColors() {
     const banner = document.querySelector('.banner');
     if (!banner) return;

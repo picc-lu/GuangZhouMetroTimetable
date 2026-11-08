@@ -103,7 +103,7 @@
     width: 16px;
 }
 .axis-dot {
-    border: 3px solid #fff; /* 增加白色粗边框让点从线中跳出来 */
+    border: 2.5px solid #fff; /* 增加白色粗边框让点从线中跳出来 */
     border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     box-sizing: border-box;
@@ -126,6 +126,7 @@
 }
 .axis-line {
     border-radius: 4px;
+    box-shadow: 0 0 5px 0 rgba(255, 255, 255, 0.5);
     flex: 1;
     margin: -4px 0 -15px 0;
     min-height: 20px;

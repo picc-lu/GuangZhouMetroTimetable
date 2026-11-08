@@ -661,3 +661,41 @@ html, body {
         background-color: #131a26;
     }
 }
+/* ===== Banner 打字机特效 ===== */
+.banner-text-wrap {
+    align-items: center;
+    display: inline-flex;
+    font-size: 1.5rem;
+    font-weight: bolder;
+    margin-left: 12px;
+}
+
+/* 👇 新增：彻底隐藏容器（连 margin 也不占空间） */
+.banner-text-wrap.hidden {
+    display: none;
+}
+
+#banner-typewriter {
+    letter-spacing: 2px;
+}
+
+.banner-cursor {
+    animation: blink 1s step-end infinite;
+    background-color: currentColor;
+    display: inline-block;
+    height: 1.1em;
+    margin-left: 4px;
+    transition: opacity 0.2s;
+    vertical-align: text-bottom;
+    width: 3px;
+}
+
+.banner-cursor.hidden {
+    animation: none;
+    opacity: 0;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
