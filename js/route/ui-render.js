@@ -1052,10 +1052,16 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         const lineColor = bp.fullLine && LINE_COLORS[bp.fullLine] ? LINE_COLORS[bp.fullLine] : '#888';
         const textColor = getContrastColor(lineColor);
 
+        const prevBp = boardingPoints[bpIdx - 1];
+        const prevLineColor = (prevBp && prevBp.fullLine && LINE_COLORS[prevBp.fullLine]) ? LINE_COLORS[prevBp.fullLine] : lineColor;
+        const prevTextColor = getContrastColor(prevLineColor);
+
         // 3. 标签（车门、步行、候车、等待、备注）
         let tagsHtml = '';
         let noteHtml = '';
         let badgeHtml = '';
+        let waitLabelHtml = '';
+
         if (bp.isEnd) {
             badgeHtml = `<span class="guide-exit-badge" title="已到达终点，请出站">
                 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1065,17 +1071,23 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 </svg>
             </span>`;
         } else if (baseLineText) {
-            badgeHtml = `<span class="guide-line-badge" style="background:${lineColor}; color:${textColor};">${escapeHtml(baseLineText)}</span>`;
+            // 统一强制使用浅灰背景、深色字
+            badgeHtml = `<span class="guide-line-badge" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0;">${escapeHtml(baseLineText)}</span>`;
         }
 
         if (!bp.isEnd) {
             if (bp.note) {
+                let formattedNote = escapeHtml(bp.note);
+
+                const matchStyle = `background: ${prevLineColor}; color: ${prevTextColor}; padding: 1px 5px; border-radius: 4px; font-weight: bold; font-size: 12px; margin: 0 2px; display: inline-flex; align-items: center; white-space: nowrap; line-height: 1.2;`;
+                formattedNote = formattedNote.replace(/(门\s*[\d至\\]+)/g, `<span style="${matchStyle}">$1</span>`);
+
                 noteHtml = `<div class="guide-note-row">
                 <span class="route-tag tag-note">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="margin-right: 4px; opacity: 0.85;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="margin-right: 6px; opacity: 0.85; flex-shrink: 0; margin-top: 2px;">
                         <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/>
                     </svg>
-                    ${escapeHtml(bp.note)}
+                    <span class="note-text-wrap">${formattedNote}</span>
                 </span>
             </div>`;
             }
@@ -1099,8 +1111,17 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
 
             if (bp.door) {
                 const doorText = bp.door.replace(/^门\s*/, '');
-                tagsHtml += `<span class="tag-door" data-tooltip="最优车门" style="cursor:pointer;">
-                <span class="door-label">门</span>${escapeHtml(doorText)}
+                const isLong = doorText.length > 12;
+                const doorClass = isLong ? 'tag-door is-long collapsed' : 'tag-door';
+                const tooltipText = isLong ? '点击展开最优车门' : '最优车门';
+
+                const arrowSvg = isLong
+                    ? `<svg class="door-arrow-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`
+                    : '';
+
+                // 此处仍然使用当前的 lineColor 和 textColor
+                tagsHtml += `<span class="${doorClass}" data-tooltip="${tooltipText}" style="cursor:pointer; background: ${lineColor}; color: ${textColor}; border: none;">
+                <span class="door-label">门</span><span class="door-text">${escapeHtml(doorText)}</span>${arrowSvg}
             </span>`;
             }
 
@@ -1116,7 +1137,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
 
             // 等（时钟）
             if (bp.waitMin > 0.1) {
-                tagsHtml += `<span class="tag-wait-warning">⏳ 等待首班 ${Math.round(bp.waitMin)}</span>`;
+                waitLabelHtml = `<span class="tag-wait-warning">距首班车 ${Math.round(bp.waitMin)} 分</span>`;
             } else if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
                 const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
                 if (typeof headway === 'number' && headway > 0) {
@@ -1142,7 +1163,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             if (bp.marginMin != null && !isNaN(bp.marginMin)) {
                 const m = Math.round(bp.marginMin);
                 if (m >= 0 && m <= 20) {
-                    tagsHtml += `<span class="route-tag tag-margin-urgent">⚠️ 剩${m}分</span>`;
+                    tagsHtml += `<span class="route-tag tag-margin-urgent">剩${m}分</span>`;
                 }
             }
         }
@@ -1174,8 +1195,9 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 <div class="guide-header">
                     <div class="guide-title-wrap">
                         <span class="guide-station">${stationName}</span>
-                        ${badgeHtml} <!-- 👈 替换原本的 span -->
+                        ${badgeHtml}
                         ${dirName ? `<span class="guide-dir">${escapeHtml(dirName)}</span>` : ''}
+                        ${waitLabelHtml}
                     </div>
                 </div>
                 ${noteHtml}

@@ -1,7 +1,15 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.12c",
+  "current": "1.2.13",
   "entries": [
+    {
+      "version": "1.2.13",
+      "date": "2026-11-09",
+      "items": [
+        { "type": "优化", "text": "校准发车间隔" },
+        { "type": "优化", "text": "折叠过长最优车门" }
+      ]
+    },
     {
       "version": "1.2.12c",
       "date": "2026-11-08",

@@ -180,19 +180,13 @@
 }
 .tag-door {
     align-items: center;
-    background: #f0fdf4;
     border-radius: 6px;
-    color: #166534;
     display: inline-flex;
     font-size: 13px;
-    font-weight: 600 !important; /* 统一粗细 */
+    font-weight: 600 !important;
     gap: 4px;
     line-height: 1;
     padding: 2px 8px;
-}
-[data-theme="dark"] .tag-door {
-    background: #064e3b;
-    color: #34d399;
 }
 .tag-icon-val {
     align-items: flex-end;
@@ -262,24 +256,81 @@
 }
 .tag-wait-warning {
     background: #fff7ed;
+    border-radius: 6px; /* 新增：增加圆角 */
     color: #c2410c;
+    display: inline-flex; /* 推荐加上，防止 padding 导致垂直方向错位 */
+    font-size: 11px;
     font-weight: bold;
+    padding: 3px 8px; /* 新增：增加内边距 */
 }
 .tag-margin-urgent {
+    align-items: center;
     background: #fef2f2;
+    border-radius: 6px; /* 新增：增加圆角 */
     color: #b91c1c;
+    display: inline-flex; /* 推荐加上，防止 padding 导致垂直方向错位 */
+    font-size: 11px;
     font-weight: bold;
+    line-height: 1;
+    padding: 3px 8px; /* 新增：增加内边距 */
+}
+/* ===== 车门信息抽屉收缩样式 ===== */
+.tag-door .door-text {
+    display: inline-block;
+    min-width: 0;
+    transition: max-width 0.3s ease, opacity 0.3s ease;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.door-arrow-icon {
+    flex-shrink: 0;
+    margin-left: 2px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tag-door.is-long.collapsed .door-text {
+    max-width: 85px;
+    opacity: 0.85;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tag-door.is-long.expanded .door-text {
+    max-width: 500px; /* 展开时给足宽度展示全貌 */
+    opacity: 1;
+}
+/* 折叠状态下，箭头指向右 */
+.tag-door.is-long.collapsed .door-arrow-icon {
+    transform: rotate(0deg);
+}
+
+/* 展开状态 */
+.tag-door.is-long.expanded .door-text {
+    max-width: 500px; /* 展开时给足宽度展示全貌 */
+    opacity: 1;
+}
+
+/* 展开状态下，箭头旋转 90 度朝下（抽屉打开的效果） */
+.tag-door.is-long.expanded .door-arrow-icon {
+    transform: rotate(90deg);
+}
+/* 附加提示：光标变化 */
+.tag-door.is-long {
+    cursor: pointer;
+    user-select: none;
 }
 .tag-note {
-    align-items: center;
+    align-items: flex-start; /* 顶部对齐，防止图标居中导致换行时错位 */
     background: #fefce8;
     border-radius: 6px;
     color: #854d0e;
     display: inline-flex;
     font-size: 12px;
-    line-height: 1.4;
-    padding: 3px 8px;
-    word-break: break-all;
+    line-height: 1.5;
+    overflow-wrap: break-word; /* 允许长串英文/数字在边缘自然换行 */
+    padding: 6px 8px; /* 增加内边距让多行文本更舒展 */
+    word-break: normal; /* 关键：取消强制打断单词 */
+}
+.note-text-wrap {
+    flex: 1;
 }
 [data-theme="dark"] .tag-note {
     background: #422006;

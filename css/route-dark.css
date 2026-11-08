@@ -153,3 +153,21 @@
 [data-theme="dark"] .route-station-ctrl-item.is-future{background:#1a2030;border-left:3px dashed #475569;color:#94a3b8}
 [data-theme="dark"] .route-station-ctrl-item.is-future .route-station-ctrl-count{background:#475569;color:#e2e8f0}
 [data-theme="dark"] .route-station-ctrl-note{color:#64748b}
+
+[data-theme="dark"] .guide-line-badge {
+    background: #334155 !important;
+    border-color: #475569 !important;
+    color: #e2e8f0 !important;
+}
+/* 等待首班车标签 */
+[data-theme="dark"] .tag-wait-warning {
+    background: rgba(245, 158, 11, 0.15);
+    border: none;
+    color: #fbbf24;
+}
+
+/* “剩X分”紧急余量标签（避免夜间白底红字刺眼） */
+[data-theme="dark"] .tag-margin-urgent {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}

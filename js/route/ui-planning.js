@@ -918,6 +918,40 @@ function _bindRouteCardEvents(resultsEl) {
         resultsEl.addEventListener('click', (e) => {
             const target = e.target.closest('[data-tooltip]');
             if (target) {
+                // 核心修改：处理过长车门信息的展开与收缩
+                if (target.classList.contains('tag-door') && target.classList.contains('is-long')) {
+                    e.stopPropagation(); // 阻止冒泡触发卡片展开
+                    e.preventDefault();
+
+                    // 清除可能存在的旧定时器，防止快速点击时冲突
+                    if (target._collapseTimer) {
+                        clearTimeout(target._collapseTimer);
+                        target._collapseTimer = null;
+                    }
+
+                    const isCollapsed = target.classList.contains('collapsed');
+                    if (isCollapsed) {
+                        // 展开
+                        target.classList.remove('collapsed');
+                        target.classList.add('expanded');
+                        target.dataset.tooltip = '点击收缩最优车门';
+
+                        // 设置 8 秒后自动收缩
+                        target._collapseTimer = setTimeout(() => {
+                            target.classList.remove('expanded');
+                            target.classList.add('collapsed');
+                            target.dataset.tooltip = '点击展开最优车门';
+                        }, 8000);
+                    } else {
+                        // 手动点击收缩
+                        target.classList.remove('expanded');
+                        target.classList.add('collapsed');
+                        target.dataset.tooltip = '点击展开最优车门';
+                    }
+                    return; // 拦截，不触发普通的 Tooltip 显示
+                }
+
+                // 正常显示 tooltip
                 e.stopPropagation(); // 阻止冒泡触发卡片展开
                 showTagTooltip(target, target.dataset.tooltip);
             }
