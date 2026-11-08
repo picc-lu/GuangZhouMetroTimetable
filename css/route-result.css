@@ -49,7 +49,7 @@
 .route-arrive-time { color: #1e293b; font-size: 17px; font-variant-numeric: tabular-nums; font-weight: 800; }
 .route-arrive-label { color: #94a3b8; font-size: 11px; letter-spacing: 0.5px; }
 /* 线路角标 */
-.route-segments { align-items: center; display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.route-segments { align-items: center; display: inline-flex; flex-wrap: wrap; gap: 8px 4px; }
 .route-segment-badge { align-items: center; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); display: inline-flex; font-size: 14px; font-weight: 800; justify-content: center; letter-spacing: 0.3px; line-height: 1.3; padding: 4px 12px; position: relative; white-space: nowrap; }
 .route-segment-warn {
     bottom: -7px;
@@ -81,9 +81,230 @@
 .route-station-more-btn:active { background: #b8c4d4; transform: scale(0.97); }
 .route-station-more-btn:focus-visible { box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.25); outline: none; }
 /* 换乘指引 */
-.route-guide { background: #f8fafc; padding: 4px 0; }
+.route-guide {
+    background: var(--bg-card, #ffffff);
+    border-radius: 12px;
+    padding: 10px 8px;
+}
 .route-guide-empty { align-items: center; color: #16a34a; display: flex; font-size: 13px; font-weight: 700; gap: 8px; justify-content: space-between; padding: 12px 14px; }
-.route-guide-item { border-bottom: 1px dashed #e2e8f0; box-sizing: border-box; min-height: 62px; padding: 10px 14px; position: relative; }
+.route-guide-item {
+    display: flex;
+    gap: 12px;
+    min-height: 60px;
+    /* 保证内容撑开高度 */
+    position: relative;
+}
+.guide-axis {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    margin-top: 4px;
+    width: 16px;
+}
+.axis-dot {
+    border: 3px solid #fff; /* 增加白色粗边框让点从线中跳出来 */
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    height: 14px;
+    width: 14px;
+    z-index: 2;
+}
+.axis-dot.is-start,
+.axis-dot.is-transfer,
+.axis-dot.is-end {
+    background: inherit;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05); /* 外圈再加一点极淡的阴影 */
+    height: 14px;
+    width: 14px;
+}
+.axis-dot.is-end {
+    background: #ffffff !important;
+    border: 3px solid #cbd5e1 !important;
+    box-shadow: none !important;
+}
+.axis-line {
+    border-radius: 4px;
+    flex: 1;
+    margin: 4px 0;
+    min-height: 20px;
+    width: 4px;
+}
+.guide-content {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 20px; /* 每一段底部的间距 */
+}
+.route-guide-item:last-child .guide-content {
+    padding-bottom: 0;
+}
+.guide-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.guide-title-wrap {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.guide-station {
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 600;
+}
+.guide-line-badge {
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 6px;
+}
+.guide-dir {
+    background: #f1f5f9; /* 底色 */
+    border: 1px solid #cbd5e1; /* 加细边框，强化轮廓 */
+    border-radius: 4px;
+    color: #334155; /* 文字颜色加深 */
+    font-size: 12px;
+    font-weight: 600; /* 稍微加粗 */
+    padding: 1px 6px;
+}
+.guide-tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.route-tag {
+    align-items: center;
+    border-radius: 6px;
+    display: inline-flex;
+    font-size: 12px;
+    gap: 3px;
+    line-height: 1.2;
+    padding: 3px 8px;
+}
+.tag-door {
+    align-items: center;
+    background: #f0fdf4;
+    border-radius: 6px;
+    color: #166534;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 600 !important; /* 统一粗细 */
+    gap: 4px;
+    line-height: 1;
+    padding: 2px 8px;
+}
+[data-theme="dark"] .tag-door {
+    background: #064e3b;
+    color: #34d399;
+}
+.tag-icon-val {
+    align-items: flex-end; /* 底部对齐 */
+    background: transparent !important;
+    border: none !important;
+    color: #1e293b;
+    display: inline-flex;
+    gap: 1px;
+    margin: 0 4px;
+    padding: 0 !important;
+}
+[data-theme="dark"] .tag-icon-val {
+    color: #e2e8f0;
+}
+.tag-icon-val svg {
+    margin-bottom: 0;
+}
+/* 删除之前旧的 .tag-time-wait 胶囊背景样式，防止冲突 */
+.tag-time-wait {
+    background: transparent !important;
+    padding: 0 !important;
+}
+/* 数字 */
+.val-num, .val-unit {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    line-height: 1;
+}
+.val-unit {
+    margin-left: 1px;
+    opacity: 0.8;
+}
+/* 候车时间的专属颜色微调（可选，如果希望它和步行/等车颜色有区分） */
+.tag-wait-time {
+    color: #2563eb; /* 使用蓝色代表候车时刻 */
+}
+[data-theme="dark"] .tag-wait-time {
+    color: #60a5fa;
+}
+/* 步行与等待：无边框、无底色，底部对齐实现右下角效果 */
+.tag-walk, .tag-headway {
+    align-items: flex-end; /* 底部对齐 */
+    background: transparent;
+    border: none;
+    display: inline-flex;
+    margin: 0 2px;
+    padding: 0;
+}
+.tag-headway {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+.tag-wait-warning {
+    background: #fff7ed;
+    color: #c2410c;
+    font-weight: bold;
+}
+.tag-margin-urgent {
+    background: #fef2f2;
+    color: #b91c1c;
+    font-weight: bold;
+}
+.tag-note {
+    align-items: center;
+    background: #fefce8;
+    border-radius: 6px;
+    color: #854d0e;
+    display: inline-flex;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 2px 8px;
+    word-break: break-all;
+}
+[data-theme="dark"] .tag-note {
+    background: #422006;
+    color: #fde047;
+}
+[data-theme="dark"] .route-guide {
+    background: #1e293b; /* 与卡片背景一致 */
+}
+[data-theme="dark"] .guide-station {
+    color: #f1f5f9;
+}
+[data-theme="dark"] .guide-dir {
+    background: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+[data-theme="dark"] .axis-dot {
+    border-color: #1e293b; /* 夜间模式点边框跟随背景 */
+}
+[data-theme="dark"] .axis-dot.is-start {
+    background: #1e293b;
+}
+[data-theme="dark"] .axis-dot.is-end {
+    background: #1e293b;
+    border-color: #475569;
+}
+[data-theme="dark"] .tag-time-wait {
+    background: #334155;
+    color: #f1f5f9;
+}
 .route-guide-item:last-child { border-bottom: none; }
 .route-guide-head { align-items: center; display: flex; flex-wrap: wrap; font-size: 13px; gap: 4px; min-height: 22px; padding-right: 118px; row-gap: 4px; }
 .route-guide-station { color: #1e293b; flex-shrink: 0; font-size: 14px; font-weight: 800; }
@@ -249,11 +470,25 @@
     font-weight: 700;
     padding: 2px 8px;
 }
-
 [data-theme="dark"] .route-guide-headway {
     background: #064e3b;
     color: #34d399;
 }
-.route-station-ctrl-item.is-future{background:#f8fafc;border-left:3px dashed #cbd5e1;color:#64748b}
-.route-station-ctrl-item.is-future .route-station-ctrl-count{background:#94a3b8;color:#f8fafc}
-.route-station-ctrl-note{color:#94a3b8;display:inline-block;font-size:11px;font-weight:500;margin-left:4px;}
+.route-station-ctrl-item.is-future {background: #f8fafc;border-left: 3px dashed #cbd5e1;color: #64748b}
+.route-station-ctrl-item.is-future .route-station-ctrl-count {background: #94a3b8;color: #f8fafc}
+.route-station-ctrl-note {color: #94a3b8;display: inline-block;font-size: 11px;font-weight: 500;margin-left: 4px;}
+.guide-note-row {
+    display: flex;
+    margin-bottom: 10px;
+}
+/* 终点站出站图标 */
+.guide-exit-badge {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    margin-left: 2px;
+}
+
+[data-theme="dark"] .guide-exit-badge {
+    color: #94a3b8;
+}

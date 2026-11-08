@@ -682,6 +682,7 @@ function get11LineDirectionFromPath(path, startStation) {
 
     return outerInnerStr;
 }
+
 function formatScreenDoorsRange(doors) {
     const arr = [...doors].filter(x => typeof x === 'number').sort((a, b) => a - b);
     if (arr.length === 0) return '';
@@ -852,7 +853,6 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             const isFromBranch = LINE3_BRANCH_STATIONS_LOCAL.has(segs[i].fromStation);
             const isToBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextSeg.toStation);
 
-            // 修改：只要不是“支线去南段”，统统加上换乘提示
             if (!isToBranch || (!isFromBranch && isToBranch)) {
                 virtualSplitAfter.add(i);
             }
@@ -866,8 +866,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         ? getSegmentDirection(item.path, startName, firstSeg.fullLine, firstSeg.toStation)
         : null;
 
-    // 找到 renderRouteCard 里的 boardingPoints.push 第一段，替换：
-    let firstBoardTime;
+    let firstBoardTime = null;
     if (_routeArriveMode && item.actualDepartMin != null) firstBoardTime = item.actualDepartMin;
     else if (_routeActiveDepartMin != null) firstBoardTime = _routeActiveDepartMin;
     else {
@@ -892,6 +891,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         interchangeIdx: null,
         isVirtual3to3: false,
     });
+
 
     let interchangeCursor = 0;
     for (let si = 0; si < segs.length - 1; si++) {
@@ -978,7 +978,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 door: null,
                 timeMin: o.timeMin,
                 walkMin: o.walkMin,
-                waitMin: o.waitMin || 0, // 新增
+                waitMin: o.waitMin || 0,
                 boardingTime: o.boardingTime,
                 marginMin: o.marginMin,
                 interchangeIdx: interchangeCursor,
@@ -987,6 +987,24 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         }
         interchangeCursor++;
     }
+
+    boardingPoints.push({
+        station: endName, // 使用传入的终点名
+        fromShort: null,
+        toShort: null,
+        fullLine: null,
+        direction: null,
+        note: null,
+        door: null,
+        timeMin: item.arriveMin, // 使用总到达时间
+        walkMin: null,
+        waitMin: 0,
+        boardingTime: null,
+        marginMin: null,
+        interchangeIdx: null,
+        isVirtual3to3: false,
+        isEnd: true // 添加一个终点标记
+    });
 
     for (let i = 0; i < boardingPoints.length - 1; i++) {
         const bp = boardingPoints[i];
@@ -1008,102 +1026,158 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         }
     }
 
-    guideHtml = `<div class="route-guide">` + boardingPoints.map((bp) => {
-        const stationHtml = `<span class="route-guide-station">${escapeHtml(formatDisplayStation(bp.station))}</span>`;
+    // 生成时间轴 HTML
+    guideHtml = `<div class="route-guide">` + boardingPoints.map((bp, bpIdx) => {
+        const isFirst = bpIdx === 0;
+        const isLast = bpIdx === boardingPoints.length - 1;
 
-        const baseLineText = bp.fromShort ? `${bp.fromShort}→${bp.toShort}` : bp.toShort;
-        const dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
-
-        let changeHtml;
-        let dirHtml = '';
-        const noteHtml = bp.note ? `<span class="route-guide-note">${escapeHtml(bp.note)}</span>` : '';
-        const doorHtml = bp.door ? `<span class="route-guide-doors">门 ${escapeHtml(bp.door)}</span>` : '';
-
-        let waitTimeHtml = '';
-        // 核心修改：如果 bp.waitMin 存在且大于0（即需要等待首班车），就不显示平均等车时间
-        if ((!bp.waitMin || bp.waitMin <= 0) && bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
-            const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
-            if (typeof headway === 'number' && headway > 0) {
-                const ratio = (typeof _routeWaitRatio === 'number') ? _routeWaitRatio : 0.5;
-                const waitTime = headway * ratio;
-                const waitStr = Number.isInteger(waitTime) ? `${waitTime}` : `${waitTime.toFixed(1)}`;
-                let prefix = '平均等';
-                if (ratio >= 0.99) prefix = '最长等';
-                else if (ratio >= 0.74 && ratio <= 0.76) prefix = '预计等';
-                else if (ratio !== 0.5) prefix = '约等';
-                waitTimeHtml = `<span class="route-guide-headway">${prefix}${waitStr}分</span>`;
-            }
-        }
-
-        changeHtml = `<span class="route-guide-change">${escapeHtml(baseLineText)}</span>`;
-        if (dirName) {
-            if (dirName.startsWith('内环') || dirName.startsWith('外环') || dirName.startsWith('往')) {
-                dirHtml = `<span class="route-guide-direction">${escapeHtml(dirName)}</span>`;
-            } else {
-                dirHtml = `<span class="route-guide-direction">往${escapeHtml(dirName)}</span>`;
-            }
-        }
-
-        const arriveStr = (bp.timeMin != null && !isNaN(bp.timeMin)) ? fmtHM(bp.timeMin) : '';
+        // 1. 站名与时间
+        const stationName = escapeHtml(formatDisplayStation(bp.station));
         const boardingStr = (bp.boardingTime != null && !isNaN(bp.boardingTime)) ? fmtHM(bp.boardingTime) : '';
 
-        let walkStr = '';
-        if (bp.walkMin != null && bp.walkMin > 0) {
-            if (bp.walkMin < 1) {
-                walkStr = `走${Math.max(1, Math.round(bp.walkMin * 60))}秒`;
-            } else {
-                walkStr = `走${Math.round(bp.walkMin)}分`;
+        // 判断是否为终点站：如果是最后一段且站名等于终点
+        const isEndStation = (bp.station === endName) || (bp.station === item._realEnd);
+
+        // 2. 线路与方向
+        const baseLineText = bp.toShort;
+        let dirName = bp.direction ? bp.direction.replace(/方向$/, '') : '';
+        if (bp.isEnd) {
+            dirName = '';
+        } else if (dirName.startsWith('内环') || dirName.startsWith('外环') || dirName.startsWith('往')) {
+            // 保持原样
+        } else if (dirName) {
+            dirName = '往' + dirName;
+        }
+
+        const lineColor = bp.fullLine && LINE_COLORS[bp.fullLine] ? LINE_COLORS[bp.fullLine] : '#888';
+        const textColor = getContrastColor(lineColor);
+
+        // 3. 标签（车门、步行、候车、等待、备注）
+        let tagsHtml = '';
+        let noteHtml = '';
+        let badgeHtml = '';
+        if (bp.isEnd) {
+            badgeHtml = `<span class="guide-exit-badge" title="已到达终点，请出站">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+                    <path d="M10 12h10" />
+                    <path d="M16 8l4 4-4 4" />
+                </svg>
+            </span>`;
+        } else if (baseLineText) {
+            badgeHtml = `<span class="guide-line-badge" style="background:${lineColor}; color:${textColor};">${escapeHtml(baseLineText)}</span>`;
+        }
+
+        if (!bp.isEnd) {
+            if (bp.note) {
+                noteHtml = `<div class="guide-note-row">
+                <span class="route-tag tag-note">💡 ${escapeHtml(bp.note)}</span>
+            </div>`;
+            }
+
+            if (bp.walkMin != null && bp.walkMin > 0) {
+                let walkNum = 0, walkUnit = '';
+                if (bp.walkMin < 1) {
+                    walkNum = Math.max(1, Math.round(bp.walkMin * 60));
+                    walkUnit = '秒';
+                } else {
+                    walkNum = Math.round(bp.walkMin);
+                    walkUnit = '';
+                }
+                tagsHtml += `<span class="tag-icon-val" title="步行 ${walkNum}${walkUnit || '分'}">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>
+                </svg>
+                <span class="val-num">${walkNum}${walkUnit ? `<span class="val-unit">${walkUnit}</span>` : ''}</span>
+            </span>`;
+            }
+
+            if (bp.door) {
+                const doorText = bp.door.replace(/^门\s*/, '');
+                tagsHtml += `<span class="tag-door">
+                <span class="door-label">门</span>${escapeHtml(doorText)}
+            </span>`;
+            }
+
+            // 候（改成 SVG 时钟/沙漏图标 + 时间）
+            if (boardingStr) {
+                tagsHtml += `<span class="tag-icon-val tag-wait-time" title="候车时间">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+                </svg>
+                <span class="val-num">${boardingStr}</span>
+            </span>`;
+            }
+
+            // 等（等待）：不显示“分”字
+            if (bp.waitMin > 0.1) {
+                tagsHtml += `<span class="tag-wait-warning">⏳ 等待首班 ${Math.round(bp.waitMin)}</span>`;
+            } else if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
+                const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
+                if (typeof headway === 'number' && headway > 0) {
+                    const ratio = (typeof _routeWaitRatio === 'number') ? _routeWaitRatio : 0.5;
+                    const wTime = headway * ratio;
+                    const waitStr = Number.isInteger(wTime) ? `${wTime}` : `${wTime.toFixed(1)}`;
+
+                    let prefix = '等';
+                    if (ratio >= 0.99) prefix = '最长';
+                    else if (ratio >= 0.74 && ratio <= 0.76) prefix = '预计';
+                    else if (ratio !== 0.5) prefix = '约';
+
+                    tagsHtml += `<span class="tag-icon-val" title="${prefix}${waitStr}分">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span class="val-num">${waitStr}</span>
+                </span>`;
+                }
+            }
+
+            // 剩余时间警示
+            if (bp.marginMin != null && !isNaN(bp.marginMin)) {
+                const m = Math.round(bp.marginMin);
+                if (m >= 0 && m <= 20) {
+                    tagsHtml += `<span class="route-tag tag-margin-urgent">⚠️ 剩${m}分</span>`;
+                }
             }
         }
 
-        let marginStr = '';
-        if (bp.marginMin != null && !isNaN(bp.marginMin)) {
-            const m = Math.round(bp.marginMin);
-            if (m >= 0 && m <= 20) {
-                const text = m === 0 ? '即将结束运营' : `剩${m}分`;
-                marginStr = `<span class="route-guide-margin urgent">${text}</span>`;
-            }
+        // 5. 组装轴线（圆点/连线 渐变处理）
+        const dotClass = isFirst ? 'is-start' : (isLast ? 'is-end' : 'is-transfer');
+
+        const nextBp = boardingPoints[bpIdx + 1];
+        let nextColor = lineColor;
+        if (nextBp && nextBp.fullLine && LINE_COLORS[nextBp.fullLine]) {
+            nextColor = LINE_COLORS[nextBp.fullLine];
+        }
+        if (nextBp && nextBp.isEnd) {
+            nextColor = lineColor;
         }
 
-        let waitHtml = '';
-        if (bp.waitMin > 0.1) {
-            waitHtml = `<span class="route-guide-time-row" style="color: #d97706; font-weight: bold; font-size: 11px; margin-top: 2px;">需等待首班车 ${Math.round(bp.waitMin)} 分</span>`;
-        }
-
-        let timeHtml = '';
-        if (arriveStr || marginStr || boardingStr) {
-            let row1 = '';
-            let row2 = '';
-
-            if (arriveStr) {
-                const row1Parts = [`<span class="route-guide-time">到${arriveStr}</span>`];
-                if (walkStr) row1Parts.push(`<span class="route-guide-walk">${walkStr}</span>`);
-                row1 = `<span class="route-guide-time-row">${row1Parts.join('')}</span>`;
-            }
-
-            if (boardingStr || marginStr) {
-                const row2Parts = [];
-                if (boardingStr) row2Parts.push(`<span class="route-guide-time">候${boardingStr}</span>`);
-                if (marginStr) row2Parts.push(marginStr);
-                row2 = row2Parts.length > 0
-                    ? `<span class="route-guide-time-row">${row2Parts.join('')}</span>`
-                    : '';
-            }
-
-            // 将 waitHtml 插入在 row1 和 row2 之间
-            timeHtml = `<span class="route-guide-time-wrap">${row1}${waitHtml}${row2}</span>`;
-        }
+        // 点：使用高光叠加底色实现上下渐变
+        const dotStyle = `background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%), ${lineColor};`;
+        // 线：从当前线路色渐变到下一线路色
+        const lineStyle = `background: linear-gradient(to bottom, ${lineColor}, ${nextColor});`;
 
         return `<div class="route-guide-item">
-            <div class="route-guide-head">
-                ${stationHtml}
-                ${changeHtml}
-                ${noteHtml}
-                ${dirHtml}
-                ${doorHtml}
-                ${waitTimeHtml}
+            <div class="guide-axis">
+                <div class="axis-dot ${dotClass}" style="${dotStyle}"></div>
+                ${!isLast ? `<div class="axis-line" style="${lineStyle}"></div>` : ''}
             </div>
-            ${timeHtml}
+            
+            <div class="guide-content">
+                <div class="guide-header">
+                    <div class="guide-title-wrap">
+                        <span class="guide-station">${stationName}</span>
+                        ${badgeHtml} <!-- 👈 替换原本的 span -->
+                        ${dirName ? `<span class="guide-dir">${escapeHtml(dirName)}</span>` : ''}
+                    </div>
+                </div>
+                ${noteHtml}
+                <div class="guide-tags-wrap">
+                    ${tagsHtml}
+                </div>
+            </div>
         </div>`;
     }).join('') + `</div>`;
 
@@ -1120,9 +1194,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                         ${item._mappedEnd ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedEnd.replace(/[()（）]/g, ''))}</span>` : ''}
                     </div>
                     <div class="route-sub">
-                        <span>⏱ ${formatDuration(item.totalCost)}</span>
+                        <span>${formatDuration(item.totalCost)}</span>
                         <span>${item.stationRoute.length + 2} 站</span>
-                        ${transferText}
                         ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
                         ${deltaHtml}
                     </div>
