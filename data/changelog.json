@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.11-clean",
+  "current": "1.2.12",
   "entries": [
+    {
+      "version": "1.2.12",
+      "date": "2026-11-08",
+      "items": [
+        { "type": "优化", "text": "线路规划改ui" }
+      ]
+    },
     {
       "version": "1.2.11-clean",
       "date": "2026-11-06",
