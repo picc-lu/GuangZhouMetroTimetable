@@ -748,6 +748,7 @@ function _sortCombinedRoutes(allResults, sortMode, globalFastestCost) {
  * 渲染结果（包含空态处理、图例、HTML生成、事件绑定）
  */
 function _renderRouteResults(r, start, end, cfg, resultsEl) {
+    window._currentRouteResults = r.results;
     const sortMode = cfg.sortMode;
     // 处理“换乘少”无结果的特例
     if (r.results.length === 0 && sortMode === 'fewer-transfers' && r.feasibleCount > 0) {
@@ -913,54 +914,38 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
  * 抽离结果卡片上的展开/收起等 UI 交互事件
  */
 function _bindRouteCardEvents(resultsEl) {
-    if (!resultsEl.dataset.tooltipBound) {
-        resultsEl.dataset.tooltipBound = '1';
+    // 1. 全局捕获地图按钮点击（使用捕获阶段拦截，最稳妥）
+    if (!resultsEl.dataset.mapBtnBound) {
+        resultsEl.dataset.mapBtnBound = '1';
         resultsEl.addEventListener('click', (e) => {
-            const target = e.target.closest('[data-tooltip]');
-            if (target) {
-                // 核心修改：处理过长车门信息的展开与收缩
-                if (target.classList.contains('tag-door') && target.classList.contains('is-long')) {
-                    e.stopPropagation(); // 阻止冒泡触发卡片展开
-                    e.preventDefault();
+            const mapBtn = e.target.closest('.route-map-btn');
+            if (mapBtn) {
+                e.preventDefault();
+                e.stopPropagation(); // 阻止卡片展开
 
-                    // 清除可能存在的旧定时器，防止快速点击时冲突
-                    if (target._collapseTimer) {
-                        clearTimeout(target._collapseTimer);
-                        target._collapseTimer = null;
-                    }
+                const idx = parseInt(mapBtn.dataset.index, 10);
+                const item = (window._currentRouteResults || [])[idx];
 
-                    const isCollapsed = target.classList.contains('collapsed');
-                    if (isCollapsed) {
-                        // 展开
-                        target.classList.remove('collapsed');
-                        target.classList.add('expanded');
-                        target.dataset.tooltip = '点击收缩最优车门';
+                console.log('[地图] 点击查看地图，获取到 item:', item);
 
-                        // 设置 8 秒后自动收缩
-                        target._collapseTimer = setTimeout(() => {
-                            target.classList.remove('expanded');
-                            target.classList.add('collapsed');
-                            target.dataset.tooltip = '点击展开最优车门';
-                        }, 8000);
-                    } else {
-                        // 手动点击收缩
-                        target.classList.remove('expanded');
-                        target.classList.add('collapsed');
-                        target.dataset.tooltip = '点击展开最优车门';
-                    }
-                    return; // 拦截，不触发普通的 Tooltip 显示
+                if (item && typeof window.showRouteMap === 'function') {
+                    window.showRouteMap(item);
+                } else {
+                    console.warn('未找到对应的路径数据，或者 showRouteMap 未定义');
                 }
-
-                // 正常显示 tooltip
-                e.stopPropagation(); // 阻止冒泡触发卡片展开
-                showTagTooltip(target, target.dataset.tooltip);
             }
         });
     }
 
+    // 2. 原有的卡片展开逻辑，需拦截 map-btn
     resultsEl.querySelectorAll('.route-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.route-guide') || e.target.closest('.route-stations-toggle') || e.target.closest('.route-station-more-btn')) return;
+            // 核心修改：这里加上 .route-map-btn 的拦截，防止点击按钮时触发展开
+            if (e.target.closest('.route-guide') ||
+                e.target.closest('.route-stations-toggle') ||
+                e.target.closest('.route-station-more-btn') ||
+                e.target.closest('.route-map-btn')) return;
+
             const isExpanding = !card.classList.contains('expanded');
             card.classList.toggle('expanded');
             if (isExpanding) {
