@@ -24,6 +24,7 @@ const SCRIPTS = [
     // ---- 主界面 ----
     'js/ui.js',
     'js/render.js',
+    'js/route-map.js',
     'js/time.js',
     // ---- 路径规划核心 ----
     'js/route/heap.js',

@@ -4,6 +4,10 @@ function yenKShortestPaths(startNode, endNode, K, globalBannedEdges = null) {
     const result = [];
     if (K <= 0) return result;
 
+    // 【新增】Yen 算法耗时限制，避免超大图生成路径时卡顿
+    const startTime = performance.now();
+    const MAX_YEN_TIME = 1000; // 最多执行 1 秒
+
     const first = dijkstraPath(startNode, endNode, globalBannedEdges, null);
     if (!first) return result;
     result.push(first);
@@ -13,6 +17,11 @@ function yenKShortestPaths(startNode, endNode, K, globalBannedEdges = null) {
     seenKeys.add(first.nodes.join('\u0001'));
 
     for (let k = 1; k < K; k++) {
+        // 【新增】超时检查
+        if (performance.now() - startTime > MAX_YEN_TIME) {
+            console.warn('[Yen] 路径生成超时，已提前结束搜索');
+            break;
+        }
         const prevPath  = result[k - 1];
         const prevNodes = prevPath.nodes;
 

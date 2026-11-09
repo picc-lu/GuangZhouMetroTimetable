@@ -211,9 +211,19 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     const rejected = [];
     let checkedCount = 0;
 
+    // 【新增】路径校验阶段的耗时限制及连续失败剪枝
+    const startComputeTime = performance.now();
+    const MAX_COMPUTE_TIME = 1200; // 最多检查 1.2 秒
+    let consecutiveNoTrainCount = 0; // 连续无车计数器
     const semanticKeys = new Set();
 
     for (const p of paths) {
+        // 【新增】超时熔断
+        if (performance.now() - startComputeTime > MAX_COMPUTE_TIME) {
+            console.warn('[路径规划] 路径检查超时，提前结束');
+            break;
+        }
+
         const stationRoute = parseStationRoute(p);
 
         const segs = parseRouteSegments(p);
@@ -263,8 +273,27 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         const check = checkReachability(p, departMin);
         if (!check.feasible) {
             rejected.push({reason: check.reason, totalCost: p.totalCost});
+
+            // 【新增】如果失败原因是没车/末班车过了，则累计连续失败次数
+            if (check.reason && (
+                check.reason.includes('无运营') ||
+                check.reason.includes('已发出') ||
+                check.reason.includes('停运')
+            )) {
+                consecutiveNoTrainCount++;
+            } else {
+                consecutiveNoTrainCount = 0;
+            }
+
+            // 【新增】如果连续 12 条更差的路径都无车，说明目前时间点已经全线收车，直接结束
+            if (consecutiveNoTrainCount >= 12) {
+                console.warn('[路径规划] 连续多条路径因末班车停运，提前结束搜索');
+                break;
+            }
             continue;
         }
+
+        consecutiveNoTrainCount = 0;
 
         const segsCheck = (typeof parseRouteSegments === 'function') ? parseRouteSegments(p) : [];
         let isCrossSegInfeasible = false;

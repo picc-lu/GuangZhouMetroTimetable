@@ -35,7 +35,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
 
     let marginCursor = 0;
 
-    return `<span class="route-segments">` + segs.map((s, i) => {
+    return `<span class="route-segments" style="display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px;">` + segs.map((s, i) => {
         let m = null;
 
         // 只在起点和真实跨线换乘时，才消耗一个余量
@@ -1215,16 +1215,23 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             <div class="route-rank">${rank}</div>
             <div class="route-card-head">
                 <div class="route-summary">
-                    <div class="route-line-path">
-                        ${item._mappedStart ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedStart.replace(/[()（）]/g, ''))}</span>` : ''}
+                    <div class="route-line-path" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        ${item._mappedStart ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">${escapeHtml(item._mappedStart.replace(/[()（）]/g, ''))}</span>` : ''}
                         ${renderRouteSegmentsHtml(item.path, item.boardingMargins, item.warnings && item.warnings.length > 0, ctrlStationNames, item.tyxMargin, item.interchanges)}
-                        ${item._mappedEnd ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item._mappedEnd.replace(/[()（）]/g, ''))}</span>` : ''}
+                        ${item._mappedEnd ? `<span style="display: inline-block; background: rgba(148, 163, 184, 0.25); color: #64748b; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">${escapeHtml(item._mappedEnd.replace(/[()（）]/g, ''))}</span>` : ''}
                     </div>
                     <div class="route-sub">
                         <span>${formatDuration(item.totalCost)}</span>
-                        <span>${item.stationRoute.length + 2} 站</span>
+                        <span>${item.stationRoute.length + 2}站</span>
                         ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
                         ${deltaHtml}
+                        <button type="button" class="route-map-btn" data-index="${idx}">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:2px;">
+                                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                                <line x1="9" y1="3" x2="9" y2="18"></line>
+                                <line x1="15" y1="6" x2="15" y2="21"></line>
+                            </svg>线路图
+                        </button>
                     </div>
                 </div>
                 ${buildArriveBlockHtml(item)}

@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.13",
+  "current": "1.2.14",
   "entries": [
+    {
+      "version": "1.2.14",
+      "date": "2026-11-09",
+      "items": [
+        { "type": "新增", "text": "线路规划增加线路图参考" }
+      ]
+    },
     {
       "version": "1.2.13",
       "date": "2026-11-09",
