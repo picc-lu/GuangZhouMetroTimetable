@@ -17,8 +17,14 @@ function initBannerTypewriter() {
     ];
 
     let textIdx = 0;
-    let charIdx = 0;
+    // 核心修复1：初始字数直接设置为第一个词（羊角时刻）的满长度
+    let charIdx = texts[0].length;
     let isDeleting = false;
+
+    // 初始化直接显示满字数的“羊角时刻”
+    el.textContent = texts[0];
+    wrap.classList.remove('hidden');
+    cursor.classList.add('hidden');
 
     function tick() {
         const currentText = texts[textIdx];
@@ -54,7 +60,7 @@ function initBannerTypewriter() {
 
         if (!isDeleting && charIdx === currentText.length) {
             cursor.classList.add('hidden');
-            typeSpeed = 10000;
+            typeSpeed = 10000; // 打完字后停留 10 秒
             isDeleting = true;
         } else if (isDeleting && charIdx === 0) {
             cursor.classList.remove('hidden');
@@ -66,7 +72,9 @@ function initBannerTypewriter() {
         setTimeout(tick, typeSpeed);
     }
 
-    setTimeout(tick, 500);
+    // 核心修复2：直接跳过打字阶段，把状态设为删除中，并在 10 秒后触发第一次 tick（此时会直接开始删除“羊角时刻”）
+    isDeleting = true;
+    setTimeout(tick, 10000);
 }
 
 initBannerTypewriter();

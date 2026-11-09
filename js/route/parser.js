@@ -217,9 +217,17 @@ function parseRouteSegments(path, departMin) {
 
         let isThrough = false;
         if (next && seg.fullLine === '3号线' && next.fullLine === '3号线' && seg.toStation === '体育西路') {
+            const isToBranch = isBranch(next.toStation);
+            const isFromSouth = (typeof LINE3_MAIN_SOUTH !== 'undefined' && LINE3_MAIN_SOUTH.has(seg.fromStation)) || seg.fromStation === '体育西路';
+
             if (isNorthboundRawDir(next.rawDirection)) {
-                // 修改：去支线不再无条件合并，让它断开以显示换乘
-                isThrough = isThroughTrainAvailable(seg.fromStation, dt);
+                // 【核心修复】如果是南段（含体育西路）开往支线（天河客运站方向），同车直达，强制合并
+                if (isToBranch && isFromSouth) {
+                    isThrough = true;
+                } else {
+                    // 否则按原逻辑，去北段查贯通车
+                    isThrough = isThroughTrainAvailable(seg.fromStation, dt);
+                }
             } else if (isBranch(seg.fromStation) && next.rawDirection.includes('海傍')) {
                 // 支线 -> 南段，保持常态化直达合并（如 华师 -> 体育西路 -> 傍江）
                 isThrough = true;

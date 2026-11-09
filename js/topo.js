@@ -410,11 +410,25 @@ function renderTopo(svg) {
         }
 
         if (isFallback) {
+            // 【修复】兜底绘制时也要判断整条线是否全部停运
+            let hasAnyActive = false;
+            const lineData = lineDirectionTime[lineName];
+            if (lineData) {
+                for (const st in lineData) {
+                    if (isStationActive(lineName, st, currentMin)) {
+                        hasAnyActive = true;
+                        break;
+                    }
+                }
+            }
+            // 如果没有活跃的车站，则使用非活跃（灰色）
+            const fallbackColor = hasAnyActive ? color : C.lineInactive;
+
             let pathParts = lineCoords.map(([lng, lat]) => {
                 const [x, y] = project(lng, lat);
                 return `${x.toFixed(1)},${y.toFixed(1)}`;
             });
-            pathHtml += `<polyline class="topo-line" data-special-line="${isSpecialLine}" points="${pathParts.join(' ')}" fill="none" stroke="${color}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>`;
+            pathHtml += `<polyline class="topo-line" data-special-line="${isSpecialLine}" points="${pathParts.join(' ')}" fill="none" stroke="${fallbackColor}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>`;
             return;
         }
 

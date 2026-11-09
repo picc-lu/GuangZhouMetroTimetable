@@ -852,8 +852,13 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             const nextSeg = segs[i + 1];
             const isFromBranch = LINE3_BRANCH_STATIONS_LOCAL.has(segs[i].fromStation);
             const isToBranch = LINE3_BRANCH_STATIONS_LOCAL.has(nextSeg.toStation);
+            // 判断起点是否在南段或体育西路
+            const isFromSouth = (typeof LINE3_MAIN_SOUTH !== 'undefined' && LINE3_MAIN_SOUTH.has(segs[i].fromStation)) || segs[i].fromStation === '体育西路';
 
-            if (!isToBranch || (!isFromBranch && isToBranch)) {
+            // 【核心修复】南段 -> 支线，完全直达，排除出虚拟换乘
+            if (isFromSouth && isToBranch) {
+                // 跳过，不加入 virtualSplitAfter
+            } else if (!isToBranch || (!isFromBranch && isToBranch)) {
                 virtualSplitAfter.add(i);
             }
         }

@@ -29,7 +29,6 @@ html, body {
     display: flex;
     font-size: 24px;
     font-weight: 1000;
-    gap: 12px;
     justify-content: center;
     letter-spacing: 2px;
     overflow: hidden;

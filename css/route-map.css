@@ -17,10 +17,9 @@
     background: #e2e8f0;
     color: #1e293b;
 }
-
 /* 半屏地图 Overlay */
 .route-map-overlay {
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     inset: 0;
@@ -31,28 +30,25 @@
     transition: opacity 0.3s ease;
     z-index: 10000;
 }
-
 .route-map-overlay.show {
     opacity: 1;
     pointer-events: auto;
 }
-
 .route-map-container {
     background: #fff;
     border-radius: 16px 16px 0 0;
     display: flex;
     flex-direction: column;
-    height: 60vh; /* 半屏高度 */
+    height: calc(60vh + 100px);
+    max-height: calc(100vh - 20px);
     overflow: hidden;
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     width: 100%;
 }
-
 .route-map-overlay.show .route-map-container {
     transform: translateY(0);
 }
-
 .route-map-header {
     align-items: center;
     border-bottom: 1px solid #e2e8f0;
@@ -61,13 +57,33 @@
     justify-content: space-between;
     padding: 12px 16px;
 }
-
+.route-map-actions {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+}
+.route-map-reset {
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #475569;
+    cursor: pointer;
+    display: flex;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    transition: all 0.2s;
+}
+.route-map-reset:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
 .route-map-title {
     color: #1e293b;
     font-size: 16px;
     font-weight: bold;
 }
-
 .route-map-close {
     background: none;
     border: none;
@@ -76,12 +92,10 @@
     font-size: 18px;
     padding: 4px;
 }
-
 .route-map-canvas {
     background: #f8fafc;
     flex: 1;
 }
-
 /* ===== 地图上的站点文本标签 ===== */
 .route-map-station-label {
     background: transparent !important;
@@ -95,18 +109,87 @@
     padding: 0 !important;
     text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
 }
-
 /* 隐藏 Leaflet tooltip 默认的小三角形 */
 .route-map-station-label::before {
     display: none !important;
 }
-
+.route-map-arrow-icon {
+    background: transparent;
+    border: none;
+}
+/* ===== 右侧线路快捷导航 ===== */
+.route-map-line-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: auto;
+    position: absolute;
+    right: 12px;
+    top: 50%; /* 垂直居中偏上，可自行调整 */
+    transform: translateY(-50%);
+    z-index: 1000;
+}
+.route-map-line-btn {
+    align-items: center;
+    border: 2.5px solid #ffffff; /* 白边让它在底图上更突出 */
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    display: flex;
+    font-size: 16px;
+    font-weight: 800;
+    height: 44px;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    text-align: center;
+    transition: all 0.2s ease;
+    user-select: none;
+    width: 44px;
+}
+.route-map-line-btn:active {
+    transform: scale(0.9);
+}
+/* 如果线路太长，可以让面板内部滚动 */
+.route-map-line-panel {
+    max-height: calc(100% - 120px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none; /* 隐藏滚动条 Firefox */
+}
+.route-map-line-panel::-webkit-scrollbar {
+    display: none; /* 隐藏滚动条 Chrome/Safari */
+}
+.route-map-reset-btn {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    color: #475569 !important;
+    margin-top: 10px; /* 与其他线路按钮拉开一点间距 */
+}
+.route-map-reset-btn:hover {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+[data-theme="dark"] .route-map-reset-btn {
+    background: #334155 !important;
+    border-color: #475569 !important;
+    color: #cbd5e1 !important;
+}
+[data-theme="dark"] .route-map-reset-btn:hover {
+    background: #475569 !important;
+    color: #f1f5f9 !important;
+}
+/* 夜间模式适配 */
+[data-theme="dark"] .route-map-line-btn {
+    border-color: #1e293b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
 /* 夜间模式适配 */
 [data-theme="dark"] .route-map-station-label {
     color: #f8fafc !important;
     text-shadow: -1px -1px 0 #0f172a, 1px -1px 0 #0f172a, -1px 1px 0 #0f172a, 1px 1px 0 #0f172a;
 }
-
 /* 夜间模式适配 */
 [data-theme="dark"] .route-map-container { background: #1e293b; }
 [data-theme="dark"] .route-map-header { border-color: #334155; }
@@ -114,3 +197,12 @@
 [data-theme="dark"] .route-map-close { color: #94a3b8; }
 [data-theme="dark"] .route-map-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
 [data-theme="dark"] .route-map-btn:hover { background: #475569; color: #f1f5f9; }
+[data-theme="dark"] .route-map-reset {
+    background: #334155;
+    border-color: #475569;
+    color: #cbd5e1;
+}
+[data-theme="dark"] .route-map-reset:hover {
+    background: #475569;
+    color: #f1f5f9;
+}
