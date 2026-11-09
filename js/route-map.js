@@ -278,11 +278,18 @@ async function showRouteMap(item) {
         await loadLeaflet();
         canvas.innerHTML = '';
 
-        _currentMap = L.map('route-map-canvas', { zoomControl: false, attributionControl: false });
+        _currentMap = L.map('route-map-canvas', {
+            zoomControl: false,
+            attributionControl: false,
+            minZoom: 9,  // 限制最小缩放级别，防止缩得太小
+            maxZoom: 16  // 限制最大缩放级别，防止超出底图限制
+        });
         const map = _currentMap;
 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19
+            maxZoom: 16,
+            maxNativeZoom: 16, // 超过16级时使用16级瓦片放大，不请求新瓦片
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=' // 1x1透明占位
         }).addTo(map);
 
         const realStart = item._realStart || (item.stationRoute.length > 0 ? item.stationRoute[0] : '');
@@ -383,8 +390,19 @@ async function showRouteMap(item) {
             }
         });
 
+        // 3. 优化视野适配
         if (allLatLngs.length > 0) {
-            map.fitBounds(L.latLngBounds(allLatLngs), { padding: [40, 40] });
+            const bounds = L.latLngBounds(allLatLngs);
+            // 如果只有一个点（起终点相同或者只有单一坐标）
+            if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+                map.setView(bounds.getCenter(), 15);
+            } else {
+                // 限制 fitBounds 的最大缩放为 15，防止起终点太近时放得过大
+                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+            }
+        } else {
+            // 极端情况：连坐标都没获取到，默认显示广州市中心
+            map.setView([23.1291, 113.2644], 12);
         }
 
         setTimeout(() => map.invalidateSize(), 350);

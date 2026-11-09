@@ -301,13 +301,11 @@
 .tag-door.is-long.collapsed .door-arrow-icon {
     transform: rotate(0deg);
 }
-
 /* 展开状态 */
 .tag-door.is-long.expanded .door-text {
     max-width: 500px; /* 展开时给足宽度展示全貌 */
     opacity: 1;
 }
-
 /* 展开状态下，箭头旋转 90 度朝下（抽屉打开的效果） */
 .tag-door.is-long.expanded .door-arrow-icon {
     transform: rotate(90deg);
@@ -570,4 +568,39 @@
 [data-theme="dark"] .tag-tooltip {
     background: rgba(241, 245, 249, 0.95);
     color: #0f172a;
+}
+/* ===== 初次使用引导动画 ===== */
+.route-card {
+    position: relative; /* 确保引导层能绝对定位 */
+}
+.route-card.guide-pulse {
+    animation: guideBorderPulse 2s infinite;
+}
+@keyframes guideBorderPulse {
+    0% { box-shadow: 0 0 0 0 rgba(43, 125, 233, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(43, 125, 233, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(43, 125, 233, 0); }
+}
+.route-guide-tap {
+    animation: fingerTap 1.5s infinite ease-in-out;
+    bottom: 12px; /* 调整上下位置，使其贴合底部对齐 */
+    height: 48px;
+    pointer-events: none;
+    position: absolute;
+    right: 150px; /* 从 75px 增大，向左移动，放在“线路图”按钮和时间的空白处 */
+    width: 48px; /* 放大手指尺寸 */
+    z-index: 50;
+}
+@keyframes fingerTap {
+    0% { transform: scale(1) translate(0, 0); }
+    50% { transform: scale(0.85) translate(2px, 2px); }
+    100% { transform: scale(1) translate(0, 0); }
+}
+.tap-circle {
+    animation: tapWave 1.5s infinite ease-out;
+    transform-origin: center;
+}
+@keyframes tapWave {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
 }

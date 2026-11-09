@@ -906,6 +906,21 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
 
     resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) => renderRouteCard(item, idx, item._realStart, item._realEnd, sortMode)).join('');
 
+    if (!localStorage.getItem('gz_route_guide_shown')) {
+        const tapEl = resultsEl.querySelector('#route-guide-tap');
+        if (tapEl) {
+            setTimeout(() => {
+                // 10 秒后若依然存在，则自动隐藏
+                if (tapEl && tapEl.parentNode) {
+                    tapEl.remove();
+                    const card = resultsEl.querySelector('.route-card.guide-pulse');
+                    if (card) card.classList.remove('guide-pulse');
+                    localStorage.setItem('gz_route_guide_shown', '1');
+                }
+            }, 10000);
+        }
+    }
+
     // 绑定结果卡片事件
     _bindRouteCardEvents(resultsEl);
 }
@@ -945,6 +960,13 @@ function _bindRouteCardEvents(resultsEl) {
                 e.target.closest('.route-stations-toggle') ||
                 e.target.closest('.route-station-more-btn') ||
                 e.target.closest('.route-map-btn')) return;
+
+            if (card.classList.contains('guide-pulse')) {
+                card.classList.remove('guide-pulse');
+                const tapEl = card.querySelector('.route-guide-tap');
+                if (tapEl) tapEl.remove();
+                localStorage.setItem('gz_route_guide_shown', '1');
+            }
 
             const isExpanding = !card.classList.contains('expanded');
             card.classList.toggle('expanded');
