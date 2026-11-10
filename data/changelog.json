@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.15",
+  "current": "1.2.15a",
   "entries": [
+    {
+      "version": "1.2.15a",
+      "date": "2026-11-10",
+      "items": [
+        { "type": "优化", "text": "线路图适配夜间模式"}
+      ]
+    },
     {
       "version": "1.2.15",
       "date": "2026-11-10",

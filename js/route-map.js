@@ -200,16 +200,6 @@ function ensureMapOverlay() {
         if (e.target === ov) closeRouteMap();
     });
 
-    ov.querySelector('.route-map-reset').addEventListener('click', () => {
-        if (_currentMap && window._lastRouteBounds) {
-            _currentMap.fitBounds(window._lastRouteBounds, {
-                paddingTopLeft: [40, 40],
-                paddingBottomRight: [80, 40], // 【核心修复】复位时也留出右侧空间
-                maxZoom: 15
-            });
-        }
-    });
-
     return ov;
 }
 
@@ -442,7 +432,14 @@ async function showRouteMap(item) {
         });
         const map = _currentMap;
 
-        new CachedTileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        // 根据当前主题动态选择底图
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        const baseTileUrl = isDark
+            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+            : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+
+        new CachedTileLayer(baseTileUrl, {
             maxZoom: 16,
             maxNativeZoom: 16
         }).addTo(map);
@@ -644,7 +641,7 @@ async function showRouteMap(item) {
                     if (latlngs.length > 0) {
                         const bounds = L.latLngBounds(latlngs);
                         if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
-                            map.flyTo(bounds.getCenter(), 15, { duration: 0.5 });
+                            map.flyTo(bounds.getCenter(), 15, {duration: 0.5});
                         } else {
                             map.flyToBounds(bounds, {
                                 paddingTopLeft: [40, 40],
@@ -666,7 +663,7 @@ async function showRouteMap(item) {
                 // 复位地图视野
                 if (window._lastRouteBounds) {
                     if (window._lastRouteBounds.getNorthEast().equals(window._lastRouteBounds.getSouthWest())) {
-                        map.flyTo(window._lastRouteBounds.getCenter(), 15, { duration: 0.6 });
+                        map.flyTo(window._lastRouteBounds.getCenter(), 15, {duration: 0.6});
                     } else {
                         map.flyToBounds(window._lastRouteBounds, {
                             paddingTopLeft: [40, 40],
