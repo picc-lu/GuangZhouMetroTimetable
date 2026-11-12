@@ -24,7 +24,7 @@
     gap: 6px;
     line-height: 1.5;
     margin: 0 0 12px;
-    padding: 10px 12px;
+    padding: 10px;
 }
 .route-legend-row { align-items: center; display: flex; gap: 8px; }
 .route-legend-icon { color: #1f2b3c; flex-shrink: 0; height: 16px; width: 16px; }
@@ -181,12 +181,15 @@
 .tag-door {
     align-items: center;
     border-radius: 6px;
+    cursor: pointer;
     display: inline-flex;
     font-size: 13px;
     font-weight: 600 !important;
     gap: 4px;
     line-height: 1;
     padding: 2px 8px;
+    transition: background-color 0.2s ease;
+    user-select: none;
 }
 .tag-icon-val {
     align-items: flex-end;
@@ -274,11 +277,12 @@
     line-height: 1;
     padding: 3px 8px; /* 新增：增加内边距 */
 }
-/* ===== 车门信息抽屉收缩样式 ===== */
 .tag-door .door-text {
     display: inline-block;
+    max-width: 500px; /* 默认展开时足够宽 */
     min-width: 0;
-    transition: max-width 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+    transition: max-width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     vertical-align: middle;
     white-space: nowrap;
 }
@@ -287,28 +291,35 @@
     margin-left: 2px;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.tag-door.is-long.collapsed {
+    max-width: 350px;
+    text-overflow: ellipsis;
+}
 .tag-door.is-long.collapsed .door-text {
-    max-width: 85px;
-    opacity: 0.85;
-    overflow: hidden;
+    max-width: 80px;
     text-overflow: ellipsis;
 }
 .tag-door.is-long.expanded .door-text {
     max-width: 500px; /* 展开时给足宽度展示全貌 */
     opacity: 1;
 }
+.tag-door .door-arrow-icon {
+    flex-shrink: 0;
+    margin-left: 2px;
+    transform: rotate(90deg);
+    /* 默认（展开时）箭头向下 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 /* 折叠状态下，箭头指向右 */
 .tag-door.is-long.collapsed .door-arrow-icon {
     transform: rotate(0deg);
 }
-/* 展开状态 */
-.tag-door.is-long.expanded .door-text {
-    max-width: 500px; /* 展开时给足宽度展示全貌 */
-    opacity: 1;
-}
 /* 展开状态下，箭头旋转 90 度朝下（抽屉打开的效果） */
 .tag-door.is-long.expanded .door-arrow-icon {
     transform: rotate(90deg);
+}
+[data-theme="dark"] .tag-door.is-long.collapsed {
+    background: #334155; /* 如果是深色主题，稍微加深一点底色 */
 }
 /* 附加提示：光标变化 */
 .tag-door.is-long {

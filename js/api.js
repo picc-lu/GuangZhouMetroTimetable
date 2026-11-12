@@ -370,55 +370,75 @@ async function fetchRouteFare(startStation, endStation) {
         return null;
     };
 
-    // 1. 直接查询
-    let fare = tryGet(startStation, endStation);
-    if (fare != null) return fare;
+    // ====== 核心增强：生成所有可能的站名变体组合 ======
+    const generateCandidates = (name) => {
+        const cands = new Set();
+        if (!name) return cands;
 
-    // 2. 去空格、去括号清洗后查询
-    const cleanName = (name) => name.replace(/[（(].*[）)]/g, '').replace(/\s+/g, '').trim();
-    const sClean = cleanName(startStation);
-    const eClean = cleanName(endStation);
+        // 1. 原名
+        cands.add(name);
 
-    fare = tryGet(sClean, eClean);
-    if (fare != null) return fare;
+        // 2. 去空格、去括号清洗
+        const clean = String(name).replace(/[（(].*[）)]/g, '').replace(/\s+/g, '').trim();
+        if (clean) cands.add(clean);
 
-    // 3. 强制别名映射 (兼容路网图与票价表的不一致)
-    // const aliasMap = {
-    //     '虫雷岗': '礌岗',
-    //     '礌岗': '虫雷 岗',
-    //     '虫雷 岗': '虫雷 岗',
-    //     '庆盛': '庆盛（南沙北站）',
-    //     '庆盛（南沙北站）': '庆盛',
-    //     '机场北': '机场北（T2）',
-    //     '机场北（T2）': '机场北',
-    //     '清㘵': '清布',
-    //     '清布': '清㘵'
-    // };
-    // const sAlias = aliasMap[sClean] || sClean;
-    // const eAlias = aliasMap[eClean] || eClean;
-    const sAlias = fareAlias(sClean);
-    const eAlias = fareAlias(eClean);
+        // 3. 票价别名映射
+        if (typeof fareAlias === 'function') {
+            cands.add(fareAlias(name));
+            cands.add(fareAlias(clean));
+        }
 
-    fare = tryGet(sAlias, eAlias);
-    if (fare != null) return fare;
+        // 4. 规范化站名映射
+        if (typeof canonicalStation === 'function') {
+            cands.add(canonicalStation(name));
+            cands.add(canonicalStation(clean));
+        }
 
-    // 4. 跨界尝试组合
-    fare = tryGet(sClean, eAlias);
-    if (fare != null) return fare;
-    fare = tryGet(sAlias, eClean);
-    if (fare != null) return fare;
+        // 5. 显示名映射
+        if (typeof toDisplayName === 'function') {
+            cands.add(toDisplayName(name));
+            cands.add(toDisplayName(clean));
+        }
 
-    // 5. 尝试查询临近站（原有逻辑保留）
+        // 移除空值
+        cands.delete('');
+        return Array.from(cands);
+    };
+
+    const startCands = generateCandidates(startStation);
+    const endCands = generateCandidates(endStation);
+
+    // 组合遍历，只要有一组能查到票价就返回
+    for (const s of startCands) {
+        for (const e of endCands) {
+            const fare = tryGet(s, e);
+            if (fare != null) return fare;
+        }
+    }
+    // ==============================================
+
+    // 尝试查询临近站（原有逻辑保留，但适配新的候选数组）
     if (typeof NEARBY_STATION_MAP !== 'undefined') {
         const mappedEnd = NEARBY_STATION_MAP[endStation];
         if (mappedEnd) {
-            fare = tryGet(startStation, mappedEnd) || tryGet(sClean, mappedEnd) || tryGet(sAlias, mappedEnd);
-            if (fare != null) return fare;
+            const mappedEndCands = generateCandidates(mappedEnd);
+            for (const s of startCands) {
+                for (const e of mappedEndCands) {
+                    const fare = tryGet(s, e);
+                    if (fare != null) return fare;
+                }
+            }
         }
+
         const mappedStart = NEARBY_STATION_MAP[startStation];
         if (mappedStart) {
-            fare = tryGet(mappedStart, endStation) || tryGet(mappedStart, eClean) || tryGet(mappedStart, eAlias);
-            if (fare != null) return fare;
+            const mappedStartCands = generateCandidates(mappedStart);
+            for (const s of mappedStartCands) {
+                for (const e of endCands) {
+                    const fare = tryGet(s, e);
+                    if (fare != null) return fare;
+                }
+            }
         }
     }
 

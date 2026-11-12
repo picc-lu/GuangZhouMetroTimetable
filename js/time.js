@@ -357,8 +357,14 @@ function parseTimeRecords(records, options = {}) {
         }
 
         // 非11号线：多终点支持
-        const idxCurrent = stations.indexOf(station);
-        const idxTo = stations.indexOf(to);
+        let idxCurrent = stations.indexOf(station);
+        if (idxCurrent === -1 && typeof isSameStation === 'function') {
+            idxCurrent = stations.findIndex(s => isSameStation(s, station));
+        }
+        let idxTo = stations.indexOf(to);
+        if (idxTo === -1 && typeof isSameStation === 'function') {
+            idxTo = stations.findIndex(s => isSameStation(s, to));
+        }
         let direction = null;
         if (idxCurrent !== -1 && idxTo !== -1) {
             if (idxTo > idxCurrent) direction = 'up';

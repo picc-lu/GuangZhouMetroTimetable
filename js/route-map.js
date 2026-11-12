@@ -402,7 +402,6 @@ function extractPathCoords(geojson, stations) {
     return uniquePath.length > 0 ? uniquePath : null;
 }
 
-// ========== 主入口 ==========
 async function showRouteMap(item) {
     ensureMapOverlay();
     _mapOverlay.classList.add('show');
@@ -412,14 +411,53 @@ async function showRouteMap(item) {
         _currentMap.remove();
         _currentMap = null;
     }
-    canvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">正在加载地图和线路数据...</div>';
+
+    // 确保容器为相对定位
+    canvas.style.position = 'relative';
+
+    // 清理可能存在的旧遮罩
+    let loadingOverlay = document.getElementById('route-map-loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.remove();
+    }
+
+    const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    let isOverlayVisible = false;
+    let showOverlayTimer = null;
+
+    // 核心逻辑：延迟 800ms 再显示遮罩，避免加载太快导致闪烁
+    showOverlayTimer = setTimeout(() => {
+        isOverlayVisible = true;
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'route-map-loading-overlay';
+        loadingOverlay.style.cssText = `position:absolute; inset:0; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; background:${isDarkTheme ? '#0f172a' : '#f8fafc'}; transition: opacity 0.3s;`;
+        loadingOverlay.innerHTML = `
+            <div id="route-map-loading-text" style="margin-bottom: 12px; font-size: 14px; font-weight: 500; color: ${isDarkTheme ? '#cbd5e1' : '#475569'};">正在准备地图...</div>
+            <div style="width: 200px; height: 6px; background: ${isDarkTheme ? '#334155' : '#e2e8f0'}; border-radius: 3px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">
+                <div id="route-map-loading-bar" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s ease;"></div>
+            </div>
+        `;
+        canvas.appendChild(loadingOverlay);
+    }, 800);
+
+    const updateProgress = (text, percent) => {
+        if (!isOverlayVisible) return; // 如果遮罩还没出来，就不去更新 DOM
+        const textEl = document.getElementById('route-map-loading-text');
+        const barEl = document.getElementById('route-map-loading-bar');
+        if (textEl) textEl.textContent = text;
+        if (barEl) barEl.style.width = `${percent}%`;
+    };
 
     try {
+        updateProgress('正在加载地图引擎...', 10);
         await loadLeaflet();
-        initCachedTileLayer();
-        canvas.innerHTML = '';
 
+        updateProgress('初始化地图缓存...', 25);
+        initCachedTileLayer();
         await TileCache.init();
+
+        updateProgress('正在创建地图实例...', 35);
 
         _currentMap = L.map('route-map-canvas', {
             zoomControl: false,
@@ -432,10 +470,7 @@ async function showRouteMap(item) {
         });
         const map = _currentMap;
 
-        // 根据当前主题动态选择底图
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
-        const baseTileUrl = isDark
+        const baseTileUrl = isDarkTheme
             ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
             : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 
@@ -448,7 +483,7 @@ async function showRouteMap(item) {
         const realEnd = item._realEnd || (item.stationRoute.length > 0 ? item.stationRoute[item.stationRoute.length - 1] : '');
         const interchanges = item.interchanges || [];
 
-        // 1. 提取途经站点序列
+        // 提取途经站点序列
         const segments = [];
         let curSeg = null;
         for (const node of item.path.nodes) {
@@ -469,9 +504,19 @@ async function showRouteMap(item) {
             }
         }
 
-        // 2. 预加载 GeoJSON
+        // 预加载 GeoJSON
         const uniqueLines = [...new Set(segments.map(s => s.line))];
-        await Promise.all(uniqueLines.map(line => fetchLineGeoJSON(line)));
+        updateProgress(`正在获取线路数据 (0/${uniqueLines.length})...`, 45);
+
+        let loadedCount = 0;
+        await Promise.all(uniqueLines.map(async (line) => {
+            await fetchLineGeoJSON(line);
+            loadedCount++;
+            const pct = 45 + Math.floor((loadedCount / uniqueLines.length) * 45);
+            updateProgress(`正在获取线路数据 (${loadedCount}/${uniqueLines.length})...`, pct);
+        }));
+
+        updateProgress('正在绘制路线和站点...', 95);
 
         const allLatLngs = [];
         const routeSegmentsUI = [];
@@ -496,9 +541,7 @@ async function showRouteMap(item) {
                     }
                 }
 
-                // 白色粗底描边
                 L.polyline(latlngs, {color: '#ffffff', weight: 8, opacity: 1, lineJoin: 'round'}).addTo(map);
-                // 彩色主线路
                 L.polyline(latlngs, {
                     color: lineColor,
                     weight: 5,
@@ -514,7 +557,6 @@ async function showRouteMap(item) {
                 });
 
                 if (latlngs.length >= 2) {
-                    // 1. 计算线段总长度和中点位置
                     let totalDist = 0;
                     const segDists = [];
                     for (let i = 0; i < latlngs.length - 1; i++) {
@@ -525,7 +567,6 @@ async function showRouteMap(item) {
                         totalDist += dist;
                     }
 
-                    // 如果路段太短（比如相邻两站极近），就不放箭头以免重叠
                     if (totalDist > 200) {
                         const halfDist = totalDist / 2;
                         let accumDist = 0;
@@ -538,23 +579,19 @@ async function showRouteMap(item) {
                                 const p1 = latlngs[i];
                                 const p2 = latlngs[i + 1];
 
-                                // 线性插值计算中点坐标
                                 midLatLng = [
                                     p1[0] + (p2[0] - p1[0]) * ratio,
                                     p1[1] + (p2[1] - p1[1]) * ratio
                                 ];
 
-                                // 计算角度：纬度差为 dy，经度差为 dx
                                 const dy = p2[0] - p1[0];
                                 const dx = p2[1] - p1[1];
-                                // 屏幕坐标 Y 轴向下，需将 dy 取反，算出的角度对应 CSS rotate
                                 angle = Math.atan2(-dy, dx) * 180 / Math.PI;
                                 break;
                             }
                             accumDist += segDists[i];
                         }
 
-                        // 2. 插入箭头图标 (模仿 topo.js 的 SVG)
                         const arrowIcon = L.divIcon({
                             className: 'route-map-arrow-icon',
                             html: `<div style="transform: rotate(${angle}deg); display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
@@ -572,7 +609,7 @@ async function showRouteMap(item) {
             }
         });
 
-        // 【新增】生成右侧线路悬浮面板
+        // 生成右侧线路悬浮面板
         const oldPanel = document.getElementById('route-map-line-panel');
         if (oldPanel) oldPanel.remove();
 
@@ -596,7 +633,6 @@ async function showRouteMap(item) {
                     ? getContrastColor(seg.color)
                     : '#ffffff';
 
-                // 【新增】根据文字长度动态缩小字体
                 let fontSize = 16;
                 if (shortName.length === 2) fontSize = 13;
                 else if (shortName.length >= 3) fontSize = 10;
@@ -607,7 +643,6 @@ async function showRouteMap(item) {
                 </button>`;
             });
 
-            // 【新增】在列表最后加上复位按钮
             panelHtml += `
                 <button class="route-map-line-btn route-map-reset-btn" type="button" title="复位视野">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -623,10 +658,8 @@ async function showRouteMap(item) {
             mapContainer.appendChild(panel);
 
             let activeLineIdx = null;
-            // 注意这里只取线路按钮，不要取到复位按钮
             const buttons = panel.querySelectorAll('.route-map-line-btn:not(.route-map-reset-btn)');
 
-            // 绑定线路聚焦事件
             buttons.forEach((btn, idx) => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -641,7 +674,7 @@ async function showRouteMap(item) {
                     if (latlngs.length > 0) {
                         const bounds = L.latLngBounds(latlngs);
                         if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
-                            map.flyTo(bounds.getCenter(), 15, {duration: 0.5});
+                            map.flyTo(bounds.getCenter(), 15, { duration: 0.5 });
                         } else {
                             map.flyToBounds(bounds, {
                                 paddingTopLeft: [40, 40],
@@ -654,16 +687,13 @@ async function showRouteMap(item) {
                 });
             });
 
-            // 【新增】绑定面板内的复位按钮事件
             panel.querySelector('.route-map-reset-btn').addEventListener('click', () => {
-                // 清除线路的选中状态
                 activeLineIdx = null;
                 buttons.forEach(b => b.classList.remove('active'));
 
-                // 复位地图视野
                 if (window._lastRouteBounds) {
                     if (window._lastRouteBounds.getNorthEast().equals(window._lastRouteBounds.getSouthWest())) {
-                        map.flyTo(window._lastRouteBounds.getCenter(), 15, {duration: 0.6});
+                        map.flyTo(window._lastRouteBounds.getCenter(), 15, { duration: 0.6 });
                     } else {
                         map.flyToBounds(window._lastRouteBounds, {
                             paddingTopLeft: [40, 40],
@@ -676,15 +706,13 @@ async function showRouteMap(item) {
             });
         }
 
-        // 4. 绘制站点标记与文本
+        // 绘制站点标记与文本
         const allStations = [realStart, ...item.stationRoute, realEnd];
         const uniqueStations = [...new Set(allStations)];
 
         uniqueStations.forEach(st => {
-            // 【新增】判断是否是换乘站
             const isTransfer = interchanges.some(o => o.key.split('|')[0] === st);
 
-            // 【新增】如果是普通中间站点（不是起点、终点、也不是换乘站），直接跳过不渲染
             if (st !== realStart && st !== realEnd && !isTransfer) {
                 return;
             }
@@ -737,7 +765,7 @@ async function showRouteMap(item) {
             } else {
                 map.fitBounds(bounds, {
                     paddingTopLeft: [40, 40],
-                    paddingBottomRight: [80, 40], // 【核心修复】默认就留出右侧空间
+                    paddingBottomRight: [80, 40],
                     maxZoom: 15
                 });
             }
@@ -746,9 +774,32 @@ async function showRouteMap(item) {
             window._lastRouteBounds = null;
         }
 
-        setTimeout(() => map.invalidateSize(), 350);
+        // 渲染完成，清理进度遮罩
+        setTimeout(() => {
+            map.invalidateSize();
+            clearTimeout(showOverlayTimer); // 清理延迟器
+            if (isOverlayVisible && loadingOverlay) {
+                updateProgress('加载完成', 100);
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    if (loadingOverlay.parentNode) loadingOverlay.remove();
+                }, 300);
+            }
+        }, 350);
+
     } catch (e) {
-        canvas.innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444;">地图加载失败: ${e.message}</div>`;
+        clearTimeout(showOverlayTimer);
+        // 如果加载报错且遮罩还没弹出来，立刻强制显示出来以便展示错误信息
+        if (!isOverlayVisible) {
+            isOverlayVisible = true;
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'route-map-loading-overlay';
+            loadingOverlay.style.cssText = `position:absolute; inset:0; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; background:${isDarkTheme ? '#0f172a' : '#f8fafc'};`;
+            canvas.appendChild(loadingOverlay);
+        }
+        if (loadingOverlay) {
+            loadingOverlay.innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444; font-weight: 500;">地图加载失败: ${e.message}</div>`;
+        }
     }
 }
 

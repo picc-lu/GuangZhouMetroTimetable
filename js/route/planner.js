@@ -42,7 +42,20 @@ function getLineAliases(line) {
 
 function getLineStationData(line, station) {
     for (const l of getLineAliases(line)) {
-        const d = lineDirectionTime[l]?.[station];
+        let d = lineDirectionTime[l]?.[station];
+        // 兼容别名
+        if (!d && typeof STATION_NAME_ALIASES !== 'undefined' && STATION_NAME_ALIASES[station]) {
+            d = lineDirectionTime[l]?.[STATION_NAME_ALIASES[station]];
+        }
+        if (!d && typeof canonicalStation === 'function') {
+            const canon = canonicalStation(station);
+            if (canon !== station) d = lineDirectionTime[l]?.[canon];
+        }
+        if (!d && typeof fareAlias === 'function') {
+            const alias = fareAlias(station);
+            if (alias !== station) d = lineDirectionTime[l]?.[alias];
+        }
+
         if (d) return d;
     }
     return null;
@@ -406,19 +419,43 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
 
         // 2. 次级优先级：用户选择的排序模式
         if (sortMode === 'conservative') {
+            // 提取所有有效余量并升序排列
+            const getMarginsArray = (item) => {
+                const allMargins = [...(item.boardingMargins || [])];
+                if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
+                    allMargins.push(item.tyxMargin);
+                }
+                const valid = allMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));
+                valid.sort((a, b) => a - b);
+                return valid;
+            };
+
             const arrA = getMarginsArray(a);
             const arrB = getMarginsArray(b);
-            const len = Math.max(arrA.length, arrB.length);
 
-            // 依次比较最危险、次危险...的余量
-            for (let i = 0; i < len; i++) {
-                const m1 = arrA[i] !== undefined ? arrA[i] : 9999;
-                const m2 = arrB[i] !== undefined ? arrB[i] : 9999;
-                if (Math.abs(m1 - m2) > 0.1) {
-                    return m2 - m1; // 降序，余量越大越靠前
+            // 判断是否绝对安全（没有余量，或者最危险的余量都 > 20）
+            const isSafeA = arrA.length === 0 || arrA[0] > 20;
+            const isSafeB = arrB.length === 0 || arrB[0] > 20;
+
+            // 1. 如果一个安全，一个不安全，安全的排前面
+            if (isSafeA && !isSafeB) return -1;
+            if (!isSafeA && isSafeB) return 1;
+
+            // 2. 如果都不安全（都有警告），比较谁的“木桶短板”更长
+            if (!isSafeA && !isSafeB) {
+                const len = Math.max(arrA.length, arrB.length);
+                for (let i = 0; i < len; i++) {
+                    const m1 = arrA[i] !== undefined ? arrA[i] : 9999;
+                    const m2 = arrB[i] !== undefined ? arrB[i] : 9999;
+                    if (Math.abs(m1 - m2) > 0.1) {
+                        return m2 - m1; // 降序，余量大的前
+                    }
                 }
             }
+
+            // 3. 如果都安全，或者危险情况完全平局，直接按耗时排
             return a.totalCost - b.totalCost;
+
         } else if (sortMode === 'fewer-transfers') {
             return a.interchanges.length - b.interchanges.length || a.totalCost - b.totalCost;
         } else {
@@ -643,12 +680,13 @@ function checkReachability(path, departMin) {
                 let margin = getBoardingMargin(vParts[0], vParts[1], vParts[2], boardTimeMin, downstream);
                 let waitTime = 0;
                 let isWaitFirstTrain = false;
-                let isTruncateWait = false; // 新增：是否因为赶末班车而截断等待
+                let isTruncateWait = false;
 
                 if (margin && typeof margin === 'object' && margin.needsWait) {
                     waitTime = margin.waitMin;
                     margin = margin.marginMin;
                     isWaitFirstTrain = true;
+                    t += waitTime;  // <--- 新增这一行：将等待首班车的时间计入总用时
                 } else if (margin === 'unknown') {
                     margin = null;
                 } else if (margin === null) {
@@ -728,11 +766,29 @@ function getBoardingMargin(line, station, dirStr, timeMin, downstreamStations) {
         if (through !== 'unknown') return through;
     }
 
-    // 收集该站该线路所有方向的记录
     const aliases = getLineAliases(webLine);
     const allRecords = [];
     for (const l of aliases) {
-        const d = lineDirectionTime[l]?.[station];
+        let d = lineDirectionTime[l]?.[station];
+
+        // ===== 新增：兼容特殊站名别名（如 机场北 / 机场北（T2）） =====
+        if (!d && typeof STATION_NAME_ALIASES !== 'undefined' && STATION_NAME_ALIASES[station]) {
+            d = lineDirectionTime[l]?.[STATION_NAME_ALIASES[station]];
+        }
+        if (!d && typeof canonicalStation === 'function') {
+            const canon = canonicalStation(station);
+            if (canon !== station) {
+                d = lineDirectionTime[l]?.[canon];
+            }
+        }
+        if (!d && typeof fareAlias === 'function') {
+            const alias = fareAlias(station);
+            if (alias !== station) {
+                d = lineDirectionTime[l]?.[alias];
+            }
+        }
+        // ==========================================================
+
         if (!d) continue;
         for (const t of (d.up || [])) allRecords.push(t);
         for (const t of (d.down || [])) allRecords.push(t);

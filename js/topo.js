@@ -339,8 +339,16 @@ function renderTopo(svg) {
                 let rawName = f.properties.name || '';
                 let stdName = cleanGeoName(rawName, isTram);
 
-                stationCoordsMap[rawName] = [lng, lat];
-                stationCoordsMap[stdName] = [lng, lat];
+                // 【修复】将坐标同时挂载到规范名、别名等所有可能的键上，防止查找落空
+                const registerCoord = (name) => {
+                    if (!name) return;
+                    stationCoordsMap[name] = [lng, lat];
+                    if (typeof canonicalStation === 'function') stationCoordsMap[canonicalStation(name)] = [lng, lat];
+                    if (typeof fareAlias === 'function') stationCoordsMap[fareAlias(name)] = [lng, lat];
+                    if (typeof toDisplayName === 'function') stationCoordsMap[toDisplayName(name)] = [lng, lat];
+                };
+                registerCoord(rawName);
+                registerCoord(stdName);
 
                 if (!stationDict[stdName]) {
                     stationDict[stdName] = {
@@ -400,8 +408,9 @@ function renderTopo(svg) {
             for (let i = 0; i < stations.length - 1; i++) {
                 let stA = stations[i];
                 let stB = stations[i + 1];
-                let cA = stationCoordsMap[stA];
-                let cB = stationCoordsMap[stB];
+                // 【修复】增加别名降级查找，防止因“清布/清㘵”不匹配误触整线兜底
+                let cA = stationCoordsMap[stA] || (typeof fareAlias === 'function' && stationCoordsMap[fareAlias(stA)]);
+                let cB = stationCoordsMap[stB] || (typeof fareAlias === 'function' && stationCoordsMap[fareAlias(stB)]);
                 if (!cA || !cB) {
                     isFallback = true;
                     break;
@@ -436,8 +445,9 @@ function renderTopo(svg) {
             let stA = stations[i];
             let stB = stations[i + 1];
 
-            let cA = stationCoordsMap[stA];
-            let cB = stationCoordsMap[stB];
+            // 【修复】增加别名降级匹配
+            let cA = stationCoordsMap[stA] || (typeof fareAlias === 'function' && stationCoordsMap[fareAlias(stA)]);
+            let cB = stationCoordsMap[stB] || (typeof fareAlias === 'function' && stationCoordsMap[fareAlias(stB)]);
             if (!cA || !cB) continue;
 
             let minDistA = Infinity, minDistB = Infinity;
@@ -614,7 +624,17 @@ function renderTopo(svg) {
 }
 
 function isDirActive(line, station, dir, currentMin) {
-    const d = lineDirectionTime[line]?.[station];
+    // 1. 优先尝试使用传入的站名查找
+    let d = lineDirectionTime[line]?.[station];
+
+    // 2. 如果找不到，尝试使用 fareAlias 获取别名进行降级查找（如 清布 -> 清㘵）
+    if (!d && typeof fareAlias === 'function') {
+        const alias = fareAlias(station);
+        if (alias !== station) {
+            d = lineDirectionTime[line]?.[alias];
+        }
+    }
+
     if (!d) return false;
     if (line === '11号线') {
         if (dir === 'up') {

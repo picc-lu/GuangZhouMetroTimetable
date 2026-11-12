@@ -98,7 +98,7 @@
 .route-field {
     align-items: center;
     background: #ffffff;
-    border: 2px solid #d0ddee;
+    border: 1px solid #d0ddee;
     border-radius: 12px;
     display: flex;
     flex: 1 1 180px;
@@ -147,7 +147,7 @@
     font-size: 16px;
     min-width: 0;
     outline: none;
-    padding: 0 4px;
+    padding: 0 2px;
 }
 .route-input::placeholder {
     color: #94a3b8;
@@ -174,7 +174,6 @@
 .route-stops .route-input {
     font-weight: bold;
     min-width: 0;
-    padding: 0 16px;
     text-align: center;
     width: 100%;
 }

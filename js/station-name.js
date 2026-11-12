@@ -37,7 +37,10 @@ function normalizeLineName(raw) {
     if (!raw) return raw;
     let s = String(raw);
     for (const [re, to] of LINE_NAME_RULES) {
-        if (re.test(s)) { s = s.replace(re, to); break; }
+        if (re.test(s)) {
+            s = s.replace(re, to);
+            break;
+        }
     }
     return s;
 }
@@ -53,16 +56,22 @@ const STATION_ALIASES = {
     '虫雷岗':         ['礌岗', '虫雷 岗'],
     '庆盛':           ['庆盛（南沙北站）'],
     '庆盛（南沙北站）': ['庆盛'],
-    '清㘵':           ['清布'],
     '清布':           ['清㘵'],
+    '清㘵':           ['清布'],
 };
 
-/** 反向索引：别名 → canonical，构建一次 O(1) 查询 */
 const _ALIAS_TO_CANON = (() => {
     const m = new Map();
     for (const [canon, aliases] of Object.entries(STATION_ALIASES)) {
         m.set(canon, canon);
-        for (const a of aliases) m.set(a, canon);
+    }
+    // 再做一次遍历，把非规范名的映射指过去，并且避免互相覆盖
+    for (const [canon, aliases] of Object.entries(STATION_ALIASES)) {
+        for (const a of aliases) {
+            if (!m.has(a) || m.get(a) === a) {
+                m.set(a, canon);
+            }
+        }
     }
     return m;
 })();
@@ -72,6 +81,7 @@ function canonicalStation(name) {
     if (!name) return name;
     return _ALIAS_TO_CANON.get(String(name).trim()) || String(name).trim();
 }
+
 // ---------- 3. 有轨电车 ↔ 地铁 ----------
 const TRAM_STATION_ALIAS = {
     '广州塔站': '广州塔（有轨）',

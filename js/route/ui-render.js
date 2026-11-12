@@ -491,15 +491,27 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
         dataLine = resolved.line;
     }
 
-    let lineData = (typeof lineDirectionTime !== 'undefined')
-        ? lineDirectionTime[dataLine] : null;
+    let lineData = (typeof lineDirectionTime !== 'undefined') ? lineDirectionTime[dataLine] : null;
     let stationData = lineData && lineData[station];
     let lineStations = (typeof LINE_STATIONS !== 'undefined' && LINE_STATIONS[dataLine]) || [];
 
-    if ((!stationData || lineStations.length === 0)
-        && typeof getLineAliases === 'function') {
+    if ((!stationData || lineStations.length === 0) && typeof getLineAliases === 'function') {
         for (const ln of getLineAliases(lineName)) {
-            const d = (typeof lineDirectionTime !== 'undefined') && lineDirectionTime[ln]?.[station];
+            let d = (typeof lineDirectionTime !== 'undefined') && lineDirectionTime[ln]?.[station];
+
+            // 兼容别名
+            if (!d && typeof STATION_NAME_ALIASES !== 'undefined' && STATION_NAME_ALIASES[station]) {
+                d = lineDirectionTime[ln]?.[STATION_NAME_ALIASES[station]];
+            }
+            if (!d && typeof canonicalStation === 'function') {
+                const canon = canonicalStation(station);
+                if (canon !== station) d = lineDirectionTime[ln]?.[canon];
+            }
+            if (!d && typeof fareAlias === 'function') {
+                const alias = fareAlias(station);
+                if (alias !== station) d = lineDirectionTime[ln]?.[alias];
+            }
+
             const arr = (typeof LINE_STATIONS !== 'undefined') && LINE_STATIONS[ln];
             if (d && arr && arr.length > 0) {
                 stationData = d;
@@ -892,7 +904,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         walkMin: null,
         waitMin: item.startWaitMin || 0,
         isWaitFirstTrain: item.isStartWaitFirstTrain || false,
-        boardingTime: firstBoardTime,
+        boardingTime: firstBoardTime + (item.startWaitMin || 0),
         marginMin: item.startMargin,
         interchangeIdx: null,
         isVirtual3to3: false,

@@ -728,16 +728,24 @@ function _sortCombinedRoutes(allResults, sortMode, globalFastestCost) {
         allResults.sort((a, b) => {
             const arrA = getMarginsArray(a);
             const arrB = getMarginsArray(b);
-            const len = Math.max(arrA.length, arrB.length);
 
-            // 依次比较短板，次短板...
-            for (let i = 0; i < len; i++) {
-                const m1 = arrA[i] !== undefined ? arrA[i] : 9999;
-                const m2 = arrB[i] !== undefined ? arrB[i] : 9999;
-                if (Math.abs(m1 - m2) > 0.1) {
-                    return m2 - m1;
+            const isSafeA = arrA.length === 0 || arrA[0] > 20;
+            const isSafeB = arrB.length === 0 || arrB[0] > 20;
+
+            if (isSafeA && !isSafeB) return -1;
+            if (!isSafeA && isSafeB) return 1;
+
+            if (!isSafeA && !isSafeB) {
+                const len = Math.max(arrA.length, arrB.length);
+                for (let i = 0; i < len; i++) {
+                    const m1 = arrA[i] !== undefined ? arrA[i] : 9999;
+                    const m2 = arrB[i] !== undefined ? arrB[i] : 9999;
+                    if (Math.abs(m1 - m2) > 0.1) {
+                        return m2 - m1;
+                    }
                 }
             }
+
             return a.totalCost - b.totalCost;
         });
     } else {
@@ -1057,19 +1065,35 @@ function _bindRouteCardEvents(resultsEl) {
     // 4. 绑定图标提示与长车门展开
     resultsEl.querySelectorAll('[data-tooltip]').forEach(el => {
         el.addEventListener('click', (e) => {
-            // 如果是地图按钮，不在这里处理
             if (el.classList.contains('route-map-btn')) return;
 
-            e.stopPropagation(); // 阻止冒泡，防止意外触发卡片展开/折叠
+            e.stopPropagation();
 
             // 处理长车门标签的展开/收起
             if (el.classList.contains('tag-door') && el.classList.contains('is-long')) {
+                // 如果已经存有定时器，先清除，防止多次点击造成时间叠加
+                if (el._collapseTimeout) {
+                    clearTimeout(el._collapseTimeout);
+                    el._collapseTimeout = null;
+                }
+
                 el.classList.toggle('collapsed');
+
+                // 判断当前是否处于展开状态（即移除了 collapsed 类）
+                const isExpanded = !el.classList.contains('collapsed');
+
+                // 如果展开了，就在 10 秒后自动收起
+                if (isExpanded) {
+                    el._collapseTimeout = setTimeout(() => {
+                        el.classList.add('collapsed');
+                        el._collapseTimeout = null;
+                    }, 10000); // 10000 毫秒 = 10 秒
+                }
                 return;
             }
 
-            // 获取需要显示的文字，优先取 title（包含了具体信息，如"等2.6分"），其次取 data-tooltip
-            const tipText = el.getAttribute('title') || el.getAttribute('data-tooltip');
+            // 提示框逻辑保持不变
+            const tipText = el.getAttribute('data-tooltip') || el.getAttribute('title');
             if (tipText && typeof showTagTooltip === 'function') {
                 showTagTooltip(el, tipText);
             }
@@ -1222,5 +1246,5 @@ function updateTagTooltipPos() {
 
     // 根据目标元素的最新位置更新 Tooltip（fixed 定位）
     tip.style.left = (rect.left + rect.width / 2) + 'px';
-    tip.style.top = (rect.bottom + 8) + 'px';
+    tip.style.top = (rect.bottom + 4) + 'px';
 }
