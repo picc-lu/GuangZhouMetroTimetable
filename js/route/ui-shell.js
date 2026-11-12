@@ -197,6 +197,11 @@ function ensureRouteOverlay() {
             <span class="route-sort-label">快走</span>
             <span class="route-sort-hint">1.8 m/s</span>
         </label>
+        <label class="route-sort-option route-speed-option">
+            <input type="radio" name="route-walk-speed" value="2.2">
+            <span class="route-sort-label">小跑</span>
+            <span class="route-sort-hint">2.2 m/s</span>
+        </label>
     </div>
 </div>
                                 </div>
@@ -1051,6 +1056,9 @@ async function restoreRouteSession() {
     }
     _routeDepartMin = state.departMin;
     refreshRouteTimeTriggers();
+
+    updateSortOptionStatus();
+    updateCtrlOptionStatus();
 
     // 3. 恢复排序
     const sortRadio = _routeOverlay.querySelector(`input[name="route-sort"][value="${state.sortMode}"]`);

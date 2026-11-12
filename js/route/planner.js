@@ -343,12 +343,10 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
                 continue;
             }
         }
-        // ======================================
 
-        // 找到 results.push 的地方，替换：
         results.push({
             path: p,
-            totalCost: (check.arriveMin - departMin) * 60, // 核心修改：真实耗时 = 到达时间 - 出发时间
+            totalCost: (check.arriveMin - departMin) * 60,
             arriveMin: check.arriveMin,
             stationRoute,
             route: parseInterchangeRoute(p, true),
@@ -358,6 +356,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             boardingMargins: check.boardingMargins,
             startMargin: check.boardingMargins[0],
             startWaitMin: check.boardings && check.boardings[0] ? check.boardings[0].waitTime : 0,
+            isStartWaitFirstTrain: check.boardings && check.boardings[0] ? check.boardings[0].isWaitFirstTrain : false,
             actualStartBoardTime: check.boardings && check.boardings[0] ? check.boardings[0].boardTimeMin + check.boardings[0].waitTime : departMin,
             tyxArriveTime: check.tyxArriveTime,
             tyxMargin: check.tyxMargin,
@@ -385,26 +384,14 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         });
     };
 
-    // 修改 planner.js 中的 getSafetyScore
-    const getSafetyScore = (item) => {
-        let score = 1;
-        let hasMargin = false;
-
+    const getMarginsArray = (item) => {
         const allMargins = [...(item.boardingMargins || [])];
         if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
             allMargins.push(item.tyxMargin);
         }
-
-        allMargins.forEach(m => {
-            if (m != null && m !== 'unknown' && !isNaN(m)) {
-                hasMargin = true;
-                const val = Math.max(0, Math.min(m, 20)) / 20;
-                score *= val;
-            }
-        });
-
-        if (!hasMargin) return 1;
-        return score;
+        const valid = allMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));
+        valid.sort((a, b) => a - b); // 升序
+        return valid;
     };
 
     results.sort((a, b) => {
@@ -419,15 +406,18 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
 
         // 2. 次级优先级：用户选择的排序模式
         if (sortMode === 'conservative') {
-            const scoreA = getSafetyScore(a);
-            const scoreB = getSafetyScore(b);
+            const arrA = getMarginsArray(a);
+            const arrB = getMarginsArray(b);
+            const len = Math.max(arrA.length, arrB.length);
 
-            // 相乘结果大的排前面（按得分降序）
-            if (Math.abs(scoreA - scoreB) > 0.00001) {
-                return scoreB - scoreA;
+            // 依次比较最危险、次危险...的余量
+            for (let i = 0; i < len; i++) {
+                const m1 = arrA[i] !== undefined ? arrA[i] : 9999;
+                const m2 = arrB[i] !== undefined ? arrB[i] : 9999;
+                if (Math.abs(m1 - m2) > 0.1) {
+                    return m2 - m1; // 降序，余量越大越靠前
+                }
             }
-
-            // 分数完全相同时，总耗时短的排前面
             return a.totalCost - b.totalCost;
         } else if (sortMode === 'fewer-transfers') {
             return a.interchanges.length - b.interchanges.length || a.totalCost - b.totalCost;
@@ -632,6 +622,8 @@ function checkReachability(path, departMin) {
             }
         }
 
+// ====== 在 planner.js 的 checkReachability 函数中找到以下代码 ======
+
         // 上车判定
         if (vParts.length >= 4 && vParts[3] === PLATFORM) {
             const isBoarding = (uParts[1] === '开始') || (uParts.length >= 4 && uParts[3] === ARRIVED && uParts[0] !== vParts[0]);
@@ -651,6 +643,7 @@ function checkReachability(path, departMin) {
                 let margin = getBoardingMargin(vParts[0], vParts[1], vParts[2], boardTimeMin, downstream);
                 let waitTime = 0;
                 let isWaitFirstTrain = false;
+                let isTruncateWait = false; // 新增：是否因为赶末班车而截断等待
 
                 if (margin && typeof margin === 'object' && margin.needsWait) {
                     waitTime = margin.waitMin;
@@ -660,25 +653,34 @@ function checkReachability(path, departMin) {
                     margin = null;
                 } else if (margin === null) {
                     return { feasible: false, reason: `${vParts[1]} 站 ${vParts[0]} 往${vParts[2]}，到达站台时 ${fmtHM(boardTimeMin)} 已无运营` };
+                } else if (typeof margin === 'number') {
+                    // 新增：获取理论平均等车时间
+                    const headway = typeof getHeadwayAt === 'function' ? getHeadwayAt(vParts[0], boardTimeMin, vParts[2]) : 6;
+                    const avgWait = headway / 2;
+                    // 核心逻辑：如果剩余时间比平均等车时间还短，按剩余时间计算，并立刻加上
+                    if (margin < avgWait) {
+                        isTruncateWait = true;
+                        waitTime = margin;
+                        t += waitTime;
+                    }
                 }
 
                 boardings.push({
                     line: vParts[0], station: vParts[1], direction: vParts[2],
-                    boardTimeMin, waitTime, isWaitFirstTrain, marginMin: margin, downstreamStations: downstream,
+                    boardTimeMin, waitTime, isWaitFirstTrain, isTruncateWait, marginMin: margin, downstreamStations: downstream,
                 });
-
-                t += waitTime;
             }
         }
 
-        // 核心修复：当边是“站台 -> 发动”时，如果是等首班车，剥离动态注入的等待时间
+        // 核心修复：当边是“站台 -> 发动”时，如果是等首班车或赶末班车，剥离掉原本动态注入的平均等待时间
         if (uParts.length >= 4 && vParts.length >= 4 && uParts[3] === PLATFORM && vParts[3] === LAUNCH) {
             const lastBoarding = boardings[boardings.length - 1];
-            // 如果刚才就在这个站台等首班车，直接使用最初的原始图边权
-            if (lastBoarding && lastBoarding.isWaitFirstTrain && lastBoarding.station === uParts[1]) {
-                const origMap = ROUTE_GRAPH.originalEdges.get(u);
-                if (origMap && origMap.has(v)) {
-                    w = origMap.get(v);
+            if (lastBoarding && lastBoarding.station === uParts[1]) {
+                if (lastBoarding.isWaitFirstTrain || lastBoarding.isTruncateWait) {
+                    const origMap = ROUTE_GRAPH.originalEdges.get(u);
+                    if (origMap && origMap.has(v)) {
+                        w = origMap.get(v);
+                    }
                 }
             }
         }

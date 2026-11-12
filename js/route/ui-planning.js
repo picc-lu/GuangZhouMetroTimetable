@@ -715,27 +715,29 @@ function _sortCombinedRoutes(allResults, sortMode, globalFastestCost) {
         allResults = allResults.filter(r => globalFastestCost != null && (r.totalCost - globalFastestCost) <= FEWER_TRANSFERS_MAX_DELTA_SEC);
         allResults.sort((a, b) => a.interchanges.length - b.interchanges.length || a.totalCost - b.totalCost);
     } else if (sortMode === 'conservative') {
-        const getMinMargin = (item) => {
+        const getMarginsArray = (item) => {
             const allMargins = [...(item.boardingMargins || [])];
             if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
                 allMargins.push(item.tyxMargin);
             }
             const valid = allMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));
-            return valid.length > 0 ? Math.min(...valid) : 9999;
+            valid.sort((a, b) => a - b);
+            return valid;
         };
 
         allResults.sort((a, b) => {
-            const aMin = getMinMargin(a), bMin = getMinMargin(b);
-            const getLevel = (m) => m <= 10 ? 1 : (m <= 20 ? 2 : 3); // 1危险，2警戒，3安全
-            const aLv = getLevel(aMin), bLv = getLevel(bMin);
+            const arrA = getMarginsArray(a);
+            const arrB = getMarginsArray(b);
+            const len = Math.max(arrA.length, arrB.length);
 
-            // >>> 新增：如果双方都是完全安全（没有图标），直接按耗时排
-            if (aLv === 3 && bLv === 3) {
-                return a.totalCost - b.totalCost;
+            // 依次比较短板，次短板...
+            for (let i = 0; i < len; i++) {
+                const m1 = arrA[i] !== undefined ? arrA[i] : 9999;
+                const m2 = arrB[i] !== undefined ? arrB[i] : 9999;
+                if (Math.abs(m1 - m2) > 0.1) {
+                    return m2 - m1;
+                }
             }
-
-            if (aLv !== bLv) return bLv - aLv;
-            if (Math.abs(aMin - bMin) > 0.1) return bMin - aMin;
             return a.totalCost - b.totalCost;
         });
     } else {
@@ -1048,6 +1050,28 @@ function _bindRouteCardEvents(resultsEl) {
                 fullEl.style.display = '';
                 btn.dataset.expanded = '1';
                 if (textEl) textEl.textContent = '收起站点列表';
+            }
+        });
+    });
+
+    // 4. 绑定图标提示与长车门展开
+    resultsEl.querySelectorAll('[data-tooltip]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            // 如果是地图按钮，不在这里处理
+            if (el.classList.contains('route-map-btn')) return;
+
+            e.stopPropagation(); // 阻止冒泡，防止意外触发卡片展开/折叠
+
+            // 处理长车门标签的展开/收起
+            if (el.classList.contains('tag-door') && el.classList.contains('is-long')) {
+                el.classList.toggle('collapsed');
+                return;
+            }
+
+            // 获取需要显示的文字，优先取 title（包含了具体信息，如"等2.6分"），其次取 data-tooltip
+            const tipText = el.getAttribute('title') || el.getAttribute('data-tooltip');
+            if (tipText && typeof showTagTooltip === 'function') {
+                showTagTooltip(el, tipText);
             }
         });
     });

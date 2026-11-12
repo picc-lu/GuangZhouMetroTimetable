@@ -891,7 +891,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         timeMin: null,
         walkMin: null,
         waitMin: item.startWaitMin || 0,
-        boardingTime: item.actualStartBoardTime || firstBoardTime,
+        isWaitFirstTrain: item.isStartWaitFirstTrain || false,
+        boardingTime: firstBoardTime,
         marginMin: item.startMargin,
         interchangeIdx: null,
         isVirtual3to3: false,
@@ -984,6 +985,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 timeMin: o.timeMin,
                 walkMin: o.walkMin,
                 waitMin: o.waitMin || 0,
+                isWaitFirstTrain: o.isWaitFirstTrain || false,
                 boardingTime: o.boardingTime,
                 marginMin: o.marginMin,
                 interchangeIdx: interchangeCursor,
@@ -1141,17 +1143,31 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
             }
 
             // 等（时钟）
-            if (bp.waitMin > 0.1) {
+            if (bp.isWaitFirstTrain && bp.waitMin > 0.1) {
                 waitLabelHtml = `<span class="tag-wait-warning">距首班车 ${Math.round(bp.waitMin)} 分</span>`;
             } else if (bp.fullLine && bp.boardingTime != null && typeof getHeadwayAt === 'function') {
                 const headway = getHeadwayAt(bp.fullLine, bp.boardingTime);
                 if (typeof headway === 'number' && headway > 0) {
                     const ratio = (typeof _routeWaitRatio === 'number') ? _routeWaitRatio : 0.5;
-                    const wTime = headway * ratio;
-                    const waitStr = Number.isInteger(wTime) ? `${wTime}` : `${wTime.toFixed(1)}`;
+                    let wTime = headway * ratio;
 
+                    if (bp.marginMin != null && bp.marginMin !== 'unknown' && bp.marginMin < wTime) {
+                        wTime = Math.max(0, bp.marginMin);
+                    }
+
+                    let waitStr;
+                    if (wTime < 1) {
+                        // 小于1分钟时，直接显示秒（18秒）或“卡点”
+                        waitStr = `${Math.round(wTime * 60)}秒`;
+                        if (wTime <= 0.2) waitStr = '卡点';
+                    } else {
+                        waitStr = Number.isInteger(wTime) ? `${wTime}` : `${wTime.toFixed(1)}`;
+                    }
                     let prefix = '等';
-                    if (ratio >= 0.99) prefix = '最长';
+
+                    if (bp.marginMin != null && bp.marginMin !== 'unknown' && bp.marginMin < headway * ratio) {
+                        prefix = '极限';
+                    } else if (ratio >= 0.99) prefix = '最长';
                     else if (ratio >= 0.74 && ratio <= 0.76) prefix = '预计';
                     else if (ratio !== 0.5) prefix = '约';
 
