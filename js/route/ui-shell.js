@@ -225,6 +225,7 @@ function ensureRouteOverlay() {
                     </div>
                 </div>
                 <div class="route-meta" id="route-meta" style="display:none">正在加载线路图…</div>
+                <div class="route-official-msg-wrap" id="route-official-msg-wrap" style="display:none"></div>
                 <div class="route-startend-warning" id="route-startend-warning" style="display:none"></div>
                 <div class="route-legend" id="route-legend" style="display:none">
                     <!-- 20分钟图例：倒三角 -->

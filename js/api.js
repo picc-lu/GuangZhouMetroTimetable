@@ -467,20 +467,18 @@ function cleanMapDataStationName(name) {
         .replace(/\s+/g, '');
 }
 
-/**
- * 拉取车站管制数据。
- * @returns {Promise<Object|null>}  { 站名: { type, typeText, rawStationNo } }；失败返回 null
- */
-async function fetchStationControllers() {
+async function fetchStationControllers(force = false) {
     const now = Date.now();
-    if (_stationCtrlCache.data && (now - _stationCtrlCache.ts) < STATION_CTRL_CACHE_TTL) {
+    if (!force && _stationCtrlCache.data && (now - _stationCtrlCache.ts) < STATION_CTRL_CACHE_TTL) {
         return _stationCtrlCache.data;
     }
 
     try {
+        // 直接请求官方接口
         const resp = await fetch(STATION_CTRL_API, { method: 'GET', mode: 'cors' });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const json = await resp.json();
+
         if (!json.state) throw new Error('接口 state=false');
 
         const list = json?.data?.info?.stationController || [];
@@ -502,12 +500,54 @@ async function fetchStationControllers() {
             };
         }
 
+        const lineInfo = json?.data?.info?.lineInfo || [];
+        const msgText = json?.data?.msg?.ch || '';
+        const delays = [];
+
+        for (const item of lineInfo) {
+            // colorIndex 50 为延误，60 为中断
+            if (item.colorIndex === 50 || item.colorIndex === 60) {
+                // 【核心修复】使用定长匹配 (\d{3})(\d{3})，防止贪婪截断
+                const match = item.code.match(/SS_(\d+)OD(\d{3})(\d{3})UD\d/);
+                if (match) {
+                    const startNo = match[2];
+                    const endNo = match[3];
+                    let startStation = getMapDataStationName(startNo);
+                    let endStation = getMapDataStationName(endNo);
+
+                    if (startStation && endStation) {
+                        // 从提示文本中提取方向关键字，如“机场北”
+                        let dirKeyword = null;
+                        const dirMatch = msgText.match(/开往([^的]+)的列车/) || msgText.match(/往([^方向]+)方向/);
+                        if (dirMatch) dirKeyword = dirMatch[1].trim();
+
+                        delays.push({
+                            startStation,
+                            endStation,
+                            type: item.colorIndex === 50 ? 'DELAY' : 'INTERRUPT',
+                            dirKeyword: dirKeyword // 用于精准匹配方向
+                        });
+                    }
+                }
+            }
+        }
+
+        window._currentLineDelays = delays;
+        // 保存官方通告文本
+        window._currentOfficialMsg = json?.data?.msg?.ch || '';
+        console.log('[客控] 解析出的区间延误:', delays);
+
         _stationCtrlCache.data = map;
         _stationCtrlCache.ts = now;
-        console.log(`[车站管制] 获取成功，共 ${Object.keys(map).length} 个站点`, map);
         return map;
     } catch (err) {
         console.warn('[车站管制] 获取失败：', err);
         return null;
     }
+}
+
+function getMapDataStationName(no) {
+    if (typeof MAPDATA === 'undefined' || !MAPDATA.stationName?.ch?.[no]) return null;
+    let name = MAPDATA.stationName.ch[no].name;
+    return name.replace(/[\n\*#]/g, '').trim(); // 去除特殊符号
 }

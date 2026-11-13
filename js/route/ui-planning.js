@@ -327,12 +327,71 @@ async function _executePlanningPipeline(start, end, resultsEl) {
     let stationCtrl = null;
     const now = new Date();
     const isDeadTime = now.getHours() >= 2 && now.getHours() <= 4;
+
+    // 每次规划前，先清空/隐藏上一次的通告
+    const officialMsgWrap = _routeOverlay.querySelector('#route-official-msg-wrap');
+    if (officialMsgWrap) officialMsgWrap.style.display = 'none';
+
     if (!isTimeFarFromNow() && !isDeadTime) {
         try {
-            stationCtrl = await fetchStationControllers();
+            stationCtrl = await fetchStationControllers(true);
             if (cfg.avoidCtrlTransfer && stationCtrl) {
                 ctrlStationsForPlanner = Object.keys(stationCtrl);
             }
+
+            // ====== 新增：渲染官方通告 ======
+            if (typeof window._currentOfficialMsg !== 'undefined' && window._currentOfficialMsg.trim() && officialMsgWrap) {
+                // 将官方文本里的 <p> 替换为 margin 较小的 <div>，避免默认 <p> 间距过大
+                let msgHtml = window._currentOfficialMsg.trim()
+                    .replace(/<p>/gi, '<div style="margin-bottom:8px;">')
+                    .replace(/<\/p>/gi, '</div>')
+                    .replace(/<div style="margin-bottom:8px;"><\/div>/g, ''); // 清理空标签
+
+                if (!msgHtml.includes('<div')) {
+                    msgHtml = `<div>${msgHtml}</div>`;
+                }
+
+                officialMsgWrap.innerHTML = `
+                    <div class="route-official-notice" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px; overflow:hidden;">
+                        <div class="official-msg-header" style="padding:12px; font-size:13px; font-weight:600; color:#334155; display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#3b82f6; flex-shrink:0;">
+                                    <path d="M3 11l18-5v12L3 14v-3z"></path>
+                                    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                                </svg>
+                                <span>广州地铁官方通告</span>
+                            </div>
+                            <svg class="official-toggle-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; transition:transform 0.3s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="official-msg-body" style="padding: 0 12px; font-size: 12px; color: #475569; line-height: 1.6; transition: max-height 0.3s ease, padding 0.3s ease; max-height: 0px; overflow: hidden;">
+                            <div style="padding-bottom: 12px;" class="official-msg-content">
+                                ${msgHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                officialMsgWrap.style.display = 'block';
+
+                // 绑定抽屉展开/折叠动画
+                const header = officialMsgWrap.querySelector('.official-msg-header');
+                const body = officialMsgWrap.querySelector('.official-msg-body');
+                const icon = officialMsgWrap.querySelector('.official-toggle-icon');
+                let isExpanded = false;
+
+                header.addEventListener('click', () => {
+                    isExpanded = !isExpanded;
+                    if (isExpanded) {
+                        // 利用 scrollHeight 自动计算展开高度
+                        body.style.maxHeight = body.scrollHeight + 'px';
+                        if (icon) icon.style.transform = 'rotate(180deg)';
+                    } else {
+                        body.style.maxHeight = '0px';
+                        if (icon) icon.style.transform = 'rotate(0deg)';
+                    }
+                });
+            }
+            // =================================
+
         } catch (_) {
         }
     }
@@ -569,10 +628,12 @@ function _getValidStationCombos(start, end) {
  */
 async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlStationsForPlanner) {
     let allValidResults = [];
+    let isAnyFallbackDelay = false; // 新增
 
     for (const combo of validCombos) {
         const subR = await planRoutes(combo.s.real, combo.e.real, 12 * 60, cfg.sortMode, cfg.maxTransferMin, cfg.avoidOutOfStation, true, ctrlStationsForPlanner);
         if (subR.error || !subR.results || subR.results.length === 0) continue;
+        if (subR.isFallbackDelay) isAnyFallbackDelay = true;
 
         for (const item of subR.results) {
             // 【修改点】：将步长改为 1 分钟，确保能精确逼近目标到达时间
@@ -645,7 +706,7 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         item.rank = idx + 1;
     });
 
-    return {results: finalResults, rejected: [], totalPaths: 0, feasibleCount: finalResults.length};
+    return {results: finalResults, rejected: [], totalPaths: 0, feasibleCount: finalResults.length, isFallbackDelay: isAnyFallbackDelay};
 }
 
 /**
@@ -654,10 +715,12 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
 async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlStationsForPlanner) {
     let allResults = [];
     let allRejected = [];
+    let isAnyFallbackDelay = false; // 新增
 
     for (const combo of validCombos) {
         const subR = await planRoutes(combo.s.real, combo.e.real, actualDepartMin, cfg.sortMode, cfg.maxTransferMin, cfg.avoidOutOfStation, false, ctrlStationsForPlanner);
         if (subR.error) continue;
+        if (subR.isFallbackDelay) isAnyFallbackDelay = true;
 
         if (subR.results && subR.results.length > 0) {
             subR.results.forEach(item => {
@@ -704,7 +767,7 @@ async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlSta
         item.rank = currentRank;
     });
 
-    return {results: finalResults, rejected: allRejected, totalPaths: 0, feasibleCount: finalResults.length};
+    return {results: finalResults, rejected: allRejected, totalPaths: 0, feasibleCount: finalResults.length, isFallbackDelay: isAnyFallbackDelay};
 }
 
 /**
@@ -862,6 +925,61 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
     if (row10El) row10El.style.display = hasUrgent10 ? 'flex' : 'none';
 
     let headlineHtml = '';
+
+    // ====== 新增：显示区间延误/中断横幅（抽屉式） ======
+    if (typeof window._currentLineDelays !== 'undefined' && window._currentLineDelays.length > 0) {
+        const delaysList = window._currentLineDelays.map(d => {
+            const typeStr = d.type === 'INTERRUPT' ? '中断' : '延误';
+            const s = escapeHtml(formatStationForDisplay(d.startStation));
+            const e = escapeHtml(formatStationForDisplay(d.endStation));
+
+            // 有 dirKeyword 则为单向，否则为双向
+            const isSingleDir = !!d.dirKeyword;
+            const arrow = isSingleDir ? '→' : '↔';
+            const dirText = isSingleDir ? `（往${escapeHtml(d.dirKeyword)}方向）` : '';
+
+            return { text: `<b>${s} ${arrow} ${e}</b> ${dirText} 列车${typeStr}` };
+        });
+
+        // 去重
+        const uniqueDelays = [];
+        const seenDelayTexts = new Set();
+        delaysList.forEach(item => {
+            if (!seenDelayTexts.has(item.text)) {
+                seenDelayTexts.add(item.text);
+                uniqueDelays.push(item);
+            }
+        });
+
+        const delayListHtml = uniqueDelays.map(item => `
+            <div style="margin-top: 6px; display: flex; align-items: flex-start; gap: 6px;">
+                <span style="color:#c26100; line-height:1.5;">•</span> 
+                <span style="color:#c26100; line-height:1.5;">${item.text}</span>
+            </div>
+        `).join('');
+
+        headlineHtml += `
+            <div class="route-delay-notice" style="background:#fff7ed; border:1px solid #fdba74; color:#c26100; border-radius:8px; margin-bottom:12px; overflow:hidden;">
+                <div class="route-delay-header" style="padding:12px; font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none;">
+                    <div style="display:flex; align-items:center; gap:8px; line-height:1.5;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>当前路网部分区间受故障影响，已为您避开 <span style="font-weight:normal; opacity:0.9;">(共 ${uniqueDelays.length} 段)</span></span>
+                    </div>
+                    <svg class="delay-toggle-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; transition:transform 0.3s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="route-delay-body" style="padding: 0 12px; font-size: 12px; transition: max-height 0.3s ease, padding 0.3s ease; max-height: 0px; overflow: hidden;">
+                    <div style="padding-bottom: 12px;">
+                        ${delayListHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     const outdated = getOutdatedStations();
     if (outdated.length > 0) {
         const grouped = {};
@@ -913,7 +1031,16 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
             <span>${text}</span>
         </div>`;
     }
+    resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) => renderRouteCard(item, idx, item._realStart, item._realEnd, sortMode)).join('');
 
+    if (r.isFallbackDelay) {
+        headlineHtml += `
+            <div class="route-delay-fallback-warning" style="background:#fff7ed; border:1px solid #fdba74; color:#c2410c; border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:12px; font-weight:500; display:flex; align-items:flex-start; gap:8px; line-height:1.5;">
+                <span style="font-size:16px; flex-shrink:0;">⚠️</span>
+                <span>避开延误后<b>无其他可用路径</b>，以下为您展示包含延误区间的备用方案，请留意现场车站指引。</span>
+            </div>
+        `;
+    }
     resultsEl.innerHTML = headlineHtml + r.results.map((item, idx) => renderRouteCard(item, idx, item._realStart, item._realEnd, sortMode)).join('');
 
     if (!localStorage.getItem('gz_route_guide_shown')) {
@@ -929,6 +1056,25 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
                 }
             }, 10000);
         }
+    }
+
+    const delayNotice = resultsEl.querySelector('.route-delay-notice');
+    if (delayNotice) {
+        const header = delayNotice.querySelector('.route-delay-header');
+        const body = delayNotice.querySelector('.route-delay-body');
+        const icon = delayNotice.querySelector('.delay-toggle-icon');
+        let isExpanded = false;
+
+        header.addEventListener('click', () => {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                body.style.maxHeight = body.scrollHeight + 'px'; // 自动计算高度
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            } else {
+                body.style.maxHeight = '0px';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            }
+        });
     }
 
     // 绑定结果卡片事件

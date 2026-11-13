@@ -1257,6 +1257,11 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         </div>`;
     }
 
+    let delayBadgeHtml = '';
+    if (item.hasDelay) {
+        delayBadgeHtml = `<span class="route-delay-badge" style="background:#f97316; color:#fff; font-size:11px; padding:1px 5px; border-radius:4px; margin-left:6px; vertical-align:middle;">⚠️ 含区间延误</span>`;
+    }
+
     return `
         <div class="route-card ${needGuide ? 'guide-pulse' : ''}" data-rank="${rank}" data-path-key="${escapeHtml(pathKey)}">
             ${tapGuideHtml}
@@ -1272,6 +1277,7 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                         <span>${formatDuration(item.totalCost)}</span>
                         <span>${item.stationRoute.length + 2}站</span>
                         ${item.fare != null ? `<span class="route-fare">¥${item.fare}</span>` : ''}
+                        ${delayBadgeHtml}
                         ${deltaHtml}
                         <button type="button" class="route-map-btn" data-index="${idx}">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:2px;">

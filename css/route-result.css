@@ -615,3 +615,6 @@
     0% { transform: scale(0.5); opacity: 1; }
     100% { transform: scale(1.5); opacity: 0; }
 }
+
+.official-msg-content p { margin: 0 0 4px 0; }
+.official-msg-content p:last-child { margin-bottom: 0; }

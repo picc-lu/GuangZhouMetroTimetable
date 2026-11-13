@@ -126,6 +126,40 @@ const STATION_NAME_ALIASES = {
     '虫雷岗': '礌岗',
 };
 
+function getDelayBannedEdges(delays) {
+    const banned = new Set();
+    if (!delays || delays.length === 0 || typeof ROUTE_GRAPH === 'undefined' || !ROUTE_GRAPH.loaded) return banned;
+
+    for (const [from, toMap] of ROUTE_GRAPH.edges.entries()) {
+        const fp = from.split('|');
+        if (fp.length < 4 || fp[3] !== '发动') continue;
+
+        for (const to of toMap.keys()) {
+            const tp = to.split('|');
+            if (tp.length < 4 || tp[3] !== '到站') continue;
+
+            const fromStation = fp[1];
+            const toStation = tp[1];
+            const dir = fp[2]; // 例如 "机场北方向"
+
+            for (const delay of delays) {
+                // 双向匹配站名（因为官方 code 里的顺序未必是列车实际行驶顺序）
+                const matchForward = isSameStation(fromStation, delay.startStation) && isSameStation(toStation, delay.endStation);
+                const matchBackward = isSameStation(fromStation, delay.endStation) && isSameStation(toStation, delay.startStation);
+
+                if (matchForward || matchBackward) {
+                    // 如果有方向关键字且当前边方向不匹配，则说明是反方向，不禁
+                    if (delay.dirKeyword && !dir.includes(delay.dirKeyword)) {
+                        continue;
+                    }
+                    banned.add(routeEdgeKey(from, to));
+                }
+            }
+        }
+    }
+    return banned;
+}
+
 /**
  * 尝试把输入站名解析成 ROUTE_GRAPH 里的节点名。
  * @param {string} rawName  用户输入的站名
@@ -174,27 +208,58 @@ function resolveGraphStationNode(rawName, kind) {
 }
 
 /* ==========================================
-   主流程：支持排序模式
+   主流程：优先规避延误，无路可走则回退
    ========================================== */
-/**
- * 规划两个站点之间的路径。
- * @param {string} startStation 起点站名
- * @param {string} endStation 终点站名
- * @param {number} departMin 出发时刻（距 0 点的分钟数）
- * @param {'fastest'|'conservative'|'fewer-transfers'} [sortMode='fastest'] 排序模式
- * @param {number|null} [maxTransferMin=null] 单次换乘最大步行时间（分钟），null 为不限制
- * @param {boolean} [avoidOutOfStation=false] 是否不走站外换乘
- * @param {boolean} [arriveMode=false] 是否为到达模式（反向规划）
- * @param {string[]|null} [avoidCtrlStations=null] 尽量避开的客控换乘站列表
- * @returns {Promise<Object>} 包含 results、rejected、totalPaths、feasibleCount 的对象
- */
 async function planRoutes(startStation, endStation, departMin, sortMode = 'fastest', maxTransferMin = null, avoidOutOfStation = false, arriveMode = false, avoidCtrlStations = null) {
     await loadRouteGraph();
-    await loadHeadwayData(); // 确保发车间隔数据已加载
-
-    // 核心：根据出发时间，动态调整图的边权重（加入候车时间）
+    await loadHeadwayData();
     applyDynamicHeadway(departMin);
 
+    // 1. 基础禁边（站外换乘）
+    const baseBanned = avoidOutOfStation ? getOutOfStationBannedEdges() : new Set();
+
+    // 2. 获取并处理延误禁边
+    const delays = typeof window._currentLineDelays !== 'undefined' ? window._currentLineDelays : [];
+    const delayBanned = getDelayBannedEdges(delays);
+
+    // 3. 合并所有禁边
+    const allBanned = new Set([...baseBanned, ...delayBanned]);
+
+    // 4. 第一次尝试：带延误规避
+    const result = await _runPlanCore(startStation, endStation, departMin, sortMode, maxTransferMin, arriveMode, avoidCtrlStations, allBanned);
+
+    // 5. 回退判断：如果没结果，且确实是因为延误禁边导致的，尝试包含延误重新规划
+    if (result.results.length === 0 && delayBanned.size > 0) {
+        // 判断是不是完全因为时间（末班车）不行。如果纯粹是末班车不行，那绕路/不绕路都没用，不需要回退。
+        const hasOnlyTimeRejects = result.rejected && result.rejected.length > 0 && result.rejected.every(r =>
+                r.reason && (
+                    r.reason.includes('末班车') ||
+                    r.reason.includes('无运营') ||
+                    r.reason.includes('已发出') ||
+                    r.reason.includes('已停运')
+                )
+        );
+
+        if (!hasOnlyTimeRejects) {
+            console.warn('[路径] 避开延误导致无路可走，回退到含延误规划');
+            const fallbackResult = await _runPlanCore(startStation, endStation, departMin, sortMode, maxTransferMin, arriveMode, avoidCtrlStations, baseBanned);
+
+            // 如果回退后有结果，打上标记
+            if (fallbackResult.results.length > 0) {
+                fallbackResult.results.forEach(item => item.hasDelay = true);
+                fallbackResult.isFallbackDelay = true;
+                return fallbackResult;
+            }
+        }
+    }
+
+    return result;
+}
+
+/* ==========================================
+   核心规划执行（剥离了禁边计算）
+   ========================================== */
+async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTransferMin, arriveMode, avoidCtrlStations, globalBannedEdges) {
     // 不同模式使用不同上限
     let TARGET, MAX_K, MAX_CHECK;
     if (arriveMode) {
@@ -216,22 +281,19 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     if (!startNode) return { error: `起点「${startStation}」不在线路图中` };
     if (!endNode)   return { error: `终点「${endStation}」不在线路图中` };
 
-    // 站外换乘禁边
-    const globalBannedEdges = avoidOutOfStation ? getOutOfStationBannedEdges() : null;
-
     const paths = yenKShortestPaths(startNode, endNode, MAX_K, globalBannedEdges);
     const results = [];
     const rejected = [];
     let checkedCount = 0;
 
-    // 【新增】路径校验阶段的耗时限制及连续失败剪枝
+    // 路径校验阶段的耗时限制及连续失败剪枝
     const startComputeTime = performance.now();
     const MAX_COMPUTE_TIME = 1200; // 最多检查 1.2 秒
     let consecutiveNoTrainCount = 0; // 连续无车计数器
     const semanticKeys = new Set();
 
     for (const p of paths) {
-        // 【新增】超时熔断
+        // 超时熔断
         if (performance.now() - startComputeTime > MAX_COMPUTE_TIME) {
             console.warn('[路径规划] 路径检查超时，提前结束');
             break;
@@ -287,7 +349,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         if (!check.feasible) {
             rejected.push({reason: check.reason, totalCost: p.totalCost});
 
-            // 【新增】如果失败原因是没车/末班车过了，则累计连续失败次数
+            // 如果失败原因是没车/末班车过了，则累计连续失败次数
             if (check.reason && (
                 check.reason.includes('无运营') ||
                 check.reason.includes('已发出') ||
@@ -298,7 +360,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
                 consecutiveNoTrainCount = 0;
             }
 
-            // 【新增】如果连续 12 条更差的路径都无车，说明目前时间点已经全线收车，直接结束
+            // 如果连续 12 条更差的路径都无车，说明目前时间点已经全线收车，直接结束
             if (consecutiveNoTrainCount >= 12) {
                 console.warn('[路径规划] 连续多条路径因末班车停运，提前结束搜索');
                 break;
@@ -390,7 +452,6 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     // 辅助函数：判断该路径的“换乘站”是否在客控名单中
     const isCtrlTransfer = (item) => {
         if (!ctrlSet || ctrlSet.size === 0) return false;
-        // 遍历这条路径的所有换乘站，只要有一个在客控里就返回 true
         return item.interchanges.some(o => {
             const stName = o.key.split('|')[0];
             return ctrlSet.has(stName);
@@ -419,29 +480,15 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
 
         // 2. 次级优先级：用户选择的排序模式
         if (sortMode === 'conservative') {
-            // 提取所有有效余量并升序排列
-            const getMarginsArray = (item) => {
-                const allMargins = [...(item.boardingMargins || [])];
-                if (item.tyxMargin != null && item.tyxMargin !== 'unknown' && !isNaN(item.tyxMargin)) {
-                    allMargins.push(item.tyxMargin);
-                }
-                const valid = allMargins.filter(m => m != null && m !== 'unknown' && !isNaN(m));
-                valid.sort((a, b) => a - b);
-                return valid;
-            };
-
             const arrA = getMarginsArray(a);
             const arrB = getMarginsArray(b);
 
-            // 判断是否绝对安全（没有余量，或者最危险的余量都 > 20）
             const isSafeA = arrA.length === 0 || arrA[0] > 20;
             const isSafeB = arrB.length === 0 || arrB[0] > 20;
 
-            // 1. 如果一个安全，一个不安全，安全的排前面
             if (isSafeA && !isSafeB) return -1;
             if (!isSafeA && isSafeB) return 1;
 
-            // 2. 如果都不安全（都有警告），比较谁的“木桶短板”更长
             if (!isSafeA && !isSafeB) {
                 const len = Math.max(arrA.length, arrB.length);
                 for (let i = 0; i < len; i++) {
@@ -452,8 +499,6 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
                     }
                 }
             }
-
-            // 3. 如果都安全，或者危险情况完全平局，直接按耗时排
             return a.totalCost - b.totalCost;
 
         } else if (sortMode === 'fewer-transfers') {
@@ -468,13 +513,10 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
     let viewOptimalCost = null;
 
     if (results.length === 0) {
-        // 无任何可行路径（例如时间过晚、末班车检查全部不通过）
         return {results: [], rejected, totalPaths: paths.length, feasibleCount: 0};
     }
 
     if (sortMode === 'fewer-transfers') {
-        // 按换乘次数从少到多分层填充，每层内部按 totalCost（results 已排好）
-        // 过滤：比全局最快慢超过 30 分钟的排除
         const byTransferCount = new Map();
         for (const r of results) {
             if (globalFastestCost != null
@@ -499,11 +541,9 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
             viewOptimalCost = Math.min(...finalResults.map(r => r.totalCost));
         }
     } else {
-        // 最快优先 / 保守优先：取前 N
         finalResults = results.slice(0, TARGET);
     }
 
-    // ====== 打上 Δ（相对全局最快，即最快优先的首位） ======
     if (globalFastestCost != null) {
         finalResults.forEach(item => {
             item.deltaFromFastest = item.totalCost - globalFastestCost;
@@ -526,7 +566,7 @@ async function planRoutes(startStation, endStation, departMin, sortMode = 'faste
         results: finalResults,
         rejected,
         totalPaths: paths.length,
-        feasibleCount: results.length,   // 通过末班车检查的路径数
+        feasibleCount: results.length,
     };
 }
 
