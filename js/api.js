@@ -453,6 +453,7 @@ const _stationCtrlCache = { data: null, ts: 0 };
 
 const STATION_CTRL_TYPE_TEXT = {
     'NOSTOP': '停止对外服务',
+    'DELAY': '延误',
     'FLOWCONTROL': '客流控制',
     'TRANSFERONLY': '仅保留换乘',
     // 未知 type 会原样显示，方便排查
@@ -462,7 +463,6 @@ const STATION_CTRL_TYPE_TEXT = {
 function cleanMapDataStationName(name) {
     if (!name) return '';
     return String(name)
-        .replace(/\*#/g, '')
         .replace(/[（(][^）)]*[）)]/g, '')
         .replace(/\s+/g, '');
 }
@@ -512,8 +512,8 @@ async function fetchStationControllers(force = false) {
                 if (match) {
                     const startNo = match[2];
                     const endNo = match[3];
-                    let startStation = getMapDataStationName(startNo);
-                    let endStation = getMapDataStationName(endNo);
+                    let startStation = startNo;
+                    let endStation = endNo;
 
                     if (startStation && endStation) {
                         // 从提示文本中提取方向关键字，如“机场北”
@@ -544,10 +544,4 @@ async function fetchStationControllers(force = false) {
         console.warn('[车站管制] 获取失败：', err);
         return null;
     }
-}
-
-function getMapDataStationName(no) {
-    if (typeof MAPDATA === 'undefined' || !MAPDATA.stationName?.ch?.[no]) return null;
-    let name = MAPDATA.stationName.ch[no].name;
-    return name.replace(/[\n\*#]/g, '').trim(); // 去除特殊符号
 }

@@ -24,8 +24,6 @@ const FEWER_TRANSFERS_MAX_DELTA_SEC   = 30 * 60;   // 超过 30 分钟的换乘�
 const LINE_NAME_ALIASES = {
     '3号线': ['3号线', '3号线北'],
     '3号线北': ['3号线', '3号线北'],
-    '佛山3号线': ['佛山3号线', '佛山3号线北'],
-    '佛山3号线北': ['佛山3号线', '佛山3号线北'],
     '12号线西': ['12号线西', '12号线东'],
     '12号线东': ['12号线西', '12号线东'],
     '12号线': ['12号线西', '12号线东'],
@@ -592,7 +590,6 @@ function checkLineRepeat(path) {
         let lineName = parts[0];
         // 与 parseRouteSegments 保持一致：3号线北归并到 3号线
         if (lineName === '3号线北') lineName = '3号线';
-        if (lineName === '佛山3号线北') lineName = '佛山3号线';
 
         if (lineName === lastLine) continue;   // 同一段连续线路只计一次
         lastLine = lineName;

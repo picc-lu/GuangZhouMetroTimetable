@@ -35,7 +35,6 @@ function parseInterchangeRoute(path, simplified = true) {
 
         // 归并：3号线北 → 3号线
         if (lineName === '3号线北') lineName = '3号线';
-        if (lineName === '佛山3号线北') lineName = '佛山3号线';
 
         if (simplified) {
             lineName = lineName.replace(/[号线]/g, '').replace(/佛山/g, '佛');
@@ -44,7 +43,7 @@ function parseInterchangeRoute(path, simplified = true) {
             result = lineName;
             lastLine = lineName;
         } else if (lineName !== lastLine) {
-            result += '→' + lineName;
+            result += /*'→' +*/ lineName;
             lastLine = lineName;
         }
     }
@@ -185,7 +184,6 @@ function parseRouteSegments(path, departMin) {
 
         let lineName = parts[0];
         if (lineName === '3号线北') lineName = '3号线';
-        if (lineName === '佛山3号线北') lineName = '佛山3号线';
 
         const station = parts[1];
         const rawDir = parts.length >= 4 ? parts[2] : '';

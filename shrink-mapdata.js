@@ -23,7 +23,7 @@ const slimStationNameCh = {};
 if (MAPDATA.stationName && MAPDATA.stationName.ch) {
     for (const [stationNo, info] of Object.entries(MAPDATA.stationName.ch)) {
         if (info && info.name) {
-            slimStationNameCh[stationNo] = { name: info.name };
+            slimStationNameCh[stationNo] = { name: info.name.replace(/[\n*#]/g, '').trim() };
         }
     }
 }

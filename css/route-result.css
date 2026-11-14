@@ -84,7 +84,7 @@
 .route-guide {
     background: var(--bg-card, #ffffff);
     border-radius: 12px;
-    padding: 10px 8px;
+    padding: 10px 5px;
 }
 .route-guide-empty { align-items: center; color: #16a34a; display: flex; font-size: 13px; font-weight: 700; gap: 8px; justify-content: space-between; padding: 12px 14px; }
 .route-guide-item {
@@ -155,8 +155,8 @@
 }
 .guide-station {
     color: #1e293b;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: bold;
 }
 .guide-line-badge {
     border-radius: 4px;
@@ -234,7 +234,6 @@
 }
 .val-unit {
     margin-left: 1px;
-    opacity: 0.8;
 }
 /* 候车时间的专属颜色微调（可选，如果希望它和步行/等车颜色有区分） */
 .tag-wait-time {

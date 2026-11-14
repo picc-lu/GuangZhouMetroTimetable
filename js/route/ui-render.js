@@ -218,7 +218,6 @@ function _isLine3NorthStation(station) {
 function getBoardingTimeAtStation(path, station, lineName) {
     const normLine = (n) => {
         if (n === '3号线北') return '3号线';
-        if (n === '佛山3号线北') return '佛山3号线';
         return n;
     };
     const targetLine = normLine(lineName);
@@ -258,7 +257,6 @@ function getSegmentDirection(path, station, lineName, forcedEnd = null) {
     // 1. 读原始方向字段（兼容 3号线 / 3号线北）
     const normLine = (n) => {
         if (n === '3号线北') return '3号线';
-        if (n === '佛山3号线北') return '佛山3号线';
         return n;
     };
     const targetLine = normLine(lineName);
@@ -615,7 +613,6 @@ function getSegmentEndStation(path, startStation, lineName) {
     // 归并：3号线北 视同 3号线（仅用于判断"是否同属 3 号线系统"）
     const normLine = (n) => {
         if (n === '3号线北') return '3号线';
-        if (n === '佛山3号线北') return '佛山3号线';
         return n;
     };
     const targetLine = normLine(lineName);
