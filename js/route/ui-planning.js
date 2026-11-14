@@ -341,12 +341,20 @@ async function _executePlanningPipeline(start, end, resultsEl) {
 
             // ====== 新增：渲染官方通告 ======
             if (typeof window._currentOfficialMsg !== 'undefined' && window._currentOfficialMsg.trim() && officialMsgWrap) {
-                // 将官方文本里的 <p> 替换为 margin 较小的 <div>，避免默认 <p> 间距过大
-                let msgHtml = window._currentOfficialMsg.trim()
-                    .replace(/<p>/gi, '<div style="margin-bottom:8px;">')
-                    .replace(/<\/p>/gi, '</div>')
-                    .replace(/<div style="margin-bottom:8px;"><\/div>/g, ''); // 清理空标签
 
+                const plainTextMsg = window._currentOfficialMsg.replace(/<[^>]+>/g, '').trim();
+                const ignoreRegex = /尊敬的乘客，由于高峰客流较大，目前[\s\S]+实行客流控制，请乘客避开高峰错峰出行。/;
+
+                if (ignoreRegex.test(plainTextMsg)) {
+                    // 如果匹配到特定格式的通告，则直接隐藏并跳过渲染
+                    officialMsgWrap.style.display = 'none';
+                } else {
+                    // 不符合过滤条件，正常执行原有的渲染逻辑
+                    let msgHtml = window._currentOfficialMsg.trim()
+                        .replace(/<p>/gi, '<div style="margin-bottom:8px;">')
+                        .replace(/<\/p>/gi, '</div>')
+                        .replace(/<div style="margin-bottom:8px;"><\/div>/g, ''); // 清理空标签
+                }
                 if (!msgHtml.includes('<div')) {
                     msgHtml = `<div>${msgHtml}</div>`;
                 }
