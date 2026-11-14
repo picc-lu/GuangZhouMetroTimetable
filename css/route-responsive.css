@@ -7,6 +7,7 @@
     .route-stops { gap: 6px; }
     .route-swap-btn { height: 28px; width: 28px; }
     .route-swap-btn svg { height: 14px; width: 14px; }
+    .route-guide{  padding: 10px 5px; }
     .route-go { padding: 12px 0; width: 100%; }
     .route-body { padding: 12px; }
     .route-card-head { gap: 10px; padding: 10px 12px 10px 30px; }

@@ -333,10 +333,10 @@ async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTr
         }
 
         // ====== 检测是否多次经过同一线路 ======
-        const repeatedLine = checkLineRepeat(p);
-        if (repeatedLine) {
+        const repeatReason = checkLineRepeat(p);
+        if (repeatReason) {
             rejected.push({
-                reason: `路径多次经过「${repeatedLine}」，已排除`,
+                reason: repeatReason,
                 totalCost: p.totalCost,
             });
             continue;
@@ -358,8 +358,8 @@ async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTr
                 consecutiveNoTrainCount = 0;
             }
 
-            // 如果连续 12 条更差的路径都无车，说明目前时间点已经全线收车，直接结束
-            if (consecutiveNoTrainCount >= 12) {
+            // 如果连续 120 条更差的路径都无车，说明目前时间点已经全线收车，直接结束
+            if (consecutiveNoTrainCount >= 120) {
                 console.warn('[路径规划] 连续多条路径因末班车停运，提前结束搜索');
                 break;
             }
@@ -576,7 +576,7 @@ const REPEAT_CHECK_SKIP_LINES = new Set([
 
 /**
  * 检查路径中是否多次经过同一线路（按"连续段"计数，避免同站多节点重复统计）。
- * @returns {string|null} 重复的线路名；无重复返回 null
+ * @returns {string|null} 若被拒绝，返回完整的错误理由；若通过，返回 null
  */
 function checkLineRepeat(path) {
     const segments = [];
@@ -601,11 +601,38 @@ function checkLineRepeat(path) {
         counts[line] = (counts[line] || 0) + 1;
     }
 
+    // 1. 通用重复次数校验
     for (const [line, count] of Object.entries(counts)) {
-        if (count > 1 && !REPEAT_CHECK_SKIP_LINES.has(line)) {
-            return line;
+        if (REPEAT_CHECK_SKIP_LINES.has(line)) {
+            // 白名单线路最多出现 2 次
+            if (count > 2) {
+                return `路径多次经过「${line}」（${count}次），已排除`;
+            }
+        } else {
+            // 其他线路最多出现 1 次
+            if (count > 1) {
+                return `路径多次经过「${line}」，已排除`;
+            }
         }
     }
+
+    // 2. 3号线特殊接驳模式校验
+    if (counts['3号线'] === 2) {
+        const idx1 = segments.indexOf('3号线');
+        const idx2 = segments.lastIndexOf('3号线');
+
+        // 获取两次 3号线 之间夹着的线路段
+        const middle = segments.slice(idx1 + 1, idx2);
+
+        // 允许情况：中间没有（即 3→3 连续），或者只夹着 11号线 / 6号线
+        const isValidMiddle = middle.length === 0 ||
+            (middle.length === 1 && (middle[0] === '11号线' || middle[0] === '6号线'));
+
+        if (!isValidMiddle) {
+            return `路径多次经过「3号线」且接驳方式非法（仅允许通过6号线或11号线接驳），已排除`;
+        }
+    }
+
     return null;
 }
 

@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.17b",
+  "current": "1.2.18",
   "entries": [
+    {
+      "version": "1.2.18",
+      "date": "2026-11-15",
+      "items": [
+        {"type": "优化", "text": "yen缩短搜索时间"}
+      ]
+    },
     {
       "version": "1.2.17b",
       "date": "2026-11-14",
