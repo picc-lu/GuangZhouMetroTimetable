@@ -43,7 +43,7 @@ function parseInterchangeRoute(path, simplified = true) {
             result = lineName;
             lastLine = lineName;
         } else if (lineName !== lastLine) {
-            result += /*'→' +*/ lineName;
+            result += '→' + lineName;
             lastLine = lineName;
         }
     }

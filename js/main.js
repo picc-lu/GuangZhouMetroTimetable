@@ -213,7 +213,7 @@ function showYesterdayDataNotice() {
 
     const notice = document.createElement('div');
     notice.className = 'yesterday-data-notice';
-    notice.innerHTML = `⚠️ 当前显示的是 <b>${dateStr}</b> 的数据，新的运营数据将在 <b>5:00</b> 自动获取。<p><i>官方大约在 <b>2:00~4:00</b> 提供新一天的运营数据</i>`;
+    notice.innerHTML = `⚠️ 当前显示的是 <b>${dateStr}</b> 的数据，新的运营数据将在 <b>5:00</b> 后获取。<p><i>官方大约在 <b>2:00~4:00</b> 提供新一天的运营数据</i>`;
 
     // 插入到 banner 之后
     const banner = document.querySelector('.banner');
