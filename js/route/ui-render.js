@@ -35,7 +35,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
 
     let marginCursor = 0;
 
-    return `<span class="route-segments" style="display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px;">` + segs.map((s, i) => {
+    return `<span class="route-segments" style="display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px;">` + segs.map((s, i) => {
         let m = null;
 
         // 只在起点和真实跨线换乘时，才消耗一个余量
@@ -88,6 +88,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
 
         const badge = `<span class="route-segment-badge${(isUrgent || isExtremeUrgent) ? ' urgent' : ''}${is3LineWarn ? ' warn-3line' : ''}" style="background:${s.color}; color:${s.textColor};">${escapeHtml(s.shortName)}${urgentSvg}${warn3Svg}</span>`;
 
+        // 【修复】必须放在获取 prevSeg 之前
         if (i === 0) return badge;
 
         const prevSeg = segs[i - 1];
@@ -102,7 +103,7 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
             }
         }
 
-        let arrowHtml = `<span class="route-seg-arrow">→</span>`;
+        // 【修改点】：删除箭头，用 anchor 包裹 badge，将闪电放在空隙上方
         if (isCtrl) {
             const ctrlSvg = `<span class="route-seg-ctrl-icon${isFutureCtrl ? ' is-future' : ''}" title="换乘站客控中${isFutureCtrl ? '（距当前时间超过1小时，客控可能变化）' : ''}">
                 <svg viewBox="0 0 24 24" width="13" height="13" xmlns="http://www.w3.org/2000/svg">
@@ -114,10 +115,11 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
                           ${isFutureCtrl ? 'stroke-dasharray="2,2"' : ''}/>
                 </svg>
             </span>`;
-            arrowHtml = `<span class="route-seg-arrow-wrapper">${arrowHtml}${ctrlSvg}</span>`;
+            return `<span class="route-seg-ctrl-anchor">${ctrlSvg}${badge}</span>`;
         }
 
-        return arrowHtml + badge;
+        // 无客控时，直接返回 badge，依靠父容器的 gap: 5px 保持间距
+        return badge;
     }).join('') + `</span>`;
 }
 

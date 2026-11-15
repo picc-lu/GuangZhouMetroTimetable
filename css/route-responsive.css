@@ -10,13 +10,13 @@
     .route-guide{  padding: 10px 5px; }
     .route-go { padding: 12px 0; width: 100%; }
     .route-body { padding: 12px; }
-    .route-card-head { gap: 10px; padding: 10px 12px 10px 30px; }
+    .route-card-head { gap: 10px; padding: 12px 12px 10px 30px; }
     .route-rank { font-size: 11px; height: 30px; padding: 4px 0 0 5px; width: 30px; }
     .route-line-path { font-size: 14px; }
     .route-arrive-time { font-size: 15px; }
     .route-arrive-line .route-arrive-label { font-size: 10px; }
     .route-arrive-line + .route-arrive-line { margin-top: 3px; }
-    .route-segment-badge { font-size: 13px; padding: 3px 8px; }
+    .route-segment-badge { font-size: 14px; padding: 3px 8px; }
     .route-header-note { font-size: 11px; }
     .route-segment-warn { bottom: -6px; height: 16px; right: -6px; width: 16px; }
     .route-segment-warn-3line { height: 14px; left: -6px; top: -6px; width: 14px; }

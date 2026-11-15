@@ -406,6 +406,26 @@ async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTr
 
         // ====== 单次换乘步行时长过滤 ======
         const interchanges = parseInterchangeKeys(p, departMin);
+
+        // 【新增】广州南站与石壁换乘连续性过滤
+        let invalidSouthTransfer = false;
+        for (let i = 0; i < interchanges.length - 1; i++) {
+            const st1 = interchanges[i].key.split('|')[0];
+            const st2 = interchanges[i + 1].key.split('|')[0];
+            // 如果相邻的两个换乘站分别是 广州南站 和 石壁（不分前后顺序）
+            if ((st1 === '广州南站' && st2 === '石壁') || (st1 === '石壁' && st2 === '广州南站')) {
+                invalidSouthTransfer = true;
+                break;
+            }
+        }
+        if (invalidSouthTransfer) {
+            rejected.push({
+                reason: `换乘站相邻出现「广州南站」与「石壁」，已排除`,
+                totalCost: p.totalCost,
+            });
+            continue;
+        }
+
         if (maxTransferMin != null && maxTransferMin >= 0 && interchanges.length > 0) {
             const longTransfer = interchanges.find(o => o.walkMin > maxTransferMin);
             if (longTransfer) {

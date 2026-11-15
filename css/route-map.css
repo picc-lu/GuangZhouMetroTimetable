@@ -9,7 +9,6 @@
     display: inline-flex;
     font-size: 12px;
     font-weight: 600;
-    margin-left: auto; /* 推到右侧 */
     padding: 2px 8px;
     transition: all 0.2s;
 }
