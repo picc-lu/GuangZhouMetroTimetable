@@ -228,19 +228,19 @@ function getStationCoordWithFallback(stName) {
 async function fetchLineGeoJSON(lineName) {
     if (_geojsonCache[lineName] !== undefined) return _geojsonCache[lineName];
 
-    let filesToTry = [`${lineName}.geojson`];
+    let filesToTry = [`${lineName}.json`];
 
     // 兼容 12 号线东西段拆分
-    if (lineName === '12号线') filesToTry = ['12号线西.geojson', '12号线东.geojson'];
+    if (lineName === '12号线') filesToTry = ['12号线西.json', '12号线东.json'];
 
     // 【核心修复】合并 3号线 与 3号线北 的数据，防止北段渲染成直线
-    if (lineName === '3号线') filesToTry = ['3号线北.geojson', '3号线.geojson'];
-    if (lineName === '3号线北') filesToTry = ['3号线北.geojson', '3号线.geojson'];
+    if (lineName === '3号线') filesToTry = ['3号线北.json', '3号线.json'];
+    if (lineName === '3号线北') filesToTry = ['3号线北.json', '3号线.json'];
 
     // 兼容有轨电车的各种命名
-    if (lineName === 'TNH1') filesToTry = ['TNH1.geojson', '南海有轨1号线.geojson'];
-    if (lineName === '南海有轨1号线') filesToTry = ['南海有轨1号线.geojson', 'TNH1.geojson'];
-    if (lineName === '海珠有轨1号线') filesToTry = ['海珠有轨1号线.geojson', '海珠有轨.geojson'];
+    if (lineName === 'TNH1') filesToTry = ['TNH1.json', '南海有轨1号线.json'];
+    if (lineName === '南海有轨1号线') filesToTry = ['南海有轨1号线.json', 'TNH1.json'];
+    if (lineName === '海珠有轨1号线') filesToTry = ['海珠有轨1号线.json', '海珠有轨.json'];
 
     let mergedFeatures = [];
     for (const file of filesToTry) {

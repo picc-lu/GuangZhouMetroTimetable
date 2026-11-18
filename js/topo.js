@@ -219,7 +219,7 @@ function updateTopoTimeDisplay() {
 async function loadTopoData() {
     const promises = TOPO_FILES.map(async (line) => {
         try {
-            const res = await fetch(`./data/polyline/${line}.geojson`);
+            const res = await fetch(`./data/polyline/${line}.json`);
             if (!res.ok) throw new Error('Not found');
             return {line, data: await res.json()};
         } catch (e) {
