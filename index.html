@@ -17,6 +17,18 @@
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
+    <script>
+        // B站 Toy SDK：window.toy 由该脚本提供，仅在 toy 环境注入，本地 file:// 打开不加载
+        (function () {
+            const isToyEnv = window.self !== window.top ||
+                location.hostname.includes('bilibili') ||
+                location.href.includes('/toy/');
+            if (!isToyEnv) return;
+            const s = document.createElement('script');
+            s.src = '//s1.hdslb.com/bfs/seed/toy/app/sdk/toy-sdk.js';
+            document.head.appendChild(s);
+        })();
+    </script>
 
     <meta name="description"
           content="广州地铁末班车运营时间展示 - 实时查询广州地铁各线路首末班车时间，支持自定义时间模拟，含APM、佛山地铁等线路。">

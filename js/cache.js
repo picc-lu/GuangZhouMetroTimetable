@@ -6,6 +6,14 @@ const STORE_NAME = 'cache';
 const CACHE_KEY = 'latest';
 const CACHE_VERSION = 5; // 结构变化：新增 failedStations 字段
 
+// toy 环境：缓存改存 B站云存档专用键（不在 localStorage 同步前缀内，互不干扰）
+const CLOUD_CACHE_KEY = 'toy_cache';
+function useCloudCache() {
+    return typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV &&
+        typeof window.ToyCloudStorage !== 'undefined' &&
+        window.ToyCloudStorage.isEnabled();
+}
+
 let _dbPromise = null;
 function openDB() {
     if (_dbPromise) return _dbPromise;
@@ -37,6 +45,24 @@ function getServiceDate(date = new Date()) {
 
 async function saveDataToCache(lineStations, serviceRecords, failedStations = []) {
     const serviceDate = getServiceDate();
+
+    // toy 环境：写入 B站云存档
+    if (useCloudCache()) {
+        try {
+            await window.ToyCloudStorage.cloudSet(CLOUD_CACHE_KEY, JSON.stringify({
+                version: CACHE_VERSION,
+                lineStations,
+                serviceRecords,
+                failedStations,
+                serviceDate,
+                savedAt: Date.now()
+            }));
+        } catch (e) {
+            console.error('[缓存] 云端保存失败：', e);
+        }
+        return;
+    }
+
     try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -59,6 +85,28 @@ async function saveDataToCache(lineStations, serviceRecords, failedStations = []
 }
 
 async function loadDataFromCache() {
+    // toy 环境：从 B站云存档读取
+    if (useCloudCache()) {
+        try {
+            const raw = await window.ToyCloudStorage.cloudGet(CLOUD_CACHE_KEY);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data) return null;
+            if (data.version !== CACHE_VERSION) {
+                await clearCache();
+                return null;
+            }
+            if (data.serviceDate === getServiceDate()) {
+                return data;
+            }
+            await clearCache();
+            return null;
+        } catch (e) {
+            console.error('[缓存] 云端读取失败：', e);
+            return null;
+        }
+    }
+
     try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readonly');
@@ -88,6 +136,16 @@ async function loadDataFromCache() {
 }
 
 async function clearCache() {
+    // toy 环境：清除 B站云存档缓存键
+    if (useCloudCache()) {
+        try {
+            await window.ToyCloudStorage.cloudRemove(CLOUD_CACHE_KEY);
+        } catch (e) {
+            console.error('[缓存] 云端清除失败：', e);
+        }
+        return;
+    }
+
     try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');

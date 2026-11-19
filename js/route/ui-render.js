@@ -51,7 +51,8 @@ function renderRouteSegmentsHtml(path, boardingMargins, has3LineWarning, ctrlSta
             }
         }
 
-        const isExtremeUrgent = (m != null && m !== 'unknown' && m >= 0 && m <= 10);
+        // 极限修正后余量可能为略负（如-0.2），仍属最危险区间，需亮感叹号
+        const isExtremeUrgent = (m != null && m !== 'unknown' && m > -0.5 && m <= 10);
         const isUrgent = (m != null && m !== 'unknown' && m > 10 && m <= 20);
         const is3LineWarn = has3LineWarning && s.fullLine === '3号线';
 
@@ -903,7 +904,8 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
         walkMin: null,
         waitMin: item.startWaitMin || 0,
         isWaitFirstTrain: item.isStartWaitFirstTrain || false,
-        boardingTime: firstBoardTime + (item.startWaitMin || 0),
+        // 极限赶末班车时，钟表已单独显示等待时长，候车时刻保持为到站台时刻，不再叠加等车时间
+        boardingTime: firstBoardTime + (item.isStartTruncateWait ? 0 : (item.startWaitMin || 0)),
         marginMin: item.startMargin,
         interchangeIdx: null,
         isVirtual3to3: false,
@@ -1191,11 +1193,13 @@ function renderRouteCard(item, idx, startName, endName, sortMode = 'fastest', di
                 }
             }
 
-            // 剩余时间警示
+            // 剩余时间警示（精确到小数点后1位；极限修正后可能为略负，按0显示）
             if (bp.marginMin != null && !isNaN(bp.marginMin)) {
-                const m = Math.round(bp.marginMin);
-                if (m >= 0 && m <= 20) {
-                    tagsHtml += `<span class="route-tag tag-margin-urgent">剩${m}分</span>`;
+                const mVal = Math.round(bp.marginMin * 10) / 10;
+                if (mVal <= 20 && mVal > -0.5) {
+                    const shown = Math.max(0, mVal);
+                    const mStr = Number.isInteger(shown) ? `${shown}` : shown.toFixed(1);
+                    tagsHtml += `<span class="route-tag tag-margin-urgent">剩${mStr}分</span>`;
                 }
             }
         }

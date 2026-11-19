@@ -282,25 +282,110 @@ async function runRoutePlanning() {
 function _applyWaitRatioToResults(results) {
     if (typeof _routeWaitRatio === 'undefined' || _routeWaitRatio === 0.5 || !results) return;
     results.forEach(item => {
+        if (item._waitRatioApplied) return;
         const segs = (typeof parseRouteSegments === 'function') ? parseRouteSegments(item.path) : [];
         if (segs.length === 0) return;
-        let delta = 0;
+
+        const ratioDiff = _routeWaitRatio - 0.5;
         const startTime = item.actualDepartMin || _routeActiveDepartMin || getRouteDepartMin();
         const h1 = typeof getHeadwayAt === 'function' ? getHeadwayAt(segs[0].fullLine, startTime) : 0;
-        if (h1) delta += h1 * (_routeWaitRatio - 0.5);
+
+        // 到达模式：不改时刻、只修正总耗时，维持原增量口径
+        if (_routeArriveMode) {
+            let delta = 0;
+            if (h1 && !item.isStartTruncateWait) delta += h1 * ratioDiff;
+            if (item.interchanges) {
+                item.interchanges.forEach(o => {
+                    if (o.isTruncateWait) return;
+                    const toLine = o.key.split('|')[3];
+                    const boardT = (typeof o.boardingTime === 'number') ? o.boardingTime : startTime;
+                    const h = typeof getHeadwayAt === 'function' ? getHeadwayAt(toLine, boardT) : 0;
+                    if (h) delta += h * ratioDiff;
+                });
+            }
+            if (Math.abs(delta) > 0.01) item.totalCost += delta * 60;
+            item._waitRatioApplied = true;
+            return;
+        }
+
+        // 出发模式：按时间顺序单遍传播。每个上车点的实际等待 = min(发车间隔×比例, 修正后末班车余量)，
+        // 与 UI 钟表显示口径一致；余量修正后明显为负（与徽章 -0.5 口径对齐）则该方案不可行
+        const timedEvents = [];
+        let cum = 0;
+        let infeasible = false;
+
+        if (h1 && !item.isStartWaitFirstTrain) {
+            const baseWait = item.isStartTruncateWait ? (item.startWaitMin || 0) : h1 * 0.5;
+            let newWait = h1 * _routeWaitRatio;
+            if (typeof item.startMargin === 'number' && !isNaN(item.startMargin)) {
+                newWait = Math.min(newWait, Math.max(0, item.startMargin));
+            }
+            const startDelta = Math.max(0, newWait - baseWait);
+            cum += startDelta;
+            timedEvents.push({ time: startTime, delta: startDelta });
+        }
 
         if (item.interchanges) {
-            item.interchanges.forEach(o => {
+            for (const o of item.interchanges) {
+                const shift = cum; // 上游累计增量：本点时刻后移量
                 const toLine = o.key.split('|')[3];
-                const h = typeof getHeadwayAt === 'function' ? getHeadwayAt(toLine, o.boardingTime) : 0;
-                if (h) delta += h * (_routeWaitRatio - 0.5);
-            });
+                const boardT = (typeof o.boardingTime === 'number') ? o.boardingTime : startTime;
+                const h = typeof getHeadwayAt === 'function' ? getHeadwayAt(toLine, boardT) : 0;
+                const oldMargin = (typeof o.marginMin === 'number' && !isNaN(o.marginMin)) ? o.marginMin : null;
+                const newMargin = oldMargin === null ? null : oldMargin - shift;
+
+                if (newMargin !== null && newMargin < -0.5) infeasible = true;
+
+                // 等首班车的等待为固定值，不随估算比例增长，但仍接收上游偏移
+                if (h && !o.isWaitFirstTrain) {
+                    const baseWait = (o.isTruncateWait && oldMargin !== null) ? oldMargin : h * 0.5;
+                    let newWait = h * _routeWaitRatio;
+                    if (newMargin !== null) newWait = Math.min(newWait, Math.max(0, newMargin));
+                    const oDelta = Math.max(0, newWait - baseWait);
+                    cum += oDelta;
+                    timedEvents.push({ time: boardT, delta: oDelta });
+                }
+
+                if (typeof o.timeMin === 'number') o.timeMin += shift;
+                if (typeof o.boardingTime === 'number') o.boardingTime += shift;
+                if (newMargin !== null) o.marginMin = newMargin;
+            }
         }
 
-        if (Math.abs(delta) > 0.01) {
-            item.totalCost += delta * 60;
-            if (!_routeArriveMode) item.arriveMin += delta;
+        // 体育西路虚拟换乘的到达时刻同样后移其前面事件的累计增量
+        if (typeof item.tyxArriveTime === 'number') {
+            let cumTyx = 0;
+            for (const ev of timedEvents) {
+                if (ev.time < item.tyxArriveTime) cumTyx += ev.delta;
+            }
+            if (Math.abs(cumTyx) > 0.01) {
+                item.tyxArriveTime += cumTyx;
+                if (typeof item.tyxMargin === 'number' && !isNaN(item.tyxMargin)) {
+                    item.tyxMargin -= cumTyx;
+                    if (item.tyxMargin < -0.5) infeasible = true;
+                }
+            }
         }
+
+        if (Math.abs(cum) > 0.01) {
+            item.totalCost += cum * 60;
+            item.arriveMin += cum;
+        }
+
+        // 同步徽章警示三角所用的余量数组：换乘点余量已按比例扣减，
+        // 否则"剩X分"标签与线路徽章的三角/圆圈判定会不一致
+        if (item.boardingMargins && item.interchanges) {
+            for (let i = 0; i < item.interchanges.length; i++) {
+                if (i + 1 < item.boardingMargins.length) {
+                    const mm = item.interchanges[i].marginMin;
+                    item.boardingMargins[i + 1] = (mm === 'unknown') ? null : mm;
+                }
+            }
+            const validMargins = item.boardingMargins.filter(m => m != null && !isNaN(m));
+            item.urgentCount = validMargins.filter(m => m < 15).length;
+        }
+        item._waitRatioInfeasible = infeasible;
+        item._waitRatioApplied = true;
     });
 }
 
@@ -531,6 +616,15 @@ async function _executePlanningPipeline(start, end, resultsEl) {
 
     // 6. 渲染结果
     _renderRouteResults(r, start, end, cfg, resultsEl);
+
+    if (resultsEl.querySelector('.route-card') && !resultsEl.querySelector('.route-footer-notice')) {
+        resultsEl.insertAdjacentHTML('beforeend', `
+            <div class="route-footer-notice">
+                <div>候车指已在站台等待列车</div>
+                <div>规划到达时间仅供参考</div>
+            </div>
+        `);
+    }
 }
 
 /**
@@ -670,6 +764,8 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
 
                 if (bestCheck.boardings && bestCheck.boardings.length > 0) {
                     item.startWaitMin = bestCheck.boardings[0].waitTime;
+                    item.isStartWaitFirstTrain = !!bestCheck.boardings[0].isWaitFirstTrain;
+                    item.isStartTruncateWait = !!bestCheck.boardings[0].isTruncateWait;
                     item.actualStartBoardTime = bestCheck.boardings[0].boardTimeMin + bestCheck.boardings[0].waitTime;
                 } else {
                     item.startWaitMin = 0;
@@ -743,6 +839,17 @@ async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlSta
     }
 
     _applyWaitRatioToResults(allResults);
+
+    // 等车估算加大后，部分方案的上车时刻会越过末班车（余量明显为负），
+    // 该估算档下不再可行，过滤掉并记录拒绝原因
+    const ratioInfeasible = allResults.filter(x => x._waitRatioInfeasible);
+    if (ratioInfeasible.length > 0) {
+        allResults = allResults.filter(x => !x._waitRatioInfeasible);
+        ratioInfeasible.forEach(x => allRejected.push({
+            reason: `按当前等车时间估算，换乘后已错过末班车，已排除`,
+            totalCost: x.totalCost,
+        }));
+    }
 
     const globalFastestCost = allResults.length > 0 ? Math.min(...allResults.map(x => x.totalCost)) : null;
 
@@ -919,7 +1026,8 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
         }
         allMargins.forEach(m => {
             if (m != null && m !== 'unknown') {
-                if (m >= 0 && m <= 10) hasUrgent10 = true;
+                // 与线路徽章口径一致：极限修正后的略负余量仍属最危险区间
+                if (m > -0.5 && m <= 10) hasUrgent10 = true;
                 else if (m > 10 && m <= 20) hasUrgent20 = true;
             }
         });
@@ -1151,7 +1259,7 @@ function _bindRouteCardEvents(resultsEl) {
                 setTimeout(() => {
                     const bodyRect = routeBody.getBoundingClientRect();
                     const cardRect = card.getBoundingClientRect();
-                    const padding = 20;
+                    const padding = 10;
                     let scrollDistance = 0;
                     if (cardRect.height > bodyRect.height - padding) scrollDistance = (cardRect.top - bodyRect.top) - 10;
                     else if (cardRect.bottom > bodyRect.bottom) scrollDistance = cardRect.bottom - bodyRect.bottom + padding;

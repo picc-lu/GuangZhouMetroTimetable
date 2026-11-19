@@ -84,6 +84,13 @@ function showBootError(msg) {
 
 (async () => {
     try {
+        // 云存储适配：最先加载并等待云端存档灌入本地镜像（仅 B站 Toy 环境生效），
+        // 后续脚本同步读取 localStorage / 缓存时才能拿到云端数据
+        await loadScript('js/cloud-storage.js');
+        if (typeof window.ToyCloudStorage !== 'undefined') {
+            await window.ToyCloudStorage.init();
+        }
+
         // 并行下载、按序执行（async=false 保证执行顺序）
         const promises = SCRIPTS.map(loadScript);
         await Promise.all(promises);

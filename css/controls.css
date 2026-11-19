@@ -830,6 +830,7 @@ select option:checked {
     max-height: 80vh;
     max-width: 480px;
     overflow: hidden;
+    padding-bottom: 10px;
     width: 90%;
 }
 .nearby-header {

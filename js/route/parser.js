@@ -82,6 +82,7 @@ function parseInterchangeKeys(path, departMin) {
     let t = (departMin != null && !isNaN(departMin)) ? departMin : 0;
 
     let lastIsWaitFirstTrain = false;
+    let lastIsTruncateWait = false;
     let lastStationName = '';
 
     for (let i = 0; i < path.nodes.length - 1; i++) {
@@ -116,6 +117,7 @@ function parseInterchangeKeys(path, departMin) {
                 let marginMin = null;
                 let waitMin = 0;
                 let isWaitFirstTrain = false;
+                let isTruncateWait = false;
 
                 if (typeof getBoardingMargin === 'function') {
                     // 判断首末班车用走到站台的时间
@@ -126,6 +128,15 @@ function parseInterchangeKeys(path, departMin) {
                         isWaitFirstTrain = true;
                     } else {
                         marginMin = res;
+                        // 与 checkReachability 口径对齐：余量小于平均等车时间时按极限等末班车处理，
+                        // 实际等待只按余量计，避免把注入的平均候车时间整段累加进时间轴
+                        if (typeof res === 'number' && !isNaN(res)) {
+                            const hw = typeof getHeadwayAt === 'function' ? getHeadwayAt(vParts[0], platformTime, vParts[2]) : 6;
+                            if (res < hw / 2) {
+                                isTruncateWait = true;
+                                t += res;
+                            }
+                        }
                     }
                 }
 
@@ -134,11 +145,12 @@ function parseInterchangeKeys(path, departMin) {
                 // 只有真正的换乘（不是起点）才推入 result，供 UI 渲染换乘指引
                 if (uParts[3] === ARRIVED) {
                     const key = [uParts[1], uParts[0], uParts[2], vParts[0], vParts[2], firstGetOnStation].join('|');
-                    result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin, isWaitFirstTrain });
+                    result.push({ key, timeMin: stationArriveTime, walkMin, waitMin, boardingTime, marginMin, isWaitFirstTrain, isTruncateWait });
                 }
 
                 // 记录状态，供剥离时间使用
                 lastIsWaitFirstTrain = isWaitFirstTrain;
+                lastIsTruncateWait = isTruncateWait;
                 lastStationName = vParts[1];
 
                 // 核心：等待首班车的时间必须加进全局时间轴
@@ -148,12 +160,13 @@ function parseInterchangeKeys(path, departMin) {
 
         // 3. 剥离注入时间
         if (uParts.length >= 4 && vParts.length >= 4 && uParts[3] === PLATFORM && vParts[3] === LAUNCH) {
-            if (lastIsWaitFirstTrain && lastStationName === uParts[1]) {
+            if ((lastIsWaitFirstTrain || lastIsTruncateWait) && lastStationName === uParts[1]) {
                 const origMap = ROUTE_GRAPH.originalEdges.get(u);
                 if (origMap && origMap.has(v)) {
                     w = origMap.get(v);
                 }
-                lastIsWaitFirstTrain = false; // 剥离后重置状态
+                lastIsWaitFirstTrain = false;
+                lastIsTruncateWait = false; // 剥离后重置状态
             }
         }
 

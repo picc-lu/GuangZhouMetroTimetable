@@ -450,6 +450,7 @@ async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTr
             startMargin: check.boardingMargins[0],
             startWaitMin: check.boardings && check.boardings[0] ? check.boardings[0].waitTime : 0,
             isStartWaitFirstTrain: check.boardings && check.boardings[0] ? check.boardings[0].isWaitFirstTrain : false,
+            isStartTruncateWait: check.boardings && check.boardings[0] ? !!check.boardings[0].isTruncateWait : false,
             actualStartBoardTime: check.boardings && check.boardings[0] ? check.boardings[0].boardTimeMin + check.boardings[0].waitTime : departMin,
             tyxArriveTime: check.tyxArriveTime,
             tyxMargin: check.tyxMargin,

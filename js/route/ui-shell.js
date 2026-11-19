@@ -810,25 +810,23 @@ function closeRoutePlanner() {
 }
 
 function routeMetaText(showFewerDetail = false) {
-    const min = getRouteDepartMin();
-    const mode = _routeDepartMin !== null ? '自定义时间' : '系统时间';
-
     const sortRadio = _routeOverlay
         ? _routeOverlay.querySelector('input[name="route-sort"]:checked')
         : null;
     const sortMode = sortRadio ? sortRadio.value : 'fastest';
 
+    // 到达模式：只保留“仅显示 3 个结果”
     if (_routeArriveMode) {
-        return `目标到达 ${fmtHM(min)}（${mode}） · 仅显示 3 个结果`;
+        return `仅显示 3 个结果`;
     }
 
-    const line1 = `候车时刻 ${fmtHM(min)}（${mode}）`;
-    // 仅当传入 showFewerDetail = true 时才显示副标题，并更新文案
+    // 出发模式 - 换乘少优先的副标题：保留详细说明
     if (sortMode === 'fewer-transfers' && showFewerDetail) {
-        return line1
-            + `<br><span class="route-meta-sub">最多显示 5 个比「最快优先」首位<u>慢 30 分钟以内</u>的结果</span>`;
+        return `<span class="route-meta-sub" style="display:block; margin-top:0;">最多显示 5 个比「最快优先」首位<u>慢 30 分钟以内</u>的结果</span>`;
     }
-    return line1;
+
+    // 其他情况（只有候车时刻）：直接返回空字符串
+    return '';
 }
 
 function setRouteMeta(html) {

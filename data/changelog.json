@@ -1,7 +1,16 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.19",
+  "current": "1.2.20",
   "entries": [
+    {
+      "version": "1.2.20",
+      "date": "2026-11-18",
+      "items": [
+        {"type": "修复", "text": "规划某线路包含末班车时，候车时间显示错误的问题"},
+        {"type": "修复", "text": "bilibili toy线网图不显示的问题"},
+        {"type": "修复", "text": "bilibili toy不使用缓存的问题"}
+      ]
+    },
     {
       "version": "1.2.19",
       "date": "2026-11-16",
