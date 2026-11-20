@@ -42,8 +42,8 @@ function _collectAltStations(endName, excludeNames) {
         if (dist <= 5000) out.push({ station: name, dist });
     }
     out.sort((a, b) => a.dist - b.dist);
-    console.log(out)
-    return out;
+    const limitedOut = out.slice(0, 20);
+    return limitedOut;
 }
 
 /** 以同一起点、保守优先对周边站逐站规划，保留每站第一条结果 */
@@ -57,53 +57,62 @@ async function _computeAltPlans(startName, endName, departMin, onProgress) {
     const stations = _collectAltStations(endName, new Set([startName, startReal]));
     if (stations.length === 0) return [];
 
+    const entries = [];
     let completed = 0;
     const total = stations.length;
 
-    // 并发计算所有周边站点
-    const promises = stations.map(async (st) => {
-        // 让出主线程，确保进度条能平滑渲染
-        await new Promise(r => setTimeout(r, 0));
+    // 控制每批并发数量，防止 iOS 卡死主线程
+    const BATCH_SIZE = 2;
 
-        try {
-            const combo = _getValidStationCombos(startName, st.station);
-            if (combo.error || !combo.endCands || combo.endCands.length === 0) {
-                completed++;
-                if (typeof onProgress === 'function') onProgress(completed, total);
+    for (let i = 0; i < stations.length; i += BATCH_SIZE) {
+        // 关键：每批开始前，强制等待 50ms，让浏览器有时间去渲染刚刚更新的按钮进度
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const batch = stations.slice(i, i + BATCH_SIZE);
+
+        const promises = batch.map(async (st) => {
+            try {
+                const combo = _getValidStationCombos(startName, st.station);
+                if (combo.error || !combo.endCands || combo.endCands.length === 0) {
+                    return null;
+                }
+                const endReal = combo.endCands[0].real;
+
+                const subR = await planRoutes(startReal, endReal, departMin,
+                    cfg.sortMode, cfg.maxTransferMin, cfg.avoidOutOfStation, false, null);
+                let results = (subR && subR.results) ? subR.results : [];
+
+                if (results.length > 0) _applyWaitRatioToResults(results);
+                results = results.filter(x => !x._waitRatioInfeasible);
+
+                if (results.length === 0) return null;
+
+                results.forEach(item => {
+                    item._realStart = startReal;
+                    item._realEnd = endReal;
+                    item._mappedStart = startReal !== startName ? `(${startReal})` : '';
+                    item._mappedEnd = endReal !== st.station ? `(${endReal})` : '';
+                });
+
+                return { station: st.station, dist: st.dist, item: results[0] };
+            } catch (e) {
+                console.warn('[替代方案] 单站规划失败：', st.station, e);
                 return null;
+            } finally {
+                completed++;
+                if (typeof onProgress === 'function') {
+                    onProgress(completed, total);
+                }
             }
-            const endReal = combo.endCands[0].real;
+        });
 
-            const subR = await planRoutes(startReal, endReal, departMin,
-                cfg.sortMode, cfg.maxTransferMin, cfg.avoidOutOfStation, false, null);
-            let results = (subR && subR.results) ? subR.results : [];
+        const batchResults = await Promise.all(promises);
+        entries.push(...batchResults.filter(Boolean));
+    }
 
-            if (results.length > 0) _applyWaitRatioToResults(results);
-            results = results.filter(x => !x._waitRatioInfeasible);
-
-            completed++;
-            if (typeof onProgress === 'function') onProgress(completed, total);
-
-            if (results.length === 0) return null;
-
-            results.forEach(item => {
-                item._realStart = startReal;
-                item._realEnd = endReal;
-                item._mappedStart = startReal !== startName ? `(${startReal})` : '';
-                item._mappedEnd = endReal !== st.station ? `(${endReal})` : '';
-            });
-
-            return { station: st.station, dist: st.dist, item: results[0] };
-        } catch (e) {
-            console.warn('[替代方案] 单站规划失败：', st.station, e);
-            completed++;
-            if (typeof onProgress === 'function') onProgress(completed, total);
-            return null;
-        }
-    });
-
-    const computed = await Promise.all(promises);
-    return computed.filter(Boolean);
+    // 按照距离重新排序（因为分批计算会打乱顺序）
+    entries.sort((a, b) => a.dist - b.dist);
+    return entries;
 }
 
 /** 空结果页入口：计算周边站方案并打开选点地图 */
@@ -127,11 +136,15 @@ async function startAlternatePlan(startName, endName) {
             // 更新进度文字
             btn.textContent = `正在计算周边站点方案 ${current}/${total}`;
 
-            // 绘制进度条背景：使用半透明绿色填充
+            // 绘制进度条背景
             const percent = (current / total) * 100;
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const progressColor = isDark ? 'rgba(34, 197, 94, 0.4)' : 'rgba(22, 101, 52, 0.15)';
+
             btn.style.backgroundImage = `linear-gradient(to right, ${progressColor} ${percent}%, transparent ${percent}%)`;
+
+            // 👇 新增：强制浏览器重排（Reflow），唤醒 iOS Safari 立刻重绘更新 UI
+            void btn.offsetWidth;
         });
 
         // 恢复按钮初始状态

@@ -1,7 +1,14 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.21",
+  "current": "1.2.21a",
   "entries": [
+    {
+      "version": "1.2.21a",
+      "date": "2026-11-20",
+      "items": [
+        {"type": "修复", "text": "手机端附近可用站点进度无动画"}
+      ]
+    },
     {
       "version": "1.2.21",
       "date": "2026-11-20",
