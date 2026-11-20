@@ -583,14 +583,14 @@
     padding: 5px 10px;
     pointer-events: none;
     position: fixed;
-    transform: translate(-50%, 4px);
+    transform: translate(-50%, -100%) translateY(4px);
     transition: opacity 0.2s, transform 0.2s;
     white-space: nowrap;
     z-index: 9999;
 }
 .tag-tooltip.show {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -100%) translateY(-4px);
 }
 [data-theme="dark"] .tag-tooltip {
     background: rgba(241, 245, 249, 0.95);
@@ -634,3 +634,16 @@
 
 .official-msg-content p { margin: 0 0 4px 0; }
 .official-msg-content p:last-child { margin-bottom: 0; }
+
+#route-btn-alternate {
+    background: #dcfce7;      /* 浅绿背景 */
+    border-color: #bbf7d0;    /* 浅绿边框 */
+    color: #166534;           /* 深绿文字 */
+}
+#route-btn-alternate:hover {
+    background: #bbf7d0;
+    border-color: #86efac;
+}
+#route-btn-alternate:active {
+    background: #86efac;
+}

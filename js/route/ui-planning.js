@@ -143,7 +143,7 @@ function buildRouteSuggestions(r, currentCfg) {
 
 function applyRouteSuggestion(action, value) {
     if (!_routeOverlay) return;
-
+    if (!action) return;
     if (action === 'disable-max-transfer') {
         const mtc = _routeOverlay.querySelector('#route-max-transfer-check');
         if (mtc) {
@@ -620,7 +620,8 @@ async function _executePlanningPipeline(start, end, resultsEl) {
     if (resultsEl.querySelector('.route-card') && !resultsEl.querySelector('.route-footer-notice')) {
         resultsEl.insertAdjacentHTML('beforeend', `
             <div class="route-footer-notice">
-                <div>候车指已在站台等待列车</div>
+                <div>「候车」指已在站台等待列车</div>
+                <div>时长包括平均等车、列车行驶、停站、换乘时长</div>
                 <div>规划到达时间仅供参考</div>
             </div>
         `);
@@ -984,11 +985,19 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
         } else {
             // 传入完整的 cfg
             suggestions = buildRouteSuggestions(r, cfg);
+            // 不推荐调整出发时间，改为提供附近站点下车选点
+            suggestions = suggestions.filter(s => s.action !== 'earlier-depart' && s.action !== 'later-depart');
         }
 
         // 将按钮和外部导航统一包裹在 route-suggest-actions 中
-        if (suggestions.length > 0 || (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV)) {
+        if (suggestions.length > 0 || (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV) || !_routeArriveMode) {
             html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
+
+            // 附近站点下车选点入口置于首位（只要是出发模式即显示）
+            if (!_routeArriveMode) {
+                html += `<button type="button" class="route-suggest-btn" id="route-btn-alternate">📍 在附近站点下车（地图选点）</button>`;
+            }
+
             html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
 
             // 合并外部导航按钮
@@ -1006,6 +1015,12 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
         if (extBtn) extBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             openExternalMap(start, end);
+        });
+
+        const altBtn = resultsEl.querySelector('#route-btn-alternate');
+        if (altBtn) altBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startAlternatePlan(start, end);
         });
 
         resultsEl.querySelectorAll('.route-suggest-btn:not(#route-btn-external)').forEach(btn => {
@@ -1463,7 +1478,7 @@ function openExternalMap(start, end) {
 let _tagTooltipTimer = null;
 let _tagTooltipTarget = null;
 
-function showTagTooltip(el, text) {
+function showTagTooltip(el, text, duration = 1500) {
     let tip = document.getElementById('tag-tooltip');
     if (!tip) {
         tip = document.createElement('div');
@@ -1491,7 +1506,7 @@ function showTagTooltip(el, text) {
     _tagTooltipTimer = setTimeout(() => {
         tip.classList.remove('show');
         _tagTooltipTarget = null;
-    }, 1500);
+    }, duration);
 }
 
 // 独立的位置更新函数
@@ -1508,5 +1523,5 @@ function updateTagTooltipPos() {
 
     // 根据目标元素的最新位置更新 Tooltip（fixed 定位）
     tip.style.left = (rect.left + rect.width / 2) + 'px';
-    tip.style.top = (rect.bottom + 4) + 'px';
+    tip.style.top = rect.top + 'px';
 }

@@ -1,7 +1,15 @@
 {
   "description": "type: 新增 / 修复 / 优化 / 调整",
-  "current": "1.2.20",
+  "current": "1.2.21",
   "entries": [
+    {
+      "version": "1.2.21",
+      "date": "2026-11-20",
+      "items": [
+        {"type": "新增", "text": "较晚时候无可用规划时，新增在原终点站附近选可用站点下车的功能"},
+        {"type": "调整", "text": "bilibili toy不再使用缓存地图瓦片"}
+      ]
+    },
     {
       "version": "1.2.20",
       "date": "2026-11-18",

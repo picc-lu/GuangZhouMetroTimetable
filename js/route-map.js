@@ -174,6 +174,7 @@ function ensureMapOverlay() {
     if (_mapOverlay) return _mapOverlay;
     const ov = document.createElement('div');
     ov.className = 'route-map-overlay';
+    ov.style.zIndex = '20000';
     ov.innerHTML = `
         <div class="route-map-container">
             <div class="route-map-header">
@@ -454,8 +455,12 @@ async function showRouteMap(item) {
         await loadLeaflet();
 
         updateProgress('初始化地图缓存...', 25);
-        initCachedTileLayer();
-        await TileCache.init();
+        // toy 环境不缓存瓦片，直接联网查询渲染；本地环境维持 IndexedDB 缓存
+        const useTileCache = !(typeof IS_TOY_ENV !== 'undefined' && IS_TOY_ENV);
+        if (useTileCache) {
+            initCachedTileLayer();
+            await TileCache.init();
+        }
 
         updateProgress('正在创建地图实例...', 35);
 
@@ -474,7 +479,8 @@ async function showRouteMap(item) {
             ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
             : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 
-        new CachedTileLayer(baseTileUrl, {
+        const TileLayerClass = useTileCache ? CachedTileLayer : L.TileLayer;
+        new TileLayerClass(baseTileUrl, {
             maxZoom: 16,
             maxNativeZoom: 16
         }).addTo(map);

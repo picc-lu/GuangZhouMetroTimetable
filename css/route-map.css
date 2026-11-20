@@ -205,3 +205,221 @@
     background: #475569;
     color: #f1f5f9;
 }
+
+/* ========== 附近站点选点地图弹层 ========== */
+.alt-picker-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    inset: 0;
+    justify-content: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 0.3s ease;
+    z-index: 10001;
+}
+.alt-picker-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.alt-picker-container {
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    height: 62vh;
+    overflow: hidden;
+    width: 100%;
+}
+.alt-picker-header {
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 10px 12px;
+}
+.alt-picker-title {
+    color: #334155;
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+.alt-picker-exit,
+.alt-picker-confirm {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 64px;
+    padding: 6px 12px;
+}
+.alt-picker-exit:hover { background: #e2e8f0; }
+.alt-picker-confirm {
+    background: #2b7de9;
+    border-color: #2b7de9;
+    color: #fff;
+}
+.alt-picker-confirm:hover { background: #1e63c4; }
+.alt-picker-confirm:disabled {
+    background: #cbd5e1;
+    border-color: #cbd5e1;
+    color: #f8fafc;
+    cursor: not-allowed;
+}
+.alt-picker-canvas {
+    flex: 1;
+    position: relative;
+}
+/* 站点文本提示气泡 */
+.alt-station-tip {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18) !important;
+    color: #1e293b !important;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px !important;
+}
+.alt-station-tip::before { display: none !important; }
+.alt-station-tip.alt-selected {
+    background: #2b7de9 !important;
+    border-color: #2b7de9 !important;
+    color: #fff !important;
+}
+.alt-station-tip.alt-center-tip {
+    background: rgba(226, 232, 240, 0.92) !important;
+    color: #475569 !important;
+}
+
+/* ========== 附近下车方案独立结果弹层 ========== */
+.alt-result-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    inset: 0;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 0.3s ease;
+    z-index: 10002;
+}
+.alt-result-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.alt-result-container {
+    background: #fff;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 82vh;
+    margin: 0 auto;
+    max-width: 640px;
+    overflow: hidden;
+    width: calc(100% - 24px);
+}
+.alt-result-header {
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 14px;
+}
+.alt-result-header h3 {
+    align-items: baseline;
+    color: #1e293b;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 15px;
+    gap: 8px;
+    margin: 0;
+}
+.alt-result-note {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 400;
+}
+.alt-result-close {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+}
+.alt-result-close:hover { color: #1e293b; }
+.alt-result-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+}
+.alt-result-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.alt-result-item-head {
+    align-items: center;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+    padding: 8px 12px;
+}
+.alt-result-station {
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+}
+.alt-result-dist {
+    color: #64748b;
+    font-size: 12px;
+}
+.alt-result-item .route-card {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+}
+
+/* ========== 夜间模式适配 ========== */
+[data-theme="dark"] .alt-picker-container { background: #1e293b; }
+[data-theme="dark"] .alt-picker-header { border-color: #334155; }
+[data-theme="dark"] .alt-picker-title { color: #f1f5f9; }
+[data-theme="dark"] .alt-picker-exit { background: #334155; border-color: #475569; color: #cbd5e1; }
+[data-theme="dark"] .alt-picker-exit:hover { background: #475569; color: #f1f5f9; }
+[data-theme="dark"] .alt-picker-confirm:disabled { background: #475569; border-color: #475569; color: #94a3b8; }
+[data-theme="dark"] .alt-station-tip {
+    background: rgba(30, 41, 59, 0.92) !important;
+    border-color: #475569 !important;
+    color: #f1f5f9 !important;
+}
+[data-theme="dark"] .alt-station-tip.alt-selected {
+    background: #2b7de9 !important;
+    border-color: #2b7de9 !important;
+    color: #fff !important;
+}
+[data-theme="dark"] .alt-station-tip.alt-center-tip {
+    background: rgba(51, 65, 85, 0.92) !important;
+    color: #cbd5e1 !important;
+}
+[data-theme="dark"] .alt-result-container { background: #131a26; }
+[data-theme="dark"] .alt-result-header { border-color: #2d3748; }
+[data-theme="dark"] .alt-result-header h3 { color: #e2e8f0; }
+[data-theme="dark"] .alt-result-note { color: #64748b; }
+[data-theme="dark"] .alt-result-close { color: #94a3b8; }
+[data-theme="dark"] .alt-result-close:hover { background: #2d3748; color: #e2e8f0; }
+[data-theme="dark"] .alt-result-item { border-color: #2d3748; }
+[data-theme="dark"] .alt-result-item-head { background: #1a2030; border-color: #2d3748; }
+[data-theme="dark"] .alt-result-station { color: #e2e8f0; }
+[data-theme="dark"] .alt-result-dist { color: #94a3b8; }

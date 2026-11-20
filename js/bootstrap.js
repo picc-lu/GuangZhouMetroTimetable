@@ -41,6 +41,7 @@ const SCRIPTS = [
     'js/route/ui-shell.js',
     'js/route/ui-render.js',
     'js/route/ui-planning.js',
+    'js/route/ui-alternate.js',
     // ---- 线网图 ----
     'js/topo.js',
     // ---- 主题 / 启动 / PWA ----

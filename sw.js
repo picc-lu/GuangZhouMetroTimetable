@@ -1,4 +1,4 @@
-const CACHE_NAME = `gz-metro-v1.2.20`;
+const CACHE_NAME = `gz-metro-v1.2.21`;
 const ASSETS = [
     './',
     './index.html',
@@ -51,6 +51,7 @@ const ASSETS = [
     './js/route/parser.js',
     './js/route/planner.js',
     './js/route/headway.js',
+    './js/route/ui-alternate.js',
     './js/route/ui-state.js',
     './js/route/ui-prefs.js',
     './js/route/ui-autocomplete.js',
