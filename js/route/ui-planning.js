@@ -821,11 +821,16 @@ async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlSta
     let allResults = [];
     let allRejected = [];
     let isAnyFallbackDelay = false; // 新增
+    // 换乘少模式会把候选截断到前 N 条，真正最快的方案常因换乘次数多而落选。
+    // 这里单独收集各站点对截断前的最快方案，保证「比最快优先首位慢」与最快优先第一名同口径。
+    const fastestExtras = [];
 
     for (const combo of validCombos) {
         const subR = await planRoutes(combo.s.real, combo.e.real, actualDepartMin, cfg.sortMode, cfg.maxTransferMin, cfg.avoidOutOfStation, false, ctrlStationsForPlanner);
         if (subR.error) continue;
         if (subR.isFallbackDelay) isAnyFallbackDelay = true;
+
+        if (subR.fastestItem) fastestExtras.push(subR.fastestItem);
 
         if (subR.results && subR.results.length > 0) {
             subR.results.forEach(item => {
@@ -852,7 +857,13 @@ async function _performDepartPlanning(validCombos, actualDepartMin, cfg, ctrlSta
         }));
     }
 
-    const globalFastestCost = allResults.length > 0 ? Math.min(...allResults.map(x => x.totalCost)) : null;
+    // 换乘少模式各站点对只保留前 N 条，真正最快的方案常因换乘次数多而落选。
+    // 把截断前的最快方案按同口径修正等车估算后一并纳入基准，
+    // 保证「比最快优先首位慢」对标的是最快优先第一名，而不是换乘少列表内的最快。
+    _applyWaitRatioToResults(fastestExtras);
+    const baselinePool = allResults.concat(fastestExtras.filter(x => !x._waitRatioInfeasible));
+
+    const globalFastestCost = baselinePool.length > 0 ? Math.min(...baselinePool.map(x => x.totalCost)) : null;
 
     // 排序逻辑抽离
     allResults = _sortCombinedRoutes(allResults, cfg.sortMode, globalFastestCost);

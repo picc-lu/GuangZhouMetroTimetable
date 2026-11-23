@@ -465,6 +465,13 @@ async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTr
         ? Math.min(...results.map(r => r.totalCost))
         : null;
 
+    // 截断前的真实最快方案。换乘少模式只保留前 N 条，最快那条常因换乘次数多而落选，
+    // 需把它带回上层，作为「比最快优先首位慢」的差值基准，与最快优先第一名同口径。
+    let fastestItem = null;
+    if (results.length > 0) {
+        fastestItem = results.reduce((a, b) => (b.totalCost < a.totalCost ? b : a), results[0]);
+    }
+
     // ====== 排序 ======
     const ctrlSet = avoidCtrlStations ? new Set(avoidCtrlStations) : null;
 
@@ -586,6 +593,7 @@ async function _runPlanCore(startStation, endStation, departMin, sortMode, maxTr
         rejected,
         totalPaths: paths.length,
         feasibleCount: results.length,
+        fastestItem,
     };
 }
 

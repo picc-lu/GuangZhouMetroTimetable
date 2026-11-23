@@ -39,7 +39,7 @@ function _collectAltStations(endName, excludeNames) {
         }
         const [lng, lat] = coord;
         const dist = haversineDistance(tLat, tLng, lat, lng);
-        if (dist <= 5000) out.push({ station: name, dist });
+        if (dist <= 5000) out.push({station: name, dist});
     }
     out.sort((a, b) => a.dist - b.dist);
     const limitedOut = out.slice(0, 20);
@@ -94,7 +94,7 @@ async function _computeAltPlans(startName, endName, departMin, onProgress) {
                     item._mappedEnd = endReal !== st.station ? `(${endReal})` : '';
                 });
 
-                return { station: st.station, dist: st.dist, item: results[0] };
+                return {station: st.station, dist: st.dist, item: results[0]};
             } catch (e) {
                 console.warn('[替代方案] 单站规划失败：', st.station, e);
                 return null;
@@ -116,38 +116,83 @@ async function _computeAltPlans(startName, endName, departMin, onProgress) {
 }
 
 /** 空结果页入口：计算周边站方案并打开选点地图 */
+async function _checkStartStationActive(startReal, departMin) {
+    if (typeof STATION_INDEX === 'undefined') return true;
+    const lines = STATION_INDEX[startReal] || [];
+    if (lines.length === 0) return true;
+
+    const cfg = _getRoutePlanningOptions();
+
+    for (const line of lines) {
+        let targetStation = null;
+        for (const [stName, stLines] of Object.entries(STATION_INDEX)) {
+            if (stName !== startReal && stLines.includes(line)) {
+                targetStation = stName;
+                break;
+            }
+        }
+        if (!targetStation) continue;
+
+        const combo = _getValidStationCombos(startReal, targetStation);
+        if (combo.error || !combo.endCands || combo.endCands.length === 0) continue;
+
+        const endReal = combo.endCands[0].real;
+        const subR = await planRoutes(startReal, endReal, departMin, 'time', cfg.maxTransferMin, cfg.avoidOutOfStation, false, null);
+
+        if (subR && subR.results && subR.results.length > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 async function startAlternatePlan(startName, endName) {
     if (_isRoutePlanning) return;
     const resultsEl = _routeOverlay ? _routeOverlay.querySelector('#route-results') : null;
     if (!resultsEl) return;
     const btn = resultsEl.querySelector('#route-btn-alternate');
-    const defaultLabel = '📍 在附近站点下车（地图选点）';
+
+    const defaultLabel = `📍 在「${endName}」附近站点下车（地图选点）`;
+    if (btn) btn.textContent = defaultLabel;
 
     if (btn) {
         btn.disabled = true;
-        btn.textContent = '正在计算周边站点方案…';
+        btn.textContent = '正在检查起点站运营状态…';
     }
 
     try {
         const departMin = getRouteDepartMin();
+        const startReal = _resolveAltStart(startName);
+
+        if (!startReal) {
+            if (btn && typeof showTagTooltip === 'function') {
+                showTagTooltip(btn, '无法解析起点站', 3000);
+            }
+            return;
+        }
+
+        const isActive = await _checkStartStationActive(startReal, departMin);
+        if (!isActive) {
+            if (btn && typeof showTagTooltip === 'function') {
+                showTagTooltip(btn, '当前时刻起点站双向均已停止运营，无法规划', 3000);
+            }
+            return;
+        }
+
+        if (btn) btn.textContent = '正在计算周边站点方案…';
 
         const entries = await _computeAltPlans(startName, endName, departMin, (current, total) => {
             if (!btn) return;
-            // 更新进度文字
             btn.textContent = `正在计算周边站点方案 ${current}/${total}`;
 
-            // 绘制进度条背景
             const percent = (current / total) * 100;
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const progressColor = isDark ? 'rgba(34, 197, 94, 0.4)' : 'rgba(22, 101, 52, 0.15)';
 
             btn.style.backgroundImage = `linear-gradient(to right, ${progressColor} ${percent}%, transparent ${percent}%)`;
-
-            // 👇 新增：强制浏览器重排（Reflow），唤醒 iOS Safari 立刻重绘更新 UI
             void btn.offsetWidth;
         });
 
-        // 恢复按钮初始状态
         if (btn) {
             btn.textContent = defaultLabel;
             btn.style.backgroundImage = '';
@@ -236,7 +281,6 @@ async function openAltPicker() {
         doubleClickZoom: false,
         boxZoom: false,
         keyboard: false,
-        touchZoom: false,
     });
     _altPickerMap = map;
 
@@ -248,9 +292,9 @@ async function openAltPicker() {
     if (useTileCache) {
         initCachedTileLayer();
         await TileCache.init();
-        new CachedTileLayer(baseTileUrl, { maxZoom: 16, maxNativeZoom: 16 }).addTo(map);
+        new CachedTileLayer(baseTileUrl, {maxZoom: 16, maxNativeZoom: 16}).addTo(map);
     } else {
-        new L.TileLayer(baseTileUrl, { maxZoom: 16, maxNativeZoom: 16 }).addTo(map);
+        new L.TileLayer(baseTileUrl, {maxZoom: 16, maxNativeZoom: 16}).addTo(map);
     }
 
     // 视野：先按全部可到达周边站自适应缩放，再把视点锁回原终点（正中央）
@@ -262,13 +306,13 @@ async function openAltPicker() {
             pts.push([wgsLat, wgsLng]);
         }
     });
-    map.fitBounds(L.latLngBounds(pts).pad(0.18), { animate: false });
+    map.fitBounds(L.latLngBounds(pts).pad(0.18), {animate: false});
 
     // 原终点：中心参考标记（不可选）
     L.circleMarker([cLat, cLng], {
         radius: 6, color: '#94a3b8', weight: 2, fillColor: '#e2e8f0', fillOpacity: 1, interactive: false,
     }).addTo(map).bindTooltip(
-        L.tooltip({ permanent: true, direction: 'top', className: 'alt-station-tip alt-center-tip', offset: [0, -6] })
+        L.tooltip({permanent: true, direction: 'top', className: 'alt-station-tip alt-center-tip', offset: [0, -6]})
             .setContent(_altState.end)
     );
 
@@ -290,7 +334,7 @@ async function openAltPicker() {
             else _altPickerSelected.add(en.station);
 
             const selected = _altPickerSelected.has(en.station);
-            marker.setStyle({ fillColor: selected ? '#2b7de9' : '#ffffff' });
+            marker.setStyle({fillColor: selected ? '#2b7de9' : '#ffffff'});
 
             const tipEl = marker.getTooltip() ? marker.getTooltip().getElement() : null;
             if (tipEl) tipEl.classList.toggle('alt-selected', selected);
@@ -299,7 +343,7 @@ async function openAltPicker() {
         };
 
         marker.bindTooltip(
-            L.tooltip({ permanent: true, direction: 'top', className: 'alt-station-tip', offset: [0, -8] })
+            L.tooltip({permanent: true, direction: 'top', className: 'alt-station-tip', offset: [0, -8]})
                 .setContent(en.station)
         );
 
@@ -336,14 +380,16 @@ function ensureAltResultOverlay() {
     if (_altResultOverlay) return _altResultOverlay;
     const ov = document.createElement('div');
     ov.className = 'alt-result-overlay';
+
     ov.innerHTML = `
         <div class="alt-result-container">
             <div class="alt-result-header">
-                <h3>附近下车方案<span class="alt-result-note">原终点：<b class="alt-result-end"></b> · 保守优先</span></h3>
+                <h3>「<span class="alt-result-end"></span>」附近下车方案<span class="alt-result-note">保守优先</span></h3>
                 <button class="alt-result-close" type="button" aria-label="关闭">✕</button>
             </div>
             <div class="alt-result-body" id="alt-result-body"></div>
         </div>`;
+
     document.body.appendChild(ov);
     _altResultOverlay = ov;
     ov.querySelector('.alt-result-close').addEventListener('click', closeAltResults);
