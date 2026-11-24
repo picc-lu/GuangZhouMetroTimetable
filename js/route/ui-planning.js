@@ -804,7 +804,7 @@ async function _performArrivePlanning(validCombos, targetArriveMin, cfg, ctrlSta
         if (seenPaths.has(pathKey)) continue;
         seenPaths.add(pathKey);
         finalResults.push(item);
-        if (finalResults.length >= 3) break;
+        if (finalResults.length >= 5) break;
     }
 
     finalResults.forEach((item, idx) => {
@@ -1004,16 +1004,16 @@ function _renderRouteResults(r, start, end, cfg, resultsEl) {
         if (suggestions.length > 0 || (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV) || !_routeArriveMode) {
             html += `<div class="route-empty-suggest">💡 试试这些调整</div><div class="route-suggest-actions">`;
 
-            // 附近站点下车选点入口置于首位（只要是出发模式即显示）
+            // 附近站点下车选点入口置于首位（只要是出发模式即显示）；独占整行
             if (!_routeArriveMode) {
-                html += `<button type="button" class="route-suggest-btn" id="route-btn-alternate">📍 在附近站点下车（地图选点）</button>`;
+                html += `<button type="button" class="route-suggest-btn btn-full-row" id="route-btn-alternate">📍 在「${end}」附近站点下车（地图选点）</button>`;
             }
 
             html += suggestions.map(s => `<button type="button" class="route-suggest-btn" data-action="${s.action}" data-value="${escapeHtml(String(s.value ?? ''))}">${escapeHtml(s.label)}</button>`).join('');
 
-            // 合并外部导航按钮
+            // 合并外部导航按钮；独占整行
             if (typeof IS_TOY_ENV === 'undefined' || !IS_TOY_ENV) {
-                html += `<button type="button" class="route-suggest-btn" id="route-btn-external">🗺️ 使用外部地图导航</button>`;
+                html += `<button type="button" class="route-suggest-btn btn-full-row" id="route-btn-external">🗺️ 使用外部地图导航</button>`;
             }
             html += `</div>`;
         }

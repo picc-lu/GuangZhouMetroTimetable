@@ -647,3 +647,35 @@
 #route-btn-alternate:active {
     background: #86efac;
 }
+
+/* ==========================================
+   空结果操作引导：独占整行的按钮（附近站点 / 外部导航）
+   ========================================== */
+.route-suggest-btn.btn-full-row {
+    display: flex;
+    flex: 0 0 100%;
+    justify-content: center;
+    width: 100%;
+}
+
+/* 永久禁用态：失败后保持灰化、不可点击 */
+.route-suggest-btn:disabled,
+.route-suggest-btn:disabled:hover,
+.route-suggest-btn:disabled:active {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 覆盖 #route-btn-alternate 的绿色样式，禁用时统一灰化 */
+#route-btn-alternate:disabled,
+#route-btn-alternate:disabled:hover,
+#route-btn-alternate:disabled:active {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+}

@@ -815,17 +815,14 @@ function routeMetaText(showFewerDetail = false) {
         : null;
     const sortMode = sortRadio ? sortRadio.value : 'fastest';
 
-    // 到达模式：只保留“仅显示 3 个结果”
     if (_routeArriveMode) {
-        return `仅显示 3 个结果`;
+        return '';
     }
 
-    // 出发模式 - 换乘少优先的副标题：保留详细说明
     if (sortMode === 'fewer-transfers' && showFewerDetail) {
         return `<span class="route-meta-sub" style="display:block; margin-top:0;">最多显示 5 个比「最快优先」首位<u>慢 30 分钟以内</u>的结果</span>`;
     }
 
-    // 其他情况（只有候车时刻）：直接返回空字符串
     return '';
 }
 

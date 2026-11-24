@@ -146,8 +146,10 @@ async function _checkStartStationActive(startReal, departMin) {
     return false;
 }
 
+let _isAltPlanning = false;
+
 async function startAlternatePlan(startName, endName) {
-    if (_isRoutePlanning) return;
+    if (_isRoutePlanning || _isAltPlanning) return;
     const resultsEl = _routeOverlay ? _routeOverlay.querySelector('#route-results') : null;
     if (!resultsEl) return;
     const btn = resultsEl.querySelector('#route-btn-alternate');
@@ -155,10 +157,12 @@ async function startAlternatePlan(startName, endName) {
     const defaultLabel = `📍 在「${endName}」附近站点下车（地图选点）`;
     if (btn) btn.textContent = defaultLabel;
 
+    _isAltPlanning = true;
     if (btn) {
-        btn.disabled = true;
         btn.textContent = '正在检查起点站运营状态…';
     }
+
+    let permanentDisable = false;
 
     try {
         const departMin = getRouteDepartMin();
@@ -168,6 +172,7 @@ async function startAlternatePlan(startName, endName) {
             if (btn && typeof showTagTooltip === 'function') {
                 showTagTooltip(btn, '无法解析起点站', 3000);
             }
+            permanentDisable = true;
             return;
         }
 
@@ -176,6 +181,7 @@ async function startAlternatePlan(startName, endName) {
             if (btn && typeof showTagTooltip === 'function') {
                 showTagTooltip(btn, '当前时刻起点站双向均已停止运营，无法规划', 3000);
             }
+            permanentDisable = true;
             return;
         }
 
@@ -204,6 +210,7 @@ async function startAlternatePlan(startName, endName) {
             if (btn && typeof showTagTooltip === 'function') {
                 showTagTooltip(btn, '周边暂无可到达终点', 3000);
             }
+            permanentDisable = true;
             return;
         }
 
@@ -213,12 +220,18 @@ async function startAlternatePlan(startName, endName) {
 
     } catch (e) {
         console.error('[替代方案] 计算失败：', e);
+        permanentDisable = true;
         if (btn) {
             btn.textContent = defaultLabel;
             btn.style.backgroundImage = '';
         }
     } finally {
-        if (btn) btn.disabled = false;
+        _isAltPlanning = false;
+        if (btn) {
+            btn.textContent = defaultLabel;
+            btn.style.backgroundImage = '';
+            btn.disabled = !!permanentDisable;
+        }
     }
 }
 
@@ -272,15 +285,20 @@ async function openAltPicker() {
     if (!endCoord) return;
     const [cLng, cLat] = gcj02ToWgs84(endCoord[0], endCoord[1]);
 
-    // 禁用手势：不可拖动、不可放缩
+    // 开启精细手势交互，模仿 topo.js 的拖拽和缩放体验
     const map = L.map(canvas, {
         zoomControl: false,
         attributionControl: false,
-        dragging: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
+        dragging: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
         boxZoom: false,
         keyboard: false,
+        touchZoom: true,
+        zoomSnap: 0.25,
+        zoomDelta: 0.5,
+        wheelPxPerZoomLevel: 120,
+        maxBoundsViscosity: 1.0
     });
     _altPickerMap = map;
 
@@ -306,7 +324,9 @@ async function openAltPicker() {
             pts.push([wgsLat, wgsLng]);
         }
     });
-    map.fitBounds(L.latLngBounds(pts).pad(0.18), {animate: false});
+    const bounds = L.latLngBounds(pts);
+    map.fitBounds(bounds.pad(0.18), {animate: false});
+    map.setMaxBounds(bounds.pad(1.5)); // 限制拖动边界，防止地图拖飞
 
     // 原终点：中心参考标记（不可选）
     L.circleMarker([cLat, cLng], {
